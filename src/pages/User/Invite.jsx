@@ -1,5 +1,6 @@
 import { useState } from 'react'; // Add this import
-import UserSidebar from '../components/UserSidebar';
+import UserSidebar from "../../components/UserSidebar.jsx";
+
 import { FiMenu, FiSearch } from 'react-icons/fi'; // Add this import
 
 const Invite = () => {

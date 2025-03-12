@@ -3,12 +3,12 @@ import reactLogo from "./assets/react.svg";
 import viteLogo from "/vite.svg";
 import "./App.css";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import Home from "./pages/Home";
-import UserDashboard from "./pages/UserDashboard";
-import UserActivities from "./pages/UserActivities";
-import Invite from "./pages/Invite";
-import Support from "./pages/Support";
-import Chat from "./pages/Chat";
+import Home from "./pages/User/Home";
+import UserDashboard from "./pages/User/UserDashboard";
+import UserActivities from "./pages/User/UserActivities";
+import Invite from "./pages/User/Invite";
+import Support from "./pages/User/Support";
+import Chat from "./pages/User/Chat";
 
 function App() {
   console.log("App component is rendering"); // Debug log

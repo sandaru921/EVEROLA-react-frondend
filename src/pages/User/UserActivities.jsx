@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FiRefreshCw, FiInfo ,FiMenu ,FiSearch } from 'react-icons/fi';
-import UserSidebar from '../components/UserSidebar';
+import UserSidebar from "../../components/UserSidebar.jsx";
+
 
 const ProgressChart = ({ completed, total }) => {
   const percentage = (completed / total) * 100;

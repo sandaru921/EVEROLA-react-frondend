@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FiSearch, FiMoon, FiSun,FiMenu  } from 'react-icons/fi';
-import UserSidebar from '../components/UserSidebar';
+import UserSidebar from '../../components/UserSidebar.jsx';
 
 const UserDashboard = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);

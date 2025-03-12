@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FiMenu, FiSearch } from 'react-icons/fi';
-import UserSidebar from '../components/UserSidebar';
+import UserSidebar from "../../components/UserSidebar.jsx";
+
 
 const Support = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);

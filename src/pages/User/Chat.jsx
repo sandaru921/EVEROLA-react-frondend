@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { FiSend, FiMenu } from 'react-icons/fi';
-import UserSidebar from '../components/UserSidebar';
+import UserSidebar from "../../components/UserSidebar.jsx";
+
 
 const Chat = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
