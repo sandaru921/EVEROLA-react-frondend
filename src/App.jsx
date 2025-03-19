@@ -10,6 +10,7 @@ import Invite from "./pages/User/Invite";
 import Support from "./pages/User/Support";
 import Chat from "./pages/User/Chat";
 import Joblanding from "./pages/Joblanding";
+import Privacy from "./pages/User/Privacy";
 
 function App() {
   console.log("App component is rendering"); // Debug log
@@ -26,6 +27,7 @@ function App() {
         <Route path="/invite" element={<Invite />} />
         <Route path="/chat" element={<Chat />} />
         <Route path="/Joblanding" element={<Joblanding />} />
+        <Route path="/privacy" element={<Privacy/>}/>
       </Routes>
     </BrowserRouter>
     
