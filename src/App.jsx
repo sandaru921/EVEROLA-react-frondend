@@ -11,6 +11,12 @@ import Support from "./pages/User/Support";
 import Chat from "./pages/User/Chat";
 import Joblanding from "./pages/Joblanding";
 
+import LoginPage from "./pages/User/LoginPage";
+import RegisterPage from "./pages/User/RegisterPage";
+import ForgotPasswordPage from "./pages/User/ForgotPasswordPage";
+import HomePage from "./pages/User/HomePage";
+import "./pages/User/HomePage.css";
+
 function App() {
   console.log("App component is rendering"); // Debug log
 
@@ -19,7 +25,12 @@ function App() {
     <BrowserRouter>
       <Routes>
       
-        <Route path="/" element={<Home/>}/>
+      <Route path="/" element={<HomePage/>}/>
+        <Route path="/login" element={<LoginPage/>}/>
+        <Route path="/login/forgot-password" element={<ForgotPasswordPage/>}/>
+        <Route path="/register" element={<RegisterPage/>}/>
+
+        
         <Route path="/dashboard" element={<UserDashboard/>}/>
         <Route path="/activities" element={<UserActivities/>}/>
         <Route path="/support" element={<Support />} />
