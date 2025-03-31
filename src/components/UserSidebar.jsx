@@ -1,9 +1,12 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { NavLink } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 import { FiMoon, FiSun } from 'react-icons/fi';
 
-const UserSidebar = ({ darkMode, setDarkMode, isOpen, setIsOpen, user }) => {
+const UserSidebar = ({ darkMode = false, setDarkMode = () => {}, isOpen = false, setIsOpen = () => {}, user = {} }) => {
+  // Fallback values for user properties
+  const username = user.username || 'Guest';
+  const role = user.role || 'User';
+
   return (
     <div
       className={`fixed inset-y-0 left-0 w-64 bg-gray-100 text-gray-800 p-6 transform ${
@@ -26,9 +29,9 @@ const UserSidebar = ({ darkMode, setDarkMode, isOpen, setIsOpen, user }) => {
         />
         <div>
           <h3 className="text-lg font-medium text-gray-900 group-hover:text-gray-700 transition-all duration-200">
-            {user.username}
+            {username}
           </h3>
-          <p className="text-sm text-gray-500">{user.role}</p>
+          <p className="text-sm text-gray-500">{role}</p>
         </div>
       </Link>
 
@@ -95,7 +98,6 @@ const UserSidebar = ({ darkMode, setDarkMode, isOpen, setIsOpen, user }) => {
               Invite
             </NavLink>
           </li>
-          {/* Removed Profile button from navigation */}
         </ul>
       </nav>
 

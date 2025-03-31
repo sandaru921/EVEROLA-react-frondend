@@ -1,5 +1,6 @@
 import { useState } from "react";
-import reactLogo from "./assets/react.svg";
+//import reactLogo from "./assets/react.svg";
+import { useEffect } from "react";
 import viteLogo from "/vite.svg";
 import "./App.css";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
@@ -17,6 +18,7 @@ import RegisterPage from "./pages/User/RegisterPage";
 import ForgotPasswordPage from "./pages/User/ForgotPasswordPage";
 import HomePage from "./pages/User/HomePage";
 import "./pages/User/HomePage.css";
+import AdminChat from "./pages/Admin/AdminChat";
 
 function App() {
   console.log("App component is rendering"); // Debug log
@@ -39,6 +41,7 @@ function App() {
         <Route path="/chat" element={<Chat />} />
         <Route path="/Joblanding" element={<Joblanding />} />
         <Route path="/profile" element={<UserProfile />} />
+        <Route path="/adminchat" element={<AdminChat />} />
       </Routes>
     </BrowserRouter>
     
