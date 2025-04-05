@@ -3,7 +3,7 @@ import React from 'react'
 function EmailContact() {
   return (
     
-        <form className='px-6 py-4 flex flex-col gap-3'>
+        <form className='  flex flex-col gap-3 w-5/8'>
             <div className='w-full flex gap-2'>
                 
                 <input type="text" placeholder='E-mail' className='bg-[#99BDCB] text-white py-2 px-6 rounded-full  w-1/2 outline-none' />  

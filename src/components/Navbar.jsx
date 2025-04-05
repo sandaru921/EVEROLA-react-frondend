@@ -8,7 +8,7 @@ const Navbar = ({ isAuthenticated, isAdmin }) => {
   const [questionsDropdownOpen, setQuestionsDropdownOpen] = useState(false);
 
   return (
-    <header className="fixed top-0 left-0 w-full bg-white py-4 px-8 flex justify-between items-center z-10 rounded-b-3xl shadow-md">
+    <header className="fixed top-0 left-0 w-full bg-white py-4 px-8 flex justify-between items-center z-10 rounded-b-3xl shadow-md z-100">
       <div className="flex items-center">
         <img src="/img/logo3.png" alt="Logo" className="h-12" /> {/* Use static URL */}
       </div>
