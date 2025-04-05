@@ -54,7 +54,7 @@ const Navbar = ({ isAuthenticated, isAdmin }) => {
               </ul>
             )}
           </li>
-          <li><a href="#contact" className="text-black hover:text-gray-700">Contact</a></li>
+          <li><a href="/contact" className="text-black hover:text-gray-700">Contact</a></li>
         </ul>
       </nav>
 

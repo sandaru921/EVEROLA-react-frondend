@@ -1,14 +1,15 @@
 import React from 'react'
 import Navbar from '../../components/Navbar'
+import Footer from '../../components/Footer'
 
 function Privacy() {
   return (
     <div>
         <Navbar/>
-        <div className='w-full py-4 text-white bg-[#005B7C] flex justify-center mt-[5rem]'>
+        <div className='w-full py-12 text-white bg-[#005B7C] flex justify-center mt-[5rem]'>
             <h1 className='text-[2.5rem] font-bold'>Privacy Policy</h1>
         </div>
-        <div className='w-[90%] mx-auto pt-[2rem]'>
+        <div className='w-[80vw] mx-auto pt-[2rem]'>
             <p>At <b>BISTEC Global</b>  Services, accessible from <a href="https://bistecglobal.com/"> www.bistecglobal.com </a>, one of our main priorities is the privacy of our 
                 visitors. This Privacy Policy document contains types of information that is collected and recorded by BISTEC Global 
                 Services and how we use it. If you have additional questions or require more information about our Privacy Policy, do 
@@ -83,7 +84,7 @@ function Privacy() {
            
             
         </div>
-
+        <Footer/>
     </div>
   )
 }
