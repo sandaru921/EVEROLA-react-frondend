@@ -16,6 +16,7 @@ const Navbar = ({ isAuthenticated, isAdmin }) => {
       <nav className="flex items-center space-x-9">
         <ul className="flex space-x-9 list-none">
           <li><a href="#about" className="text-black hover:text-gray-700">About</a></li>
+          <li><a href="/privacy" className="text-black hover:text-gray-700">Policy</a></li>
           <li><a href="#blog" className="text-black hover:text-gray-700">Blog</a></li>
           
           {/* Categories Dropdown */}
