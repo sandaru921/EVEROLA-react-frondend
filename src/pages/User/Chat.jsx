@@ -1,93 +1,190 @@
-import { useState } from 'react';
-import { FiSend, FiMenu } from 'react-icons/fi';
-import UserSidebar from "../../components/UserSidebar.jsx";
-
+import React, { useState, useEffect, useRef } from 'react';
+import axios from 'axios';
+import UserSidebar from '../../components/UserSidebar';
+import EmojiPicker from 'emoji-picker-react';
+import { format } from 'date-fns';
+import { IoSend, IoClose, IoHappyOutline } from 'react-icons/io5';
 
 const Chat = () => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
-  const [messages, setMessages] = useState([
-    { id: 1, text: 'Hello! How can I assist you today?', sender: 'support', time: '10:00 AM' },
-    { id: 2, text: 'I have a question about my account.', sender: 'user', time: '10:01 AM' },
-  ]);
+  const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
-  const user = { username: 'Sandaru71', email: 'rohanasandaru@gmail.com', role: 'Recruiter' };
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [darkMode, setDarkMode] = useState(false); // State for dark mode
+  const [isOpen, setIsOpen] = useState(false); // State for sidebar open/close
+  const userId = 'Sandaru71';
+  const recipient = 'Admin';
+  const messagesEndRef = useRef(null);
 
-  const handleSendMessage = () => {
-    if (newMessage.trim() === '') return;
-    setMessages([...messages, { id: messages.length + 1, text: newMessage, sender: 'user', time: '10:02 AM' }]);
-    setNewMessage('');
-    // Simulate a reply from support
-    setTimeout(() => {
-      setMessages((prev) => [
-        ...prev,
-        { id: prev.length + 1, text: 'Sure, what would you like to know?', sender: 'support', time: '10:03 AM' },
-      ]);
-    }, 1000);
+  // Mock user data (replace with actual user data from auth context or API)
+  const user = {
+    username: 'Sandaru71',
+    role: 'User',
+  };
+
+  // Auto-scroll to the latest message
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  // Fetch messages
+  useEffect(() => {
+    const fetchMessages = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await axios.get(`http://localhost:5031/api/messages/${userId}`);
+        setMessages(response.data);
+      } catch (error) {
+        console.error('Error fetching messages:', error);
+        setError('Failed to load messages. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMessages();
+    const interval = setInterval(fetchMessages, 5000);
+    return () => clearInterval(interval);
+  }, [userId]);
+
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  // Handle sending a new message
+  const handleSendMessage = async () => {
+    if (!newMessage.trim()) return;
+
+    const message = {
+      text: newMessage,
+      sender: userId,
+      recipient: recipient,
+      timestamp: new Date().toISOString(),
+    };
+
+    try {
+      await axios.post('http://localhost:5031/api/messages', message);
+      setMessages([...messages, message]);
+      setNewMessage('');
+      setShowEmojiPicker(false);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      setError('Failed to send message. Please try again.');
+    }
+  };
+
+  // Handle emoji selection
+  const onEmojiClick = (emojiObject) => {
+    setNewMessage((prev) => prev + emojiObject.emoji);
+  };
+
+  // Handle Enter key to send message
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleSendMessage();
+    }
   };
 
   return (
-    <div className={`min-h-screen ${darkMode ? 'dark bg-gray-900' : 'bg-[#F7F9FC]'}`}>
-      <UserSidebar darkMode={darkMode} setDarkMode={setDarkMode} isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} user={user} />
-      <div className="md:ml-64">
-        <header className="bg-white shadow-sm p-4 flex justify-between items-center">
-          <button onClick={() => setIsSidebarOpen(true)} className="md:hidden">
-            <FiMenu size={24} className="text-gray-800 dark:text-gray-200" />
+    <div className={`flex min-h-[calc(100vh-64px)] ${darkMode ? 'bg-gray-900' : 'bg-gray-100'}`}>
+      {/* Sidebar */}
+      <UserSidebar
+        darkMode={darkMode}
+        setDarkMode={setDarkMode}
+        isOpen={isOpen}
+        setIsOpen={setIsOpen}
+        user={user}
+      />
+
+      {/* Chat Area */}
+      <div className="flex-1 p-6">
+        <div className="relative max-w-3xl mx-auto bg-white rounded-lg shadow-lg">
+          {/* Close Button */}
+          <button
+            className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 transition-colors"
+            onClick={() => window.history.back()}
+          >
+            <IoClose size={24} />
           </button>
-          <h2 className="text-xl font-semibold text-[#333333]">Chat with Support</h2>
-        </header>
-        <main className="p-6 flex flex-col items-center">
-          <div className="w-full max-w-3xl bg-white rounded-lg shadow-md flex flex-col h-[70vh]">
-            {/* Chat Header */}
-            <div className="p-4 border-b border-gray-200 flex items-center">
-              <img
-                src="https://via.placeholder.com/40.png?text=Support"
-                alt="Support Agent"
-                className="w-10 h-10 rounded-full mr-3"
-              />
-              <div>
-                <h3 className="text-lg font-semibold text-[#333333]">Support Agent</h3>
-                <p className="text-sm text-[#666666]">Online</p>
-              </div>
-            </div>
-            {/* Chat Messages */}
-            <div className="flex-1 p-4 overflow-y-auto">
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'} mb-4`}
-                >
-                  <div
-                    className={`max-w-xs p-3 rounded-lg ${
-                      message.sender === 'user'
-                        ? 'bg-[#4A90E2] text-white'
-                        : 'bg-gray-100 text-[#333333]'
-                    }`}
-                  >
-                    <p>{message.text}</p>
-                    <span className="text-xs text-gray-400 block mt-1">{message.time}</span>
+
+          {/* Chat Messages */}
+          <div className="h-[500px] overflow-y-auto p-6">
+            {loading && (
+              <div className="text-center text-gray-500">Loading messages...</div>
+            )}
+            {error && (
+              <div className="text-center text-red-500 mb-4">{error}</div>
+            )}
+            {messages.map((msg, index) => (
+              <div
+                key={index}
+                className={`flex items-start gap-3 mb-4 ${
+                  msg.sender === userId ? 'justify-end' : 'justify-start'
+                }`}
+              >
+                {msg.sender !== userId && (
+                  <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-white font-medium">
+                    {msg.sender.charAt(0).toUpperCase()}
                   </div>
+                )}
+                <div
+                  className={`max-w-xs p-3 rounded-lg ${
+                    msg.sender === userId
+                      ? 'bg-primary text-white rounded-br-none'
+                      : 'bg-gray-200 text-textPrimary rounded-bl-none'
+                  }`}
+                >
+                  <p>{msg.text}</p>
+                  <p className="text-xs mt-1 opacity-70">
+                    {format(new Date(msg.timestamp), 'h:mm a')}
+                  </p>
                 </div>
-              ))}
-            </div>
-            {/* Message Input */}
-            <div className="p-4 border-t border-gray-200 flex items-center">
+                {msg.sender === userId && (
+                  <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-medium">
+                    {msg.sender.charAt(0).toUpperCase()}
+                  </div>
+                )}
+              </div>
+            ))}
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* Message Input */}
+          <div className="p-4 border-t border-gray-200">
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <button
+                  onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                  className="text-gray-500 hover:text-primary transition-colors"
+                >
+                  <IoHappyOutline size={24} />
+                </button>
+                {showEmojiPicker && (
+                  <div className="absolute bottom-12 left-0 z-10">
+                    <EmojiPicker onEmojiClick={onEmojiClick} />
+                  </div>
+                )}
+              </div>
               <input
                 type="text"
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
-                placeholder="Type your message..."
-                className="flex-1 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4A90E2]"
+                onKeyPress={handleKeyPress}
+                placeholder="Type a new message here"
+                className="flex-1 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               />
               <button
                 onClick={handleSendMessage}
-                className="ml-3 bg-[#4A90E2] text-white p-2 rounded-full hover:bg-blue-600 transition-colors"
+                className="p-2 bg-primary text-white rounded-full hover:bg-accent transition-colors"
               >
-                <FiSend size={20} />
+                <IoSend size={20} />
               </button>
             </div>
           </div>
-        </main>
+        </div>
       </div>
     </div>
   );

@@ -1,100 +1,125 @@
 import { useState } from 'react';
-import { FiMenu, FiLogOut, FiHome, FiActivity, FiHeadphones, FiUserPlus } from 'react-icons/fi';
-import { Link } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
+import { FiMoon, FiSun } from 'react-icons/fi';
 
-const UserSidebar = ({ darkMode, setDarkMode, isOpen, setIsOpen, user }) => {
-  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
-
-  const handleLogout = () => {
-    // Simulate logout action (e.g., clear auth token and redirect to login)
-    localStorage.removeItem('authToken'); // Example: Clear token
-    window.location.href = '/login'; // Redirect to login page
-  };
+const UserSidebar = ({ darkMode = false, setDarkMode = () => {}, isOpen = false, setIsOpen = () => {}, user = {} }) => {
+  // Fallback values for user properties
+  const username = user.username || 'Guest';
+  const role = user.role || 'User';
 
   return (
     <div
-      className={`fixed top-0 left-0 h-full bg-[#2f332f] text-white p-4 transition-all duration-300 ${
-        isOpen ? 'w-64' : 'w-16'
-      } md:w-64 z-50 border-r border-gray-200`}
+      className={`fixed inset-y-0 left-0 w-64 bg-gray-100 text-gray-800 p-6 transform ${
+        isOpen ? 'translate-x-0' : '-translate-x-full'
+      } md:translate-x-0 transition-transform duration-300 ease-in-out shadow-sm`}
     >
-      <button onClick={() => setIsOpen(!isOpen)} className="md:hidden mb-4">
-        <FiMenu size={24} />
+      {/* Close button for mobile */}
+      <button onClick={() => setIsOpen(false)} className="md:hidden mb-4">
+        <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
       </button>
-      <div className="mb-6">
+
+      {/* User Info with Link to Profile */}
+      <Link to="/profile" className="flex items-center mb-8 group">
         <img
-          src="https://via.placeholder.com/40.png?text=S"
-          alt={user.username}
-          className="w-10 h-10 rounded-full mb-2"
+          src="https://via.placeholder.com/40.png?text=User"
+          alt="User"
+          className="w-10 h-10 rounded-full mr-3 border-2 border-gray-300 group-hover:border-gray-400 transition-all duration-200"
         />
-        <h3 className="text-lg font-semibold">{user.username}</h3>
-        <p className="text-sm">{user.email}</p>
-      </div>
+        <div>
+          <h3 className="text-lg font-medium text-gray-900 group-hover:text-gray-700 transition-all duration-200">
+            {username}
+          </h3>
+          <p className="text-sm text-gray-500">{role}</p>
+        </div>
+      </Link>
+
+      {/* Navigation */}
       <nav>
         <ul>
-          <li className="mb-4">
-            <Link
-              to="/"
-              className="flex items-center px-2 py-1 border-2 border-transparent hover:border-white hover:shadow-md hover:scale-105 transition-all duration-200 rounded"
+          <li className="mb-2">
+            <NavLink
+              to="/dashboard"
+              className={({ isActive }) =>
+                `block p-3 rounded-lg text-gray-700 transition-all duration-200 ${
+                  isActive ? 'bg-gray-200 text-gray-900 font-medium' : 'hover:bg-gray-200 hover:text-gray-900'
+                }`
+              }
             >
-              <FiHome size={20} className="mr-2" /> Home
-            </Link>
+              Dashboard
+            </NavLink>
           </li>
-          <li className="mb-4">
-            <Link
+          <li className="mb-2">
+            <NavLink
               to="/activities"
-              className="flex items-center px-2 py-1 border-2 border-transparent hover:border-white hover:shadow-md hover:scale-105 transition-all duration-200 rounded"
+              className={({ isActive }) =>
+                `block p-3 rounded-lg text-gray-700 transition-all duration-200 ${
+                  isActive ? 'bg-gray-200 text-gray-900 font-medium' : 'hover:bg-gray-200 hover:text-gray-900'
+                }`
+              }
             >
-              <FiActivity size={20} className="mr-2" /> Activities
-            </Link>
+              Activities
+            </NavLink>
           </li>
-          <li className="mb-4">
-            <Link
+          <li className="mb-2">
+            <NavLink
               to="/support"
-              className="flex items-center px-2 py-1 border-2 border-transparent hover:border-white hover:shadow-md hover:scale-105 transition-all duration-200 rounded"
+              className={({ isActive }) =>
+                `block p-3 rounded-lg text-gray-700 transition-all duration-200 ${
+                  isActive ? 'bg-gray-200 text-gray-900 font-medium' : 'hover:bg-gray-200 hover:text-gray-900'
+                }`
+              }
             >
-              <FiHeadphones size={20} className="mr-2" /> Support
-            </Link>
+              Support
+            </NavLink>
           </li>
-          <li className="mb-4">
-            <Link
+          <li className="mb-2">
+            <NavLink
+              to="/chat"
+              className={({ isActive }) =>
+                `block p-3 rounded-lg text-gray-700 transition-all duration-200 ${
+                  isActive ? 'bg-gray-200 text-gray-900 font-medium' : 'hover:bg-gray-200 hover:text-gray-900'
+                }`
+              }
+            >
+              Chat
+            </NavLink>
+          </li>
+          <li className="mb-2">
+            <NavLink
               to="/invite"
-              className="flex items-center px-2 py-1 border-2 border-transparent hover:border-white hover:shadow-md hover:scale-105 transition-all duration-200 rounded"
+              className={({ isActive }) =>
+                `block p-3 rounded-lg text-gray-700 transition-all duration-200 ${
+                  isActive ? 'bg-gray-200 text-gray-900 font-medium' : 'hover:bg-gray-200 hover:text-gray-900'
+                }`
+              }
             >
-              <FiUserPlus size={20} className="mr-2" /> Invite friend
-            </Link>
-          </li>
-          <li>
-            <button
-              onClick={() => setIsLogoutModalOpen(true)}
-              className="flex items-center px-2 py-1 w-full text-left border-2 border-transparent hover:border-white hover:shadow-md hover:scale-105 transition-all duration-200 rounded"
-            >
-              <FiLogOut size={20} className="mr-2" /> Log out
-            </button>
+              Invite
+            </NavLink>
           </li>
         </ul>
       </nav>
 
-      {isLogoutModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg w-80 text-center">
-            <h3 className="text-lg font-semibold text-[#333333] mb-4">Are you sure you want to logout?</h3>
-            <div className="flex justify-center space-x-4">
-              <button
-                onClick={handleLogout}
-                className="bg-[#00C4CC] text-white px-4 py-2 rounded-full hover:bg-teal-600 transition-colors"
-              >
-                Sure
-              </button>
-              <button
-                onClick={() => setIsLogoutModalOpen(false)}
-                className="bg-gray-300 text-gray-700 px-4 py-2 rounded-full hover:bg-gray-400 transition-colors"
-              >
-                Stay
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Dark Mode Toggle */}
+      <div className="mt-8">
+        <button
+          onClick={() => setDarkMode(!darkMode)}
+          className="flex items-center justify-center w-full p-2 rounded-lg bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-500 transition-all duration-200"
+        >
+          {darkMode ? (
+            <>
+              <FiSun className="mr-2" size={18} />
+              Light Mode
+            </>
+          ) : (
+            <>
+              <FiMoon className="mr-2" size={18} />
+              Dark Mode
+            </>
+          )}
+        </button>
+      </div>
     </div>
   );
 };
