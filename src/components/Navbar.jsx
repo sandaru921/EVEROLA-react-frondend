@@ -8,7 +8,7 @@ const Navbar = ({ isAuthenticated, isAdmin }) => {
   const [questionsDropdownOpen, setQuestionsDropdownOpen] = useState(false);
 
   return (
-    <header className="fixed top-0 left-0 w-full bg-white py-4 px-8 flex justify-between items-center z-10 rounded-b-3xl shadow-md">
+    <header className="fixed top-0 left-0 w-full bg-white py-4 px-8 flex justify-between items-center z-10 rounded-b-3xl shadow-md z-100">
       <div className="flex items-center">
         <img src="/img/logo3.png" alt="Logo" className="h-12" /> {/* Use static URL */}
       </div>
@@ -16,6 +16,7 @@ const Navbar = ({ isAuthenticated, isAdmin }) => {
       <nav className="flex items-center space-x-9">
         <ul className="flex space-x-9 list-none">
           <li><a href="#about" className="text-black hover:text-gray-700">About</a></li>
+          <li><a href="/privacy" className="text-black hover:text-gray-700">Policy</a></li>
           <li><a href="#blog" className="text-black hover:text-gray-700">Blog</a></li>
           
           {/* Categories Dropdown */}
@@ -53,7 +54,7 @@ const Navbar = ({ isAuthenticated, isAdmin }) => {
               </ul>
             )}
           </li>
-          <li><a href="#contact" className="text-black hover:text-gray-700">Contact</a></li>
+          <li><a href="/contact" className="text-black hover:text-gray-700">Contact</a></li>
         </ul>
       </nav>
 

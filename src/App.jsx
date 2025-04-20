@@ -11,8 +11,9 @@ import Invite from "./pages/User/Invite";
 import Support from "./pages/User/Support";
 import Chat from "./pages/User/Chat";
 import Joblanding from "./pages/Joblanding";
+import Contact from "./pages/User/Contact";
+import Privacy from "./pages/User/Privacy";
 import UserProfile from "./pages/User/UserProfile";
-
 import LoginPage from "./pages/User/LoginPage";
 import RegisterPage from "./pages/User/RegisterPage";
 import ForgotPasswordPage from "./pages/User/ForgotPasswordPage";
@@ -40,8 +41,11 @@ function App() {
         <Route path="/invite" element={<Invite />} />
         <Route path="/chat" element={<Chat />} />
         <Route path="/Joblanding" element={<Joblanding />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/privacy" element={<Privacy/>}/>
         <Route path="/profile" element={<UserProfile />} />
         <Route path="/adminchat" element={<AdminChat />} />
+
       </Routes>
     </BrowserRouter>
     
