@@ -1,48 +1,68 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaSearch } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import Navbar from "../components/Navbar"; // Adjust path based on your structure
-
-// Sample job data
-const jobsData = [
-  { id: 1, title: "Senior Software Engineer", type: "Full Time", location: "Onsite", image: "/img/junior.jpg" },
-  { id: 2, title: "Junior Software Engineer", type: "Full Time", location: "Onsite", image: "/img/junior.jpg" },
-  { id: 3, title: "Intern Software Engineer", type: "Full Time", location: "Onsite", image: "/img/intern.jpg" },
-];
+import Navbar from "../components/Navbar";
+import axios from "axios";
 
 const Joblanding = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
-  const [jobs, setJobs] = useState(jobsData);
+  const [jobs, setJobs] = useState([]);
+  const [isAuthenticated, setIsAuthenticated] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(true);
 
-  // Simulated auth state (replace with your actual auth logic)
-  const [isAuthenticated] = useState(true); // Set to true/false based on real auth
-  const [isAdmin] = useState(false); // Toggle this to switch between admin/client view
+  const API_URL = "https://localhost:5031/api/jobs"; // Adjust based on your backend port
 
-  const handleDeleteJob = (id) => {
-    setJobs(jobs.filter((job) => job.id !== id));
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      axios
+        .get(API_URL, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((response) => {
+          setJobs(response.data);
+          setIsAuthenticated(true);
+          // Decode token to get role (simplified, use a library like jwt-decode in production)
+          const decodedToken = JSON.parse(atob(token.split(".")[1]));
+          setIsAdmin(decodedToken["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] === "Admin");
+        })
+        .catch((error) => {
+          console.error("Error fetching jobs:", error);
+          setIsAuthenticated(false);
+          localStorage.removeItem("token");
+        });
+    }
+  }, []);
+
+  const handleDeleteJob = async (id) => {
+    const token = localStorage.getItem("token");
+    try {
+      await axios.delete(`${API_URL}/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setJobs(jobs.filter((job) => job.id !== id));
+    } catch (error) {
+      console.error("Error deleting job:", error);
+    }
   };
 
-  const filteredJobs = jobs.filter(job =>
+  const filteredJobs = jobs.filter((job) =>
     job.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Conditionally set background image based on isAdmin
   const backgroundImage = isAdmin
-    ? "url('/img/adminbackground.jpg')" // Admin background
-    : "url('/img/clientbackground.jpg')"; // Client background
+    ? "url('/img/adminbackground.jpg')"
+    : "url('/img/clientbackground.jpg')";
 
   return (
     <div
       className="min-h-screen bg-cover bg-center bg-repeat"
       style={{ backgroundImage }}
     >
-      {/* Navbar Component */}
       <Navbar isAuthenticated={isAuthenticated} isAdmin={isAdmin} />
 
-      {/* Main Content */}
       <main className="pt-36 px-4">
-        {/* Search Bar */}
         <div className="flex items-center bg-[#01BCC6] p-3 rounded-full shadow-md max-w-3xl mx-auto mb-6">
           <input
             type="text"
@@ -54,17 +74,15 @@ const Joblanding = () => {
           <FaSearch className="text-white ml-4 cursor-pointer" />
         </div>
 
-        {/* Admin Post Job Button */}
         {isAdmin && isAuthenticated && (
           <button
             className="bg-[#005B7C] text-white px-6 py-2 rounded-full hover:bg-[#004d66] mb-6 mx-auto block"
-            onClick={() => navigate("/admin/post-job")}
+            onClick={() => navigate("/admin/postjob")}
           >
             Post Job ➤
           </button>
         )}
 
-        {/* Job Label */}
         <div className="text-center mb-6">
           <div className="inline-block bg-[#008EAB] text-white text-xl px-6 py-2 border-2 border-white rounded-md">
             {searchTerm.trim() === "" ? (
@@ -77,7 +95,6 @@ const Joblanding = () => {
           </div>
         </div>
 
-        {/* Job List */}
         <div className="max-w-5xl mx-auto flex flex-wrap gap-6 justify-center">
           {filteredJobs.length > 0 ? (
             filteredJobs.map((job) => (
@@ -90,9 +107,9 @@ const Joblanding = () => {
                   <span className="bg-gray-300 text-black px-2 py-1 rounded-md text-xs">{job.type}</span>
                   <span className="bg-gray-300 text-black px-2 py-1 rounded-md text-xs">{job.location}</span>
                 </div>
-                <img src={job.image} alt={job.title} className="w-full h-auto rounded-md" />
-                <p className="text-sm my-2">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-                
+                <img src={job.imageUrl} alt={job.title} className="w-full h-auto rounded-md" />
+                <p className="text-sm my-2">{job.description}</p>
+
                 {isAdmin && isAuthenticated ? (
                   <div className="flex justify-between gap-2">
                     <button
