@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+/* NavBar.css */
+.navbar {
+    background-color: #ffffff;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    padding: 1rem 2rem;
+  }
+  
+  .navbar nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .navbar .logo {
+    display: flex;
+    align-items: center;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1a202c;
+  }
+  
+  .navbar .logo img {
+    height: 40px;
+    margin-right: 0.5rem;
+  }
+  
+  .navbar ul {
+    display: flex;
+    gap: 1.5rem;
+    list-style: none;
+    color: #4a5568;
+  }
+  
+  .navbar ul li a:hover {
+    color: #2563eb;
+  }
