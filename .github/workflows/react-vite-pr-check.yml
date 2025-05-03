@@ -1,0 +1,25 @@
+name: React Vite PR Build Check
+
+on:
+  pull_request:
+    branches:
+      - main  # or your default branch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22'  # or 20, depending on your project
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run build
