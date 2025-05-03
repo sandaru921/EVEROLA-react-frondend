@@ -10,7 +10,7 @@ const jobsData = [
   { id: 3, title: "Intern Software Engineer", type: "Full Time", location: "Onsite", image: "/img/intern.jpg" },
 ];
 
-const Joblanding = () => {
+const JobLanding = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [jobs, setJobs] = useState(jobsData);
@@ -124,4 +124,4 @@ const Joblanding = () => {
   );
 };
 
-export default Joblanding;
+export default JobLanding;
