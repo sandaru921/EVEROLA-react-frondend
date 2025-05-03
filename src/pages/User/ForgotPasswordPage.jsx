@@ -1,13 +1,8 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
+import React, {useState} from "react";
+import {Link} from "react-router-dom";
 import logo from "../../assets/logo.jpg";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faGoogle,
-  faFacebookF,
-  faTwitter,
-} from "@fortawesome/free-brands-svg-icons";
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import {faFacebookF, faGoogle, faTwitter,} from "@fortawesome/free-brands-svg-icons";
 
 
 const ForgotPasswordPage = () => {
