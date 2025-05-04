@@ -3,10 +3,11 @@ import {Link} from "react-router-dom";
 import logo from "../../assets/logo.jpg";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faFacebookF, faGoogle, faTwitter,} from "@fortawesome/free-brands-svg-icons";
+import axios from "axios";
 
 const RegisterPage = () => {
   const [formData, setFormData] = useState({
-    name: "",
+    username: "",
     email: "",
     password: "",
   });
@@ -19,9 +20,21 @@ const RegisterPage = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    alert("User Registered Successfully");
+
+    try {
+      const response = await axios.post(
+          "https://localhost:5031/api/user/register",
+          formData
+      );
+      if (response.status === 200 || response.status === 201) {
+        alert("User Registered Successfully");
+      }
+    } catch (error) {
+      console.error("Registration error:", error);
+      alert("Registration failed");
+    }
   };
 
   return (
@@ -33,11 +46,11 @@ const RegisterPage = () => {
         <h2 className="heading">GET STARTED</h2>
         <form onSubmit={handleSubmit}>
           <div className="input-group">
-            <label>Name</label>
+            <label>Username</label>
             <input
               type="text"
-              name="name"
-              value={formData.name}
+              name="username"
+              value={formData.username}
               onChange={handleChange}
               required
             />
@@ -85,7 +98,7 @@ const RegisterPage = () => {
         <p className="signin-text">
           Already have an account?
           <Link to="/login">
-            <a href="/login"> Sign In</a>
+             Sign In
           </Link>
         </p>
       </div>
