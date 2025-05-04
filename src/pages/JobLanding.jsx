@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { FaSearch } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import Navbar from "../components/Navbar"; // Adjust path based on your structure
+import Navbar from "@components/Navbar"; // Adjust path based on your structure
 
 // Sample job data
 const jobsData = [
