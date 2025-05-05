@@ -1,6 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { FiRefreshCw, FiInfo ,FiMenu ,FiSearch } from 'react-icons/fi';
+import {useEffect, useState} from 'react';
+import {FiMenu, FiRefreshCw, FiSearch} from 'react-icons/fi';
 import UserSidebar from "../../components/UserSidebar.jsx";
 
 
@@ -44,7 +43,6 @@ const ProgressChart = ({ completed, total }) => {
 };
 
 const UserActivities = () => {
-  const navigate = useNavigate();
   const [darkMode, setDarkMode] = useState(false);
   const [activities, setActivities] = useState([]);
   const [filterStatus, setFilterStatus] = useState('all');

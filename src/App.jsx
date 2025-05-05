@@ -1,16 +1,11 @@
-import { useState } from "react";
-//import reactLogo from "./assets/react.svg";
-import { useEffect } from "react";
-//import viteLogo from "/vite.svg";
 import "./App.css";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
-import Home from "./pages/User/Home";
+import {BrowserRouter, Route, Routes} from "react-router-dom";
 import UserDashboard from "./pages/User/UserDashboard";
 import UserActivities from "./pages/User/UserActivities";
 import Invite from "./pages/User/Invite";
 import Support from "./pages/User/Support";
 import Chat from "./pages/User/Chat";
-import Joblanding from "./pages/Joblanding";
+import JobLanding from "./pages/JobLanding.jsx";
 import Contact from "./pages/User/Contact";
 import Privacy from "./pages/User/Privacy";
 import UserProfile from "./pages/User/UserProfile";
@@ -25,7 +20,6 @@ import UserDetails from "./pages/Admin/UserDetails";
 import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 function App() {
-  console.log("App component is rendering"); // Debug log
 
   return (
     
