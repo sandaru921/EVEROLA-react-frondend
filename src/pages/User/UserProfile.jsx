@@ -68,7 +68,7 @@ const UserProfile = () => {
         <h2 className="text-2xl font-semibold text-[#005B66] dark:text-[#D3E0E2] mb-6">Profile</h2>
         <div className="flex flex-col md:flex-row gap-6">
           {/* Left Column: Profile Picture and Basic Info */}
-          <div className="w-full md:w-1/3 bg-white dark:bg-[#bbbbbb] p-6 rounded-lg shadow-sm">
+          <div className="w-full md:w-1/3 bg-white dark:bg-[#000000] p-6 rounded-lg shadow-sm">
             {editSection === 'basic' ? (
               <div>
                 <div className="flex justify-center mb-4">

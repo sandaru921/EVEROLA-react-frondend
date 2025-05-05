@@ -178,7 +178,7 @@ const Chat = () => {
               />
               <button
                 onClick={handleSendMessage}
-                className="p-2 bg-primary text-white rounded-full hover:bg-accent transition-colors"
+                className="p-2 bg-primary text-black rounded-full hover:bg-accent transition-colors"
               >
                 <IoSend size={20} />
               </button>

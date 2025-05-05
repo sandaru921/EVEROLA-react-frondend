@@ -4,6 +4,7 @@ import { FiRefreshCw, FiInfo ,FiMenu ,FiSearch } from 'react-icons/fi';
 import UserSidebar from "../../components/UserSidebar.jsx";
 
 
+
 const ProgressChart = ({ completed, total }) => {
   const percentage = (completed / total) * 100;
   return (
@@ -136,6 +137,8 @@ const UserActivities = () => {
 
   return (
     <div className={`min-h-screen ${darkMode ? 'dark bg-gray-900' : 'bg-gray-100'}`}>
+
+      
       <UserSidebar darkMode={darkMode} setDarkMode={setDarkMode} isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} user={user} />
       <div className="md:ml-64">
         <header className="bg-white dark:bg-gray-800 shadow-sm p-4 flex justify-between items-center">

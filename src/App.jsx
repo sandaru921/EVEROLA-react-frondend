@@ -20,7 +20,10 @@ import ForgotPasswordPage from "./pages/User/ForgotPasswordPage";
 import HomePage from "./pages/User/HomePage";
 import "./pages/User/HomePage.css";
 import AdminChat from "./pages/Admin/AdminChat";
-
+import UsersList from "./pages/Admin/UsersList";
+import UserDetails from "./pages/Admin/UserDetails";
+import { useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 function App() {
   console.log("App component is rendering"); // Debug log
 
@@ -45,6 +48,8 @@ function App() {
         <Route path="/privacy" element={<Privacy/>}/>
         <Route path="/profile" element={<UserProfile />} />
         <Route path="/adminchat" element={<AdminChat />} />
+        <Route path="/users" element={<UsersList />} />
+        <Route path="/users/:id" element={<UserDetails />} />
 
       </Routes>
     </BrowserRouter>
