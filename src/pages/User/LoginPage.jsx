@@ -31,7 +31,7 @@ const LoginPage = () => {
 
     try {
       const response = await axios.post(
-          "https://localhost:5031/api/user/login", // 👈 use HTTPS and correct port
+          "http://localhost:5031/api/user/login", // 👈 use HTTPS and correct port
           formData
       );
       alert("User login Successfully");
@@ -42,11 +42,20 @@ const LoginPage = () => {
       navigate("/UserDashboard");
     } catch (error) {
       if (error.response) {
-        console.error("Server error:", error.response.data);
+        // Check if it's a 401 Unauthorized error
+        if (error.response.status === 401) {
+          console.error("Invalid username/email or password.");
+          alert("Invalid username/email or password.");
+        } else {
+          console.error("Server error:", error.response.data);
+          alert("Something went wrong. Please try again.");
+        }
       } else if (error.request) {
         console.error("No response from server:", error.request);
+        alert("No response from server. Please check your internet connection.");
       } else {
         console.error("Error setting up request:", error.message);
+        alert("Error setting up request. Please try again later.");
       }
     }
   };
