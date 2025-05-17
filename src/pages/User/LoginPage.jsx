@@ -8,6 +8,7 @@ import {
   faFacebookF,
   faTwitter,
 } from "@fortawesome/free-brands-svg-icons";
+import axios from "axios";
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -25,9 +26,38 @@ const LoginPage = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Form Submitted", formData);
+
+    try {
+      const response = await axios.post(
+          "http://localhost:5031/api/user/login", // 👈 use HTTPS and correct port
+          formData
+      );
+      alert("User login Successfully");
+      console.log("Login successful", response.data);
+
+      // Optionally store the token and redirect
+      // localStorage.setItem("token", response.data.token);
+      navigate("/UserDashboard");
+    } catch (error) {
+      if (error.response) {
+        // Check if it's a 401 Unauthorized error
+        if (error.response.status === 401) {
+          console.error("Invalid username/email or password.");
+          alert("Invalid username/email or password.");
+        } else {
+          console.error("Server error:", error.response.data);
+          alert("Something went wrong. Please try again.");
+        }
+      } else if (error.request) {
+        console.error("No response from server:", error.request);
+        alert("No response from server. Please check your internet connection.");
+      } else {
+        console.error("Error setting up request:", error.message);
+        alert("Error setting up request. Please try again later.");
+      }
+    }
   };
 
   const handleSignUp = () => {
@@ -45,7 +75,7 @@ const LoginPage = () => {
         </h2>
         <form onSubmit={handleSubmit}>
           <div className="input-group">
-            <label>E-mail</label>
+            <label>Username or E-mail</label>
             <input
               type="email"
               name="email"
@@ -75,7 +105,7 @@ const LoginPage = () => {
               <label>Remember me</label>
             </div>
             <Link to="/login/forgot-password">
-            <a href="/forgot-password">Forgot password</a>
+            Forgot password
             </Link>
           </div>
           <div className="btn">
@@ -115,7 +145,7 @@ const LoginPage = () => {
         <p className="signup-text">
           Don't have an account?
           <Link to="/register">
-            <a href="/signup"> Sign Up</a>
+             Sign Up
           </Link>
         </p>
       </div>
