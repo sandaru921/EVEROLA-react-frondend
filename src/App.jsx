@@ -10,10 +10,13 @@ import Invite from "./pages/User/Invite";
 import Support from "./pages/User/Support";
 import Chat from "./pages/User/Chat";
 import Joblanding from "./pages/Joblanding";
-import PostJob from "./pages/Admin/postjob";
+
 
 import ClientJobQuizDetails from "./pages/User/JobQuizDetails";
 import AdminJobQuizDetails from "./pages/Admin/JobQuizDetails";
+import AdminJobUpload from "./pages/Admin/postjob";
+import UserJobView from "./pages/User/UserJobView";
+import AdminJobView from "./pages/Admin/AdminJobview";
 
 
 function App() {
@@ -31,8 +34,9 @@ function App() {
         <Route path="/invite" element={<Invite />} />
         <Route path="/chat" element={<Chat />} />
         <Route path="/Joblanding" element={<Joblanding />} />
-        <Route path="/admin/postjob" element={<PostJob/>}/>
-    
+        <Route path="/admin/JobUpload" element={<AdminJobUpload/>}/>
+        <Route path="/client/Jobview" element={<UserJobView/>}/>
+        <Route path="/Admin/Jobview" element={<AdminJobView/>}/>
         <Route path="/admin/job-quiz-details/:id" element={<AdminJobQuizDetails />} />
         <Route path="/admin/job-quiz-details" element={<Navigate to="/admin/postjob" />} /> {/* Redirect if no ID */}
         <Route path="/client/job-quiz-details/:id" element={<ClientJobQuizDetails />} />
