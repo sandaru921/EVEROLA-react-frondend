@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { FaTimes, FaUpload } from 'react-icons/fa';
 
-const PostJob = () => {
+const EditJob = () => {
   const navigate = useNavigate();
+  const { id } = useParams();
   const [job, setJob] = useState({
     title: '',
     description: '',
@@ -13,8 +14,40 @@ const PostJob = () => {
     expiringDate: '',
     createdBy: 'admin1',
     workMode: 'remote',
+    existingImageUrl: '',
   });
+  const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    const fetchJob = async () => {
+      try {
+        const response = await axios.get(`https://localhost:5031/api/jobs/${id}`);
+        const jobData = response.data;
+        setJob({
+          title: jobData.Title,
+          description: jobData.Description,
+          imageFile: null,
+          jobType: jobData.JobType,
+          expiringDate: new Date(jobData.ExpiringDate).toISOString().split('T')[0],
+          createdBy: jobData.CreatedBy,
+          workMode: jobData.WorkMode,
+          existingImageUrl: jobData.ImageUrl,
+        });
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching job:', {
+          message: error.message,
+          code: error.code,
+          response: error.response ? { status: error.response.status, data: error.response.data } : 'No response',
+        });
+        const errorMessage = error.response?.data?.message || error.response?.data || error.message || 'Unknown error';
+        alert('Failed to load job details: ' + errorMessage);
+        navigate('/admin/jobview');
+      }
+    };
+    fetchJob();
+  }, [id, navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -40,20 +73,17 @@ const PostJob = () => {
     const file = e.target.files[0];
     if (file) {
       setJob({ ...job, imageFile: file });
-      setErrors({ ...errors, imageFile: '' });
     }
   };
 
-  const removeImage = () => {
+  const removeNewImage = () => {
     setJob({ ...job, imageFile: null });
-    setErrors({ ...errors, imageFile: 'Image is required' });
   };
 
   const validateForm = () => {
     const newErrors = {};
     if (!job.title) newErrors.title = 'Title is required';
     if (!job.description) newErrors.description = 'Description is required';
-    if (!job.imageFile) newErrors.imageFile = 'Image is required';
     if (!job.jobType) newErrors.jobType = 'Job type is required';
     if (!job.expiringDate) newErrors.expiringDate = 'Expiring date is required';
     if (!job.workMode) newErrors.workMode = 'Work mode is required';
@@ -77,32 +107,24 @@ const PostJob = () => {
     const formData = new FormData();
     formData.append('Title', job.title);
     formData.append('Description', job.description);
-    formData.append('ImageFile', job.imageFile);
+    if (job.imageFile) {
+      formData.append('ImageFile', job.imageFile);
+    }
     formData.append('JobType', job.jobType);
     formData.append('ExpiringDate', job.expiringDate);
     formData.append('CreatedBy', job.createdBy);
     formData.append('WorkMode', job.workMode);
 
     try {
-      const response = await axios.post('https://localhost:5031/api/jobs', formData, {
+      const response = await axios.put(`https://localhost:5031/api/jobs/${id}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
-      alert('Job uploaded successfully!');
-      setJob({
-        title: '',
-        description: '',
-        imageFile: null,
-        jobType: '',
-        expiringDate: '',
-        createdBy: 'admin1',
-        workMode: 'remote',
-      });
-      setErrors({});
+      alert('Job updated successfully!');
       navigate('/admin/jobview');
     } catch (error) {
-      console.error('Error uploading job:', {
+      console.error('Error updating job:', {
         message: error.message,
         code: error.code,
         config: error.config,
@@ -110,7 +132,7 @@ const PostJob = () => {
         response: error.response ? { status: error.response.status, data: error.response.data } : 'No response',
       });
       const errorMessage = error.response?.data?.message || error.response?.data || error.message || 'Unknown error';
-      alert('Failed to upload job: ' + errorMessage);
+      alert('Failed to update job: ' + errorMessage);
     }
   };
 
@@ -118,11 +140,22 @@ const PostJob = () => {
     navigate('/admin/jobview');
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[#005b7c] via-[#008eab] to-[#01bcc6] flex items-center justify-center">
+        <div className="text-center p-8">
+          <div className="w-12 h-12 border-4 border-[#01bcc6] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-white text-lg font-semibold">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#005b7c] via-[#008eab] to-[#01bcc6] flex items-center justify-center p-4 sm:p-6 lg:p-8">
       <div className="bg-white/30 backdrop-blur-lg rounded-2xl shadow-2xl p-8 max-w-lg w-full border border-[#d5d1ca]/20 animate-fadeIn">
         <h2 className="text-3xl font-bold text-[#005b7c] mb-8 text-center bg-gradient-to-r from-[#005b7c] to-[#008eab] bg-clip-text text-transparent">
-          Upload a Job
+          Edit Job
         </h2>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
@@ -162,9 +195,31 @@ const PostJob = () => {
           </div>
 
           <div>
-            <label className="block text-[#005b7c] font-medium mb-2" htmlFor="image">
-              Upload Image
-            </label>
+            <label className="block text-[#005b7c] font-medium mb-2">Current Image</label>
+            {job.existingImageUrl && (
+              <div className="mt-2">
+                <img
+                  src={job.existingImageUrl}
+                  alt="Current Job Image"
+                  className="w-32 h-32 object-cover rounded-lg shadow-md"
+                  onError={(e) => {
+                    e.target.src = '/img/placeholder.jpg';
+                  }}
+                />
+                <p className="text-gray-600 text-sm mt-2 break-all">
+                  Current Image URL:{' '}
+                  <a
+                    href={job.existingImageUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[#008eab] hover:underline ml-1"
+                  >
+                    {job.existingImageUrl}
+                  </a>
+                </p>
+              </div>
+            )}
+            <label className="block text-[#005b7c] font-medium mb-2 mt-4">Upload New Image (Optional)</label>
             <div className="relative">
               <input
                 type="file"
@@ -176,21 +231,21 @@ const PostJob = () => {
               />
               <FaUpload className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#01bcc6]" />
             </div>
-            {errors.imageFile && <p className="text-red-500 text-sm mt-1">{errors.imageFile}</p>}
             {job.imageFile && (
               <div className="mt-3 relative inline-block">
                 <img
                   src={URL.createObjectURL(job.imageFile)}
-                  alt="Preview"
+                  alt="Preview New Image"
                   className="w-32 h-32 object-cover rounded-lg shadow-md"
                 />
                 <button
                   type="button"
-                  onClick={removeImage}
+                  onClick={removeNewImage}
                   className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full p-1.5 hover:bg-red-700 transition-all duration-300"
                 >
                   <FaTimes size={16} />
                 </button>
+                <p className="text-gray-600 text-sm mt-2">New image selected (will replace current image)</p>
               </div>
             )}
           </div>
@@ -229,9 +284,9 @@ const PostJob = () => {
                 errors.workMode ? 'border-red-500' : 'border-[#d5d1ca]'
               } focus:outline-none focus:ring-2 focus:ring-[#01bcc6] transition-all duration-300 bg-white/70 text-[#005b7c]`}
             >
-              <option value="On-site">On-site</option>
-              <option value="Remote">Remote</option>
-              <option value="Hybrid">Hybrid</option>
+              <option value="remote">Remote</option>
+              <option value="online">Online</option>
+              <option value="hybrid">Hybrid</option>
             </select>
             {errors.workMode && <p className="text-red-500 text-sm mt-1">{errors.workMode}</p>}
           </div>
@@ -266,7 +321,7 @@ const PostJob = () => {
               type="submit"
               className="w-1/2 bg-gradient-to-r from-[#005b7c] to-[#008eab] text-white p-3 rounded-lg hover:from-[#008eab] hover:to-[#01bcc6] focus:outline-none focus:ring-4 focus:ring-[#01bcc6]/50 transition-all duration-300"
             >
-              Upload Job
+              Save Changes
             </button>
           </div>
         </form>
@@ -284,9 +339,15 @@ const styles = `
   .animate-fadeIn {
     animation: fadeIn 0.6s ease-out forwards;
   }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  .animate-spin {
+    animation: spin 0.8s linear infinite;
+  }
 `;
 const styleSheet = document.createElement("style");
 styleSheet.textContent = styles;
 document.head.appendChild(styleSheet);
 
-export default PostJob;
+export default EditJob;

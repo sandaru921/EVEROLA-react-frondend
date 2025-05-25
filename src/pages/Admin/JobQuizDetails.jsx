@@ -25,7 +25,7 @@ function AdminJobQuizDetails() {
       }
 
       try {
-        const response = await axios.get(`http://localhost:5031/api/job-quiz-details/${id}`);
+        const response = await axios.get(`https://localhost:5031/api/job-quiz-details/${id}`);
         const data = response.data;
         setJob(data);
         setTitle(data.title);
@@ -73,7 +73,7 @@ function AdminJobQuizDetails() {
     };
 
     try {
-      await axios.put(`http://localhost:5031/api/job-quiz-details/${id}`, updatedJob);
+      await axios.put(`https://localhost:5031/api/job-quiz-details/${id}`, updatedJob);
       alert('Job and quiz details updated successfully!');
     } catch (error) {
       console.error('Error updating job:', error);

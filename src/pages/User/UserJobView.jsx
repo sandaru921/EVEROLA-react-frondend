@@ -1,164 +1,177 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { FaSearch } from 'react-icons/fa';
-import { useNavigate } from 'react-router-dom';
-import bgImage from '../../assets/bgImage.jpg';
+import React, { useState, useEffect } from "react";
+import { FaSearch } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import Navbar from "../../components/Navbar";
 
-const UserJobView = () => {
-    const navigate = useNavigate();
-    const [jobs, setJobs] = useState([]);
-    const [searchTerm, setSearchTerm] = useState('');
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [isAdmin, setIsAdmin] = useState(false);
-    const [error, setError] = useState(null);
+const UserJobview = () => {
+  const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [jobs, setJobs] = useState([]);
+  const [error, setError] = useState(null);
+  const [isAuthenticated] = useState(false);
+  const [isAdmin] = useState(false); // Set to false for user view
 
-    useEffect(() => {
-        const token = localStorage.getItem('token');
-        if (token) {
-            axios
-                .get('http://localhost:5031/api/jobs', {
-                    headers: { Authorization: `Bearer ${token}` },
-                })
-                .then((response) => {
-                    console.log('Fetched jobs:', response.data);
-                    setJobs(response.data || []);
-                    setIsAuthenticated(true);
-                    try {
-                        const decodedToken = JSON.parse(atob(token.split('.')[1]));
-                        setIsAdmin(decodedToken['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] === 'Admin');
-                    } catch (error) {
-                        console.error('Error decoding token:', error);
-                        setIsAuthenticated(false);
-                        localStorage.removeItem('token');
-                    }
-                })
-                .catch((error) => {
-                    console.error('Error fetching jobs:', error.response?.data || error.message);
-                    setError('Failed to fetch jobs. Check console for details.');
-                    setIsAuthenticated(false);
-                    localStorage.removeItem('token');
-                });
-        }
-    }, []);
+  const API_URL = "https://localhost:5031/api/jobs";
 
-    const handleDeleteJob = async (id) => {
-        const token = localStorage.getItem('token');
-        try {
-            await axios.delete(`http://localhost:5031/api/jobs/${id}`, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            setJobs(jobs.filter((job) => job.id !== id));
-        } catch (error) {
-            console.error('Error deleting job:', error);
-            setError('Failed to delete job. Check console for details.');
-        }
-    };
+  useEffect(() => {
+    fetchJobs();
+  }, []);
 
-    const filteredJobs = jobs.filter((job) =>
-        job.title?.toLowerCase().includes(searchTerm.toLowerCase()) || false
-    );
+  const fetchJobs = async () => {
+    try {
+      const response = await axios.get(API_URL, { timeout: 5000 });
+      console.log("API Response:", response.data);
+      if (Array.isArray(response.data)) {
+        setJobs(response.data);
+      } else {
+        setJobs([]);
+        setError("Invalid job data received from the server.");
+      }
+      setError(null);
+    } catch (error) {
+      console.error("Error fetching jobs:", {
+        message: error.message,
+        code: error.code,
+        response: error.response ? error.response.data : "No response",
+        status: error.response ? error.response.status : "No status",
+      });
+      setError(`Failed to load jobs. Error: ${error.message}. Check console.`);
+    }
+  };
 
-    return (
-        <div
-            className="min-h-screen bg-cover bg-center bg-repeat"
-            style={{ backgroundImage: `url(${bgImage})` }}
-        >
-            <Navbar isAuthenticated={isAuthenticated} isAdmin={isAdmin} />
-            <main className="pt-36 px-4">
-                {error && <p className="text-red-600 text-center mb-4">{error}</p>}
+  const filteredJobs = jobs.filter((job) =>
+    job &&
+    typeof job.Title === "string" &&
+    job.Title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-                <div className="flex items-center bg-[#01bcc6] p-3 rounded-full shadow-md max-w-3xl mx-auto mb-6">
-                    <input
-                        type="text"
-                        placeholder="Search Jobs"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="flex-1 bg-transparent outline-none text-white placeholder-white text-lg px-2"
-                    />
-                    <FaSearch className="text-white ml-4 cursor-pointer" />
-                </div>
-
-                {isAdmin && isAuthenticated && (
-                    <button
-                        onClick={() => navigate('/admin/upload')}
-                        className="bg-[#005b7c] text-white px-6 py-2 rounded-full hover:bg-[#008eab] mb-6 mx-auto block transition duration-200"
-                    >
-                        Post Job ➤
-                    </button>
-                )}
-
-                <div className="text-center mb-6">
-                    <div className="inline-block bg-[#008eab] text-white text-xl px-6 py-2 border-2 border-white rounded-md">
-                        {searchTerm.trim() === '' ? (
-                            <p>All</p>
-                        ) : filteredJobs.length > 0 ? (
-                            filteredJobs.map((job) => <div key={job.id}>{job.title}</div>)
-                        ) : (
-                            <p>No jobs found.</p>
-                        )}
-                    </div>
-                </div>
-
-                <div className="max-w-5xl mx-auto flex flex-wrap gap-6 justify-center">
-                    {filteredJobs.length > 0 ? (
-                        filteredJobs.map((job) => (
-                            <div
-                                key={job.id}
-                                className="bg-white p-4 rounded-lg shadow-md w-72 text-center hover:-translate-y-1 transition-transform border border-[#d5d1ca]"
-                            >
-                                <h3 className="text-lg font-semibold text-[#005b7c]">
-                                    {job.title || 'Untitled'}
-                                </h3>
-                                <div className="flex justify-center gap-2 my-2">
-                                    <span className="bg-[#efefee] text-black px-2 py-1 rounded-md text-xs">
-                                        {job.jobType || 'N/A'}
-                                    </span>
-                                </div>
-                                <img
-                                    src={job.imageUrl || '/default-image.jpg'}
-                                    alt={job.title || 'Job Image'}
-                                    className="w-full h-40 object-cover rounded-md mb-4"
-                                    onError={(e) => { e.target.src = '/default-image.jpg'; }}
-                                />
-                                <p className="text-sm my-2 text-gray-600">{job.description || 'No description available'}</p>
-                                <p className="text-gray-800">
-                                    <strong>Expires:</strong> {job.expiringDate ? new Date(job.expiringDate).toLocaleDateString() : 'N/A'}
-                                </p>
-
-                                {isAdmin && isAuthenticated ? (
-                                    <div className="flex justify-between gap-2 mt-4">
-                                        <button
-                                            onClick={() => navigate(`/admin/edit-job/${job.id}`)}
-                                            className="bg-[#008eab] text-white px-3 py-1 rounded-full hover:bg-[#005b7c] text-sm transition duration-200"
-                                        >
-                                            Edit
-                                        </button>
-                                        <button
-                                            onClick={() => handleDeleteJob(job.id)}
-                                            className="bg-red-600 text-white px-3 py-1 rounded-full hover:bg-red-700 text-sm transition duration-200"
-                                        >
-                                            Delete
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <button
-                                        className="bg-[#005b7c] text-white px-4 py-2 rounded-full hover:bg-[#008eab] mt-4 transition duration-200"
-                                    >
-                                        Apply Now
-                                    </button>
-                                )}
-                            </div>
-                        ))
-                    ) : (
-                        <p className="text-red-600 text-lg font-bold text-center w-full">
-                            {error || 'No jobs found.'}
-                        </p>
-                    )}
-                </div>
-            </main>
+  // Skeleton loading effect
+  const JobCardSkeleton = () => (
+    <div className="bg-white/80 rounded-xl shadow-lg overflow-hidden animate-pulse">
+      <div className="h-40 bg-[#d5d1ca]/50"></div>
+      <div className="p-4">
+        <div className="h-6 bg-[#d5d1ca]/50 rounded w-3/4 mb-2"></div>
+        <div className="h-4 bg-[#d5d1ca]/50 rounded w-1/2 mb-2"></div>
+        <div className="h-4 bg-[#d5d1ca]/50 rounded w-full mb-4"></div>
+        <div className="flex justify-center">
+          <div className="h-8 bg-[#d5d1ca]/50 rounded w-1/2"></div>
         </div>
-    );
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-[#01bcc6] via-[#008eab] to-[#005b7c]">
+      <Navbar isAuthenticated={isAuthenticated} isAdmin={isAdmin} />
+      <main className="pt-28 px-4 sm:px-6 lg:px-8 py-12 relative">
+        {/* Glassmorphism Search Bar - Rounded and Reduced Height */}
+        <div className="max-w-4xl mx-auto mb-8">
+          <div className="relative bg-white/30 backdrop-blur-md rounded-full p-0.5 shadow-lg border border-[#01bcc6]/20">
+            <input
+              type="text"
+              placeholder="Search Jobs..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full p-2 pl-10 text-lg text-[#005b7c] bg-transparent rounded-full focus:outline-none focus:ring-2 focus:ring-[#01bcc6] transition-all duration-300 placeholder:text-[#efefee]/70"
+            />
+            <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#efefee] text-lg" />
+          </div>
+        </div>
+
+        {error && (
+          <p className="text-red-600 text-center font-semibold mb-6 bg-red-100/80 p-3 rounded-lg">{error}</p>
+        )}
+
+        <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {jobs.length === 0 && !error ? (
+            Array(6)
+              .fill()
+              .map((_, index) => <JobCardSkeleton key={index} />)
+          ) : filteredJobs.length > 0 ? (
+            filteredJobs.map((job) => (
+              <div
+                key={job.Id}
+                className="bg-white/90 rounded-xl shadow-xl overflow-hidden hover:shadow-2xl hover:scale-105 transition-all duration-300 transform-gpu bg-gradient-to-br from-[#efefee]/70 to-white/80 backdrop-blur-sm border border-[#d5d1ca]/20 animate-fadeIn"
+                style={{ animationDelay: `${filteredJobs.indexOf(job) * 0.1}s` }}
+              >
+                <div className="p-5 min-h-[400px] flex flex-col justify-between relative">
+                  <div>
+                    <h3 className="text-xl font-bold text-[#005b7c] mb-3 bg-gradient-to-r from-[#005b7c]/80 to-[#008eab]/80 bg-clip-text text-transparent">
+                      {job.Title || "Untitled"}
+                    </h3>
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      <span className="bg-[#d5d1ca]/50 text-[#005b7c] px-3 py-1 rounded-full text-sm font-medium">
+                        {job.JobType || "N/A"}
+                      </span>
+                      <span className="bg-[#d5d1ca]/50 text-[#005b7c] px-3 py-1 rounded-full text-sm font-medium">
+                        {job.WorkMode || "N/A"}
+                      </span>
+                      <span className="bg-[#d5d1ca]/50 text-[#005b7c] px-3 py-1 rounded-full text-sm font-medium">
+                        Expires: {job.ExpiringDate ? new Date(job.ExpiringDate).toLocaleDateString() : "N/A"}
+                      </span>
+                    </div>
+                    <div className="relative">
+                      <img
+                        src={job.ImageUrl || "/img/placeholder.jpg"}
+                        alt={job.Title || "Job Image"}
+                        className="w-full h-48 object-cover rounded-lg transition-opacity duration-300 hover:opacity-90"
+                        onError={(e) => {
+                          e.target.src = "/img/placeholder.jpg";
+                          console.log("Image load failed for:", job.ImageUrl);
+                        }}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#005b7c]/50 to-transparent rounded-lg"></div>
+                    </div>
+                    <p className="text-gray-700 text-sm mt-3 line-clamp-3">{job.Description || "No description"}</p>
+                  </div>
+                  <div className="flex justify-center mt-4">
+                    <button
+                      className="bg-gradient-to-r from-[#008eab] to-[#01bcc6] text-white px-6 py-2 rounded-full hover:from-[#005b7c] hover:to-[#008eab] focus:outline-none focus:ring-4 focus:ring-[#01bcc6]/50 transition-all duration-300"
+                      onClick={() => navigate(`/apply/${job.Id}`)}
+                    >
+                      Apply Now
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : (
+            <p className="text-[#005b7c] text-center col-span-full text-lg font-semibold bg-[#d5d1ca]/50 p-4 rounded-lg">
+              No jobs found.
+            </p>
+          )}
+        </div>
+      </main>
+    </div>
+  );
 };
 
-export default UserJobView;
+// CSS Animations
+const styles = `
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-fadeIn {
+    animation: fadeIn 0.6s ease-out forwards;
+  }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  .animate-spin {
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
+  .animate-pulse {
+    animation: pulse 1.5s infinite;
+  }
+`;
+const styleSheet = document.createElement("style");
+styleSheet.textContent = styles;
+document.head.appendChild(styleSheet);
+
+export default UserJobview;

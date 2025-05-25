@@ -1,38 +1,57 @@
 import "./App.css";
-import {BrowserRouter, Route, Routes,Navigate} from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import UserDashboard from "./pages/User/UserDashboard";
 import UserActivities from "./pages/User/UserActivities";
 import Invite from "./pages/User/Invite";
 import Support from "./pages/User/Support";
 import Chat from "./pages/User/Chat";
-import Joblanding from "./pages/Joblanding";
+import Contact from "./pages/User/Contact";
+import Privacy from "./pages/User/Privacy";
+import UserProfile from "./pages/User/UserProfile";
+import LoginPage from "./pages/User/LoginPage";
+import RegisterPage from "./pages/User/RegisterPage";
+import ForgotPasswordPage from "./pages/User/ForgotPasswordPage";
+import HomePage from "./pages/User/HomePage";
+import "./pages/User/HomePage.css";
+import AdminChat from "./pages/Admin/AdminChat";
+import PostJob from "./pages/Admin/postjob";
+import AdminJobview from "./pages/Admin/AdminJobview";
+import EditJob from "./pages/Admin/EditJob";
+import UserJobview from "./pages/User/UserJobView";
+
+
+
+
 
 function App() {
 
   return (
-    
+
     <BrowserRouter>
       <Routes>
-      
-        <Route path="/" element={<HomePage/>}/>
-        <Route path="/dashboard" element={<UserDashboard/>}/>
-        <Route path="/activities" element={<UserActivities/>}/>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/login/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/dashboard" element={<UserDashboard />} />
+        <Route path="/activities" element={<UserActivities />} />
         <Route path="/support" element={<Support />} />
         <Route path="/invite" element={<Invite />} />
         <Route path="/chat" element={<Chat />} />
-        <Route path="/Joblanding" element={<Joblanding />} />
-        <Route path="/admin/JobUpload" element={<AdminJobUpload/>}/>
-        <Route path="/client/Jobview" element={<UserJobView/>}/>
-        <Route path="/Admin/Jobview" element={<AdminJobView/>}/>
-        <Route path="/admin/job-quiz-details/:id" element={<AdminJobQuizDetails />} />
-        <Route path="/admin/job-quiz-details" element={<Navigate to="/admin/postjob" />} /> {/* Redirect if no ID */}
-        <Route path="/client/job-quiz-details/:id" element={<ClientJobQuizDetails />} />
-        <Route path="/client/job-quiz-details" element={<Navigate to="/" />} /> {/* Redirect if no ID */}
-        <Route path="/" element={<div>Home Page - Add navigation links here</div>} />
-     
+
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/profile" element={<UserProfile />} />
+        <Route path="/adminchat" element={<AdminChat />} />
+
+        <Route path="/User/Jobview" element={<UserJobview/>} />
+        <Route path="/Admin/Jobview" element={<AdminJobview />} />
+        <Route path="/Admin/Jobupload" element={<PostJob/>} />
+      <Route path="/Admin/edit-job/:id" element={<EditJob />} />
+        
       </Routes>
     </BrowserRouter>
-    
+
   );
 }
 
