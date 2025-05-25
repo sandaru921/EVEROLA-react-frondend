@@ -3,12 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import logo from "../../assets/logo.jpg";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faGoogle,
-  faFacebookF,
-  faTwitter,
-} from "@fortawesome/free-brands-svg-icons";
+import {faGoogle,faFacebookF,faTwitter,} from "@fortawesome/free-brands-svg-icons";
 import axios from "axios";
+import UserDashboard from "./UserDashboard";
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -31,15 +28,15 @@ const LoginPage = () => {
 
     try {
       const response = await axios.post(
-          "https://localhost:5031/api/user/login", // 👈 use HTTPS and correct port
+          "http://localhost:5031/api/user/login", // 👈 use HTTPS and correct port
           formData
       );
       alert("User login Successfully");
       console.log("Login successful", response.data);
 
       // Optionally store the token and redirect
-      // localStorage.setItem("token", response.data.token);
-      navigate("/UserDashboard");
+       localStorage.setItem("token", response.data.token);
+      navigate("/dashboard");
     } catch (error) {
       if (error.response) {
         console.error("Server error:", error.response.data);

@@ -25,7 +25,7 @@ const RegisterPage = () => {
 
     try {
       const response = await axios.post(
-          "https://localhost:5031/api/user/register",
+          "http://localhost:5031/api/user/register",
           formData
       );
       if (response.status === 200 || response.status === 201) {

@@ -1,11 +1,19 @@
 import { useState } from 'react';
-import { Link, NavLink } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom'; // Added useNavigate for logout redirection
 import { FiMoon, FiSun } from 'react-icons/fi';
 
 const UserSidebar = ({ darkMode = false, setDarkMode = () => {}, isOpen = false, setIsOpen = () => {}, user = {} }) => {
   // Fallback values for user properties
   const username = user.username || 'Guest';
   const role = user.role || 'User';
+  const navigate = useNavigate(); // Initialize useNavigate for redirection
+
+  // Handle logout functionality
+  const handleLogout = () => {
+    localStorage.removeItem('token'); // Clear authentication token
+    localStorage.removeItem('role'); // Clear role
+    navigate('/login'); // Redirect to login page
+  };
 
   return (
     <div
@@ -98,6 +106,18 @@ const UserSidebar = ({ darkMode = false, setDarkMode = () => {}, isOpen = false,
               Invite
             </NavLink>
           </li>
+          <li className="mb-2">
+            <NavLink
+              to="/sample-questions"
+              className={({ isActive }) =>
+                `block p-3 rounded-lg text-gray-700 transition-all duration-200 ${
+                  isActive ? 'bg-gray-200 text-gray-900 font-medium' : 'hover:bg-gray-200 hover:text-gray-900'
+                }`
+              }
+            >
+              Sample Questions
+            </NavLink>
+          </li>
         </ul>
       </nav>
 
@@ -118,6 +138,16 @@ const UserSidebar = ({ darkMode = false, setDarkMode = () => {}, isOpen = false,
               Dark Mode
             </>
           )}
+        </button>
+      </div>
+
+      {/* Logout Button */}
+      <div className="mt-4">
+        <button
+          onClick={handleLogout}
+          className="flex items-center justify-center w-full p-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-all duration-200"
+        >
+          Logout
         </button>
       </div>
     </div>

@@ -19,6 +19,8 @@ import UsersList from "./pages/Admin/UsersList";
 import UserDetails from "./pages/Admin/UserDetails";
 import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
+import SampleQuestions from "./pages/User/SampleQuestions";
+import QuestionsByRole from "./pages/User/QuestionsByRole";
 function App() {
 
   return (
@@ -37,13 +39,15 @@ function App() {
         <Route path="/support" element={<Support />} />
         <Route path="/invite" element={<Invite />} />
         <Route path="/chat" element={<Chat />} />
-        <Route path="/Joblanding" element={<Joblanding />} />
+        <Route path="/Joblanding" element={<JobLanding />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/privacy" element={<Privacy/>}/>
         <Route path="/profile" element={<UserProfile />} />
         <Route path="/adminchat" element={<AdminChat />} />
         <Route path="/users" element={<UsersList />} />
         <Route path="/users/:id" element={<UserDetails />} />
+        <Route path="/sample-questions" element={<SampleQuestions />} />
+         <Route path="/questions/:role" element={<QuestionsByRole />} />
 
       </Routes>
     </BrowserRouter>
