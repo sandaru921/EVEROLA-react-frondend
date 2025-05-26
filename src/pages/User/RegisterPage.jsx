@@ -47,7 +47,8 @@ const RegisterPage = () => {
     return (
         <div className="register-container">
             <div className="register-box">
-                <div className="logo">                    <img src={logo} alt="logo"/>
+                <div className="logo">
+                    <img src={logo} alt="logo"/>
                 </div>
                 <h2 className="heading">GET STARTED</h2>
                 {error && <ErrorBanner message={error} onClose={() => setError(null)}/>}

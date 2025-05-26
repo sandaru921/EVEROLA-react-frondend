@@ -1,4 +1,3 @@
-// data/useProtected.js
 import axiosInstance from "../api/axiosInstance.js";
 import { backendBaseURL } from "./environment";
 

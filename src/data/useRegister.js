@@ -9,8 +9,8 @@ export const useRegister = () => {
             if (response.status === 200 || response.status === 201) {
                 return { success: true, message: "User Registered Successfully" };
             }
-
             return { success: false, message: "Unexpected response from server." };
+
         } catch (error) {
             if (error.response) {
                 return {
