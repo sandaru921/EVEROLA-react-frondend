@@ -15,17 +15,20 @@ import ForgotPasswordPage from "./pages/User/ForgotPasswordPage";
 import HomePage from "./pages/User/HomePage";
 import "./pages/User/HomePage.css";
 import AdminChat from "./pages/Admin/AdminChat";
+import ToastWrapper from "./components/ToastWrapper";
+import Sample from "./pages/User/Sample";
+import AuthInterceptor from "@components/AuthInterceptor.jsx";
 
 function App() {
-
     return (
         <BrowserRouter>
+            <AuthInterceptor /> {/* ✅ Interceptor safely inside router context */}
             <Routes>
                 <Route path="/" element={<HomePage/>}/>
                 <Route path="/login" element={<LoginPage/>}/>
                 <Route path="/login/forgot-password" element={<ForgotPasswordPage/>}/>
                 <Route path="/register" element={<RegisterPage/>}/>
-                <Route path="/dashboard" element={<UserDashboard/>}/>
+                <Route path="/userdashboard" element={<UserDashboard/>}/>
                 <Route path="/activities" element={<UserActivities/>}/>
                 <Route path="/support" element={<Support/>}/>
                 <Route path="/invite" element={<Invite/>}/>
@@ -35,7 +38,9 @@ function App() {
                 <Route path="/privacy" element={<Privacy/>}/>
                 <Route path="/profile" element={<UserProfile/>}/>
                 <Route path="/adminchat" element={<AdminChat/>}/>
+                <Route path="/sample" element={<Sample/>}/>
             </Routes>
+            <ToastWrapper />
         </BrowserRouter>
     );
 }

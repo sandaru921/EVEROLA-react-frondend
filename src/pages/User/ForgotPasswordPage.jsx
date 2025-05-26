@@ -3,7 +3,8 @@ import {Link} from "react-router-dom";
 import logo from "../../assets/logo.jpg";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faFacebookF, faGoogle, faTwitter,} from "@fortawesome/free-brands-svg-icons";
-import axios from "axios";
+import axiosInstance from "../../api/axiosInstance.js";
+import {backendBaseURL} from "../../data/environment.js";
 
 const ForgotPasswordPage = () => {
     const [formData, setFormData] = useState({
@@ -28,7 +29,7 @@ const ForgotPasswordPage = () => {
     }
 
     try {
-      await axios.post("http://localhost:5031/api/user/reset-password", {
+      await axiosInstance.post(`${backendBaseURL}user/reset-password`, {
         email: formData.email,
         newPassword: formData.newPassword
       });
