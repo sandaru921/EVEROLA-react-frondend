@@ -1,40 +1,41 @@
 // Import necessary React hooks and components
-import { useState, useEffect } from 'react'; // useState for state management, useEffect for side effects like fetching data
-import { useNavigate } from 'react-router-dom'; // useNavigate for redirecting to other routes (e.g., login page)
+import { useState, useEffect } from 'react'; // useState for state management, useEffect for side effects
+import { useNavigate } from 'react-router-dom'; // useNavigate for redirecting to login or other routes
 import UserSidebar from '../../components/UserSidebar.jsx'; // Sidebar component for navigation
-import { FiEdit, FiMail, FiSave } from 'react-icons/fi'; // Icons for edit, mail, and save actions
+import { FiEdit, FiSave } from 'react-icons/fi'; // Icons for edit and save actions
 import { FaLinkedin } from 'react-icons/fa'; // LinkedIn icon for social link
 
 const UserProfile = () => {
-  // State for sidebar visibility (open/closed)
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Controls whether the sidebar is visible
+  // State for sidebar visibility
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Controls sidebar visibility
   // State for dark mode toggle
   const [darkMode, setDarkMode] = useState(false); // Toggles between light and dark theme
   // State for user profile data, aligned with backend UserProfile model
   const [user, setUser] = useState({
     profilePicture: 'https://via.placeholder.com/150.png?text=User', // Default profile picture URL
-    education: '', // User's education details (string)
-    workExperience: '', // User's work experience (string)
-    skills: '', // User's skills (string)
-    name: '', // User's name
+    education: '', // User's education details
+    workExperience: '', // User's work experience
+    skills: '', // User's skills
+    name: '', // User's name (used as username)
+    role: 'User', // Role (assumed to be fetched or passed; not in UserProfile model)
     age: null, // User's age (nullable integer)
     gender: '', // User's gender
     linkedIn: '', // LinkedIn profile URL
   });
-  // State to track which section is being edited (e.g., 'basic', 'skills')
+  // State to track which section is being edited
   const [editSection, setEditSection] = useState(null); // Null when not editing, set to section name when editing
   // State for loading indicator during API calls
   const [isLoading, setIsLoading] = useState(false); // Shows loading state during fetch requests
   // State for error messages to display to the user
   const [error, setError] = useState(null); // Stores error messages to show in UI
-  // Hook to navigate to other routes (e.g., redirect to login)
+  // Hook to navigate to other routes
   const navigate = useNavigate();
 
   // Effect to fetch user profile data when the component mounts
   useEffect(() => {
     // Async function to fetch user profile from the backend
     const fetchUserProfile = async () => {
-      // Get the JWT token from localStorage (set during login)
+      // Get the JWT token from localStorage (set during login by LoginPage)
       const token = localStorage.getItem('token');
       // If token is missing, redirect to login page
       if (!token) {
@@ -59,28 +60,28 @@ const UserProfile = () => {
 
         // Check if the response is not OK (e.g., 401, 404, 500)
         if (!response.ok) {
-          // Get the response body as text for debugging
           const errorText = await response.text();
           console.error(`Failed to fetch user profile: ${response.status} ${response.statusText}`, errorText);
-          // If the response is 401 (Unauthorized), the token might be invalid or expired
+          // If unauthorized, the token might be invalid or missing; redirect to login
           if (response.status === 401) {
             localStorage.removeItem('token'); // Remove invalid token
             navigate('/login'); // Redirect to login page
             return;
           }
-          // Throw an error to be caught in the catch block
           throw new Error(`Failed to fetch user profile: ${response.status} ${response.statusText}`);
         }
 
         // Parse the response as JSON
         const data = await response.json();
         // Update the user state with the fetched data
-        setUser((prev) => ({ ...prev, ...data }));
+        setUser((prev) => ({
+          ...prev,
+          ...data,
+          role: localStorage.getItem('role') || 'User', // Fetch role from localStorage or default to 'User'
+        }));
       } catch (err) {
-        // Log the error to the console for debugging
         console.error('Error fetching user data:', err);
-        // Set an error message to display to the user
-        setError('Failed to load profile. Please try again later.');
+        setError('Failed to load profile. Please log in again.');
       } finally {
         // Set loading state to false after the request completes
         setIsLoading(false);
@@ -139,16 +140,14 @@ const UserProfile = () => {
 
       // Check if the response is not OK
       if (!response.ok) {
-        // Get the response body as text for debugging
         const errorText = await response.text();
         console.error(`Failed to update profile: ${response.status} ${response.statusText}`, errorText);
-        // If the response is 401 (Unauthorized), the token might be invalid or expired
+        // If unauthorized, the token might be invalid; redirect to login
         if (response.status === 401) {
           localStorage.removeItem('token'); // Remove invalid token
           navigate('/login'); // Redirect to login page
           return;
         }
-        // Throw an error to be caught in the catch block
         throw new Error(`Failed to update profile: ${response.status} ${response.statusText}`);
       }
 
@@ -161,10 +160,8 @@ const UserProfile = () => {
       // Exit edit mode by resetting editSection
       setEditSection(null);
     } catch (err) {
-      // Log the error to the console for debugging
       console.error('Error updating profile:', err);
-      // Set an error message to display to the user
-      setError('Failed to save profile. Please try again.');
+      setError('Failed to save profile. Please log in again.');
     } finally {
       // Set loading state to false after the request completes
       setIsLoading(false);
@@ -181,30 +178,35 @@ const UserProfile = () => {
         setDarkMode={setDarkMode} // Pass function to toggle dark mode
         isOpen={isSidebarOpen} // Pass sidebar open state
         setIsOpen={setIsSidebarOpen} // Pass function to toggle sidebar
-        user={user} // Pass user data to sidebar
+        user={user} // Pass user data to sidebar, including name
       />
       {/* Main content area */}
       <div className="md:ml-64 p-6">
         {/* Page title */}
-        <h2 className="text-2xl font-semibold text-[#005B66] dark:text-[#D3E0E2] mb-6">Profile</h2>
-        {/* Show loading indicator while fetching data */}
+        <h2 className="text-2xl font-semibold text-[#005B66] dark:text-[#D3E0E2] mb-6">Edit Profile</h2>
+        {/* Show loading indicator while fetching or saving data */}
         {isLoading && <p className="text-[#005B66] dark:text-[#D3E0E2]">Loading...</p>}
         {/* Show error message if there's an error */}
         {error && <p className="text-red-500 mb-4">{error}</p>}
         {/* Main layout with two columns (profile picture/info and details) */}
         <div className="flex flex-col md:flex-row gap-6">
-          {/* Left Column: Profile Picture and Basic Info */}
+          {/* Left Column: Profile Picture, Username, Role, and Basic Info */}
           <div className="w-full md:w-1/3 bg-white dark:bg-[#000000] p-6 rounded-lg shadow-sm">
             {/* Conditional rendering: Edit mode or view mode */}
             {editSection === 'basic' ? (
               <div>
                 {/* Profile picture display */}
-                <div className="flex justify-center mb-4">
+                <div className="flex flex-col items-center mb-4">
                   <img
                     src={user.profilePicture} // Show the profile picture
                     alt="Profile"
-                    className="w-32 h-32 rounded-full border-2 border-[#A0B3B5] dark:border-[#D3E0E2]"
+                    className="w-32 h-32 rounded-full border-2 border-[#A0B3B5] dark:border-[#D3E0E2] mb-2"
                   />
+                  {/* Username and Role display */}
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-[#D3E0E2]">
+                    {user.name || 'Guest'} {/* Display name as username */}
+                  </h3>
+                  <p className="text-sm text-gray-500 dark:text-[#A0B3B5]">{user.role}</p> {/* Display role */}
                 </div>
                 {/* File input to upload a new profile picture */}
                 <input
@@ -233,7 +235,7 @@ const UserProfile = () => {
                 <input
                   type="number"
                   value={user.age || ''} // Display current age or empty string
-                  onChange={(e) => setUser({ ...user, age: parseInt(e.target.value) || null })} // Update age in state (convert to integer or null)
+                  onChange={(e) => setUser({ ...user, age: parseInt(e.target.value) || null })} // Update age in state
                   className="w-full p-2 mb-2 border border-[#A0B3B5] rounded-lg dark:bg-[#005B66] dark:border-[#D3E0E2] dark:text-[#D3E0E2] focus:outline-none focus:ring-2 focus:ring-[#A0B3B5]"
                   placeholder="Age"
                 />
@@ -256,13 +258,18 @@ const UserProfile = () => {
               </div>
             ) : (
               <div>
-                {/* Display profile picture in view mode */}
-                <div className="flex justify-center mb-4">
+                {/* Display profile picture, username, and role in view mode */}
+                <div className="flex flex-col items-center mb-4">
                   <img
                     src={user.profilePicture}
                     alt="Profile"
-                    className="w-32 h-32 rounded-full border-2 border-[#A0B3B5] dark:border-[#D3E0E2]"
+                    className="w-32 h-32 rounded-full border-2 border-[#A0B3B5] dark:border-[#D3E0E2] mb-2"
                   />
+                  {/* Username and Role display */}
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-[#D3E0E2]">
+                    {user.name || 'Guest'} {/* Display name as username */}
+                  </h3>
+                  <p className="text-sm text-gray-500 dark:text-[#A0B3B5]">{user.role}</p> {/* Display role */}
                 </div>
                 {/* Display LinkedIn link if available */}
                 <div className="mt-4">
