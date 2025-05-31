@@ -3,13 +3,14 @@ import {Link} from "react-router-dom";
 import logo from "../../assets/logo.jpg";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faFacebookF, faGoogle, faTwitter,} from "@fortawesome/free-brands-svg-icons";
-
+import axiosInstance from "../../api/axiosInstance.js";
+import {backendBaseURL} from "../../data/environment.js";
 
 const ForgotPasswordPage = () => {
     const [formData, setFormData] = useState({
-        name: "",
         email: "",
-        password: "",
+        newPassword: "",
+        confirmPassword: "",
       });
     
       const handleChange = (e) => {
@@ -19,11 +20,25 @@ const ForgotPasswordPage = () => {
           [name]: value,
         }));
       };
-    
-      const handleSubmit = (e) => {
-        e.preventDefault();
-        alert("Password Updated Successfully");
-      };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (formData.newPassword !== formData.confirmPassword) {
+      alert("Passwords do not match");
+      return;
+    }
+
+    try {
+      await axiosInstance.post(`${backendBaseURL}user/reset-password`, {
+        email: formData.email,
+        newPassword: formData.newPassword
+      });
+      alert("Password updated successfully!");
+    } catch (err) {
+      console.error("Password update failed", err);
+      alert("Failed to update password.");
+    }
+  };
 
     return (
         <div className="register-container">
@@ -33,7 +48,7 @@ const ForgotPasswordPage = () => {
             </div>
             <div className="back-to-login">
             <Link to="/login">
-                <a href="/login"> &lt; Back to login </a>
+              &lt; Back to login
             </Link>
             </div>
             <h2 className="forgot-password-heading">Forgot Your Password?</h2>
@@ -52,8 +67,8 @@ const ForgotPasswordPage = () => {
                 <label>New Password</label>
                 <input
                   type="password"
-                  name="password"
-                  value={formData.password}
+                  name="newPassword"
+                  value={formData.newPassword}
                   onChange={handleChange}
                   required
                 />
@@ -62,8 +77,8 @@ const ForgotPasswordPage = () => {
                 <label>Confirm Password</label>
                 <input
                   type="password"
-                  name="password"
-                  value={formData.password}
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
                   onChange={handleChange}
                   required
                 />

@@ -20,12 +20,15 @@ import UserDetails from "./pages/Admin/UserDetails";
 import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import SampleQuestions from "./pages/User/SampleQuestions";
-import QuestionsByRole from "./pages/User/QuestionsByRole";
-function App() {
+import QuestionsByRole from "./pages/User/QuestionsByRole";import ToastWrapper from "./components/ToastWrapper";
+import Sample from "./pages/User/Sample";
+import AuthInterceptor from "@components/AuthInterceptor.jsx";
 
+function App() {
   return (
     
     <BrowserRouter>
+            <AuthInterceptor /> {/* ✅ Interceptor safely inside router context */}
       <Routes>
       
       <Route path="/" element={<HomePage/>}/>
@@ -34,7 +37,7 @@ function App() {
         <Route path="/register" element={<RegisterPage/>}/>
 
         
-        <Route path="/dashboard" element={<UserDashboard/>}/>
+        <Route path="/userdashboard" element={<UserDashboard/>}/>
         <Route path="/activities" element={<UserActivities/>}/>
         <Route path="/support" element={<Support />} />
         <Route path="/invite" element={<Invite />} />
@@ -49,7 +52,9 @@ function App() {
         <Route path="/sample-questions" element={<SampleQuestions />} />
          <Route path="/questions/:role" element={<QuestionsByRole />} />
 
+                <Route path="/sample" element={<Sample/>}/>
       </Routes>
+            <ToastWrapper />
     </BrowserRouter>
     
   );

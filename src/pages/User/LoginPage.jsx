@@ -1,18 +1,22 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Link } from "react-router-dom";
+import React, {useState} from "react";
+import {Link, useNavigate} from "react-router-dom";
 import logo from "../../assets/logo.jpg";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {faGoogle,faFacebookF,faTwitter,} from "@fortawesome/free-brands-svg-icons";
-import axios from "axios";
-import UserDashboard from "./UserDashboard";
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import {faFacebookF, faGoogle, faTwitter,} from "@fortawesome/free-brands-svg-icons";
+import {useLogin} from "../../data/useLogin";
+import {toast} from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css';
+import {ErrorBanner} from "@components/ErrorBanner.jsx";
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const { loginUser } = useLogin();
+  const [error, setError] = useState(null);
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
-    rememberMe: false,
+    rememberMe: false
   });
 
   const handleChange = (e) => {
@@ -24,30 +28,19 @@ const LoginPage = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    e.preventDefault(); //  Prevent form default behavior
+    const result = await loginUser(formData);
 
-    try {
-      const response = await axios.post(
-          "http://localhost:5031/api/user/login", // 👈 use HTTPS and correct port
-          formData
-      );
-      alert("User login Successfully");
-      console.log("Login successful", response.data);
-
-      // Optionally store the token and redirect
-       localStorage.setItem("token", response.data.token);
-      navigate("/dashboard");
-    } catch (error) {
-      if (error.response) {
-        console.error("Server error:", error.response.data);
-      } else if (error.request) {
-        console.error("No response from server:", error.request);
-      } else {
-        console.error("Error setting up request:", error.message);
-      }
+    if (result.success) {
+      toast.success(result.message || "login successfully!");
+      // setToken(result.data.token);
+      // setPermissions(result.data.permissions || []);
+        localStorage.setItem("token", result.data.token); // ✅ explicitly store token
+      setTimeout(() => navigate("/sample"), 1500);
+    } else {
+      setError(result.message);
     }
   };
-
   const handleSignUp = () => {
     navigate("/register");
   };
@@ -61,6 +54,7 @@ const LoginPage = () => {
         <h2 className="welcome-text">
           Hello, <strong>Welcome!</strong>
         </h2>
+        {error && <ErrorBanner message={error} onClose={() => setError(null)}/>}
         <form onSubmit={handleSubmit}>
           <div className="input-group">
             <label>Username or E-mail</label>
@@ -131,7 +125,7 @@ const LoginPage = () => {
         </div>
         <br />
         <p className="signup-text">
-          Don't have an account?
+          Don't have an account?{' '}
           <Link to="/register">
              Sign Up
           </Link>
