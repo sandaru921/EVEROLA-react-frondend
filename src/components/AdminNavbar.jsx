@@ -15,11 +15,11 @@ const AdminNavbar = () => {
   }
 
   return (
-    <header className="bg-[#004d66] text-white py-4 px-6 shadow-md">
-      <div className="container mx-auto flex justify-between items-center">
+    <header className="bg-[#004d66] text-white py-4 px-6 shadow-md ">
+      <div className="container mx-auto flex justify-between items-center pl-48">
         <div className="flex items-center">
           <img src="/img/logo3.png" alt="Logo" className="h-10 mr-3" />
-          <span className="text-xl font-bold">Admin Dashboard</span>
+          <span className="text-xl font-bold ">Admin Dashboard</span>
         </div>
 
         {/* Mobile menu button */}
@@ -109,3 +109,7 @@ const AdminNavbar = () => {
 }
 
 export default AdminNavbar
+
+
+
+
