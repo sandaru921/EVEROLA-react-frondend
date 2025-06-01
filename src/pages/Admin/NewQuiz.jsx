@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Plus, Trash2, Upload, Eye, Save, X, CheckCircle, AlertCircle } from 'lucide-react';
 
 const AddQuiz = () => {
   const [quizName, setQuizName] = useState('');
@@ -11,20 +12,20 @@ const AddQuiz = () => {
       type: 'Single Choice',
       options: ['', '', '', ''],
       correctAnswers: [],
+      codeSnippet : '',
       image: '',
-      marks: 0,
+      marks: 1,
     },
   ]);
+  const [showPreview, setShowPreview] = useState(false);
 
   const handleQuestionChange = (index, field, value) => {
     const updated = [...questions];
     if (field === 'marks') {
-      // Ensure marks is a number and >= 0
       const num = Number(value);
       updated[index][field] = isNaN(num) || num < 0 ? 0 : num;
     } else {
       updated[index][field] = value;
-      // Reset options and correct answers if type changed
       if (field === 'type') {
         if (value === 'Text Base') {
           updated[index].options = [];
@@ -81,9 +82,10 @@ const AddQuiz = () => {
         questionText: '',
         type: 'Single Choice',
         options: ['', '', '', ''],
+        codeSnippet: '',
         correctAnswers: [],
         image: '',
-        marks: 0,
+        marks: 1,
       },
     ]);
   };
@@ -91,6 +93,19 @@ const AddQuiz = () => {
   const deleteQuestion = (index) => {
     if (questions.length === 1) return;
     setQuestions(questions.filter((_, i) => i !== index));
+  };
+
+  const getTotalMarks = () => {
+    return questions.reduce((sum, q) => sum + (q.marks || 0), 0);
+  };
+
+  const getQuestionTypeColor = (type) => {
+    switch(type) {
+      case 'Single Choice': return 'bg-blue-100 text-blue-800';
+      case 'Multiple Choice': return 'bg-green-100 text-green-800';
+      case 'Text Base': return 'bg-purple-100 text-purple-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
   };
 
   const handleSaveQuiz = async () => {
@@ -123,12 +138,12 @@ const AddQuiz = () => {
 
     const formattedQuestions = questions.map((q) => ({
       questionText: q.questionText,
-      codeSnippet: "",  // extend if needed
+      codeSnippet: q.codeSnippet,
       imageURL: q.image || "",
       type: q.type,
       marks: q.marks,
       options: q.options.map((opt, idx) => ({
-        key: String.fromCharCode(65 + idx),  // A, B, C, D
+        key: String.fromCharCode(65 + idx),
         value: opt,
       })),
       correctAnswers: q.correctAnswers.map((idx) => String.fromCharCode(65 + idx)),
@@ -138,14 +153,13 @@ const AddQuiz = () => {
       quizName,
       jobCategory,
       description,
-      quizDuration: 1, // can be dynamic
+      quizDuration: 10,
       quizLevel,
       questions: formattedQuestions,
     };
 
     console.log(quizData);
-
-    try {
+     try {
       const response = await fetch('https://localhost:5031/api/quiz', {
         method: 'POST',
         headers: {
@@ -172,167 +186,326 @@ const AddQuiz = () => {
   };
 
   return (
-    <div className="p-6 max-w-4xl mx-auto bg-white rounded shadow mt-10 mb-20">
-      <h2 className="text-2xl mb-6">Add New Quiz</h2>
-
-      <div className="grid grid-cols-2 gap-4 mb-4">
-        <input
-          type="text"
-          placeholder="Quiz Name *"
-          className="border p-2 rounded"
-          value={quizName}
-          onChange={(e) => setQuizName(e.target.value)}
-        />
-
-        <select
-          className="border p-2 rounded"
-          value={jobCategory}
-          onChange={(e) => setJobCategory(e.target.value)}
-        >
-          <option value="">Select Job Category</option>
-          <option>Frontend Developer</option>
-          <option>Backend Developer</option>
-          <option>Software Engineer</option>
-        </select>
-      </div>
-
-      <textarea
-        placeholder="Quiz Description"
-        className="w-full border p-2 rounded mb-4"
-        rows={3}
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-      />
-
-      <select
-        className="border p-2 mb-6 w-full rounded"
-        value={quizLevel}
-        onChange={(e) => setQuizLevel(e.target.value)}
-      >
-        <option value="">Select Quiz Level</option>
-        <option>Beginner</option>
-        <option>Intermediate</option>
-        <option>Advanced</option>
-      </select>
-
-      {questions.map((q, index) => (
-        <div key={index} className="mb-6 border p-4 rounded bg-gray-50">
-          <div className="flex justify-between items-center mb-2">
-            <h4 className="font-semibold">Question {index + 1}</h4>
-            <select
-              className="border p-1 rounded"
-              value={q.type}
-              onChange={(e) => handleQuestionChange(index, 'type', e.target.value)}
-            >
-              <option>Single Choice</option>
-              <option>Multiple Choice</option>
-              <option>Text Base</option>
-            </select>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+      <div className="max-w-6xl mx-auto p-6">
+        {/* Header */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">Create New Quiz</h1>
+              <p className="text-gray-600">Build comprehensive quizzes for skill assessment</p>
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className="text-right">
+                <p className="text-sm text-gray-500">Total Questions</p>
+                <p className="text-2xl font-bold text-blue-600">{questions.length}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-sm text-gray-500">Total Marks</p>
+                <p className="text-2xl font-bold text-green-600">{getTotalMarks()}</p>
+              </div>
+            </div>
           </div>
 
-          <input
-            type="text"
-            placeholder="Question Text"
-            className="w-full border p-2 mb-2 rounded"
-            value={q.questionText}
-            onChange={(e) => handleQuestionChange(index, 'questionText', e.target.value)}
-          />
+          {/* Quiz Details Form */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-gray-700">Quiz Name *</label>
+              <input
+                type="text"
+                placeholder="Enter quiz name"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                value={quizName}
+                onChange={(e) => setQuizName(e.target.value)}
+              />
+            </div>
 
-          <div className="mb-2">
-            <label className="mr-2 font-medium">Marks:</label>
-            <input
-              type="number"
-              min="0"
-              className="border p-1 rounded w-20"
-              value={q.marks}
-              onChange={(e) => handleQuestionChange(index, 'marks', e.target.value)}
-            />
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-gray-700">Job Category</label>
+              <select
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                value={jobCategory}
+                onChange={(e) => setJobCategory(e.target.value)}
+              >
+                <option value="">Select Job Category</option>
+                <option>Frontend Developer</option>
+                <option>Backend Developer</option>
+                <option>Software Engineer</option>
+                <option>Full Stack Developer</option>
+                <option>DevOps Engineer</option>
+                <option>Data Scientist</option>
+              </select>
+            </div>
+
+            <div className="space-y-2 md:col-span-2">
+              <label className="block text-sm font-semibold text-gray-700">Description</label>
+              <textarea
+                placeholder="Provide a brief description of the quiz"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
+                rows={3}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-gray-700">Quiz Level</label>
+              <select
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                value={quizLevel}
+                onChange={(e) => setQuizLevel(e.target.value)}
+              >
+                <option value="">Select Quiz Level</option>
+                <option>Beginner</option>
+                <option>Intermediate</option>
+                <option>Advanced</option>
+                <option>Expert</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Questions Section */}
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-gray-900">Questions</h2>
+            <div className="flex space-x-3">
+              <button
+                onClick={() => setShowPreview(!showPreview)}
+                className="flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                <Eye className="w-4 h-4 mr-2" />
+                {showPreview ? 'Hide Preview' : 'Show Preview'}
+              </button>
+              <button
+                onClick={addQuestion}
+                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Question
+              </button>
+            </div>
           </div>
 
-          {(q.type !== 'Text Base') && (
-            <div className="grid grid-cols-2 gap-2 mb-2">
-              {q.options.map((opt, optIndex) => (
-                <div key={optIndex} className="flex items-center space-x-2">
-                  <input
-                    type={q.type === 'Multiple Choice' ? 'checkbox' : 'radio'}
-                    name={`correct-${index}`}
-                    checked={q.correctAnswers.includes(optIndex)}
-                    onChange={() => handleCorrectAnswerChange(index, optIndex)}
+          {questions.map((q, index) => (
+            <div key={index} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+              {/* Question Header */}
+              <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">
+                      {index + 1}
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900">Question {index + 1}</h3>
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${getQuestionTypeColor(q.type)}`}>
+                      {q.type}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <select
+                      className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+                      value={q.type}
+                      onChange={(e) => handleQuestionChange(index, 'type', e.target.value)}
+                    >
+                      <option>Single Choice</option>
+                      <option>Multiple Choice</option>
+                      <option>Text Base</option>
+                    </select>
+                    <button
+                      onClick={() => deleteQuestion(index)}
+                      disabled={questions.length === 1}
+                      className={`p-2 rounded-lg transition-colors ${
+                        questions.length === 1 
+                          ? 'text-gray-400 cursor-not-allowed' 
+                          : 'text-red-600 hover:bg-red-50'
+                      }`}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Question Content */}
+              <div className="p-6 space-y-6">
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-gray-700">Question Text *</label>
+                  <textarea
+                    placeholder="Enter your question here..."
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
+                    rows={2}
+                    value={q.questionText}
+                    onChange={(e) => handleQuestionChange(index, 'questionText', e.target.value)}
                   />
-                  <input
-                    type="text"
-                    className="border p-2 flex-1 rounded"
-                    placeholder={`Option ${String.fromCharCode(65 + optIndex)}`}
-                    value={opt}
-                    onChange={(e) => handleOptionChange(index, optIndex, e.target.value)}
+                  <label className="block text-sm font-semibold text-gray-700">Code Snippet</label>
+                  <textarea
+                    placeholder="Enter your code snippet here..."
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
+                    rows={2}
+                    value={q.codeSnippet}
+                    onChange={(e) => handleQuestionChange(index, 'codeSnippet', e.target.value)}
                   />
+                </div>
+
+                <div className="flex items-center space-x-6">
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-gray-700">Marks</label>
+                    <input
+                      type="number"
+                      min="0"
+                      className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                      value={q.marks}
+                      onChange={(e) => handleQuestionChange(index, 'marks', e.target.value)}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-gray-700">Image (Optional)</label>
+                    <div className="flex items-center space-x-3">
+                      <label className="flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 cursor-pointer transition-colors">
+                        <Upload className="w-4 h-4 mr-2" />
+                        Upload Image
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => handleImageUpload(e, index)}
+                        />
+                      </label>
+                      {q.image && (
+                        <span className="text-sm text-green-600 flex items-center">
+                          <CheckCircle className="w-4 h-4 mr-1" />
+                          Image uploaded
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {q.image && (
+                  <div className="relative inline-block">
+                    <img
+                      src={q.image}
+                      alt="Question"
+                      className="max-w-xs max-h-48 rounded-lg border border-gray-200"
+                    />
+                    <button
+                      onClick={() => handleQuestionChange(index, 'image', '')}
+                      className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                )}
+
+                {q.type !== 'Text Base' && (
+                  <div className="space-y-3">
+                    <label className="block text-sm font-semibold text-gray-700">Answer Options</label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {q.options.map((opt, optIndex) => (
+                        <div key={optIndex} className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
+                          <input
+                            type={q.type === 'Multiple Choice' ? 'checkbox' : 'radio'}
+                            name={`correct-${index}`}
+                            checked={q.correctAnswers.includes(optIndex)}
+                            onChange={() => handleCorrectAnswerChange(index, optIndex)}
+                            className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                          />
+                          <div className="w-6 h-6 bg-blue-100 text-blue-800 rounded-full flex items-center justify-center text-xs font-bold">
+                            {String.fromCharCode(65 + optIndex)}
+                          </div>
+                          <input
+                            type="text"
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                            placeholder={`Option ${String.fromCharCode(65 + optIndex)}`}
+                            value={opt}
+                            onChange={(e) => handleOptionChange(index, optIndex, e.target.value)}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                    {q.correctAnswers.length === 0 && (
+                      <div className="flex items-center text-amber-600 text-sm">
+                        <AlertCircle className="w-4 h-4 mr-1" />
+                        Please select at least one correct answer
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Preview Section */}
+        {showPreview && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 mt-8">
+            <h3 className="text-2xl font-bold text-gray-900 mb-6">Quiz Preview</h3>
+            <div className="space-y-6">
+              {questions.map((q, index) => (
+                <div key={index} className="border border-gray-200 rounded-lg p-6 bg-gray-50">
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="text-lg font-semibold text-gray-900">
+                      {index + 1}. {q.questionText || 'Sample Question'}
+                    </h4>
+                    <div className="flex items-center space-x-3">
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${getQuestionTypeColor(q.type)}`}>
+                        {q.type}
+                      </span>
+                      <span className="text-sm font-medium text-green-600">
+                        {q.marks} {q.marks === 1 ? 'mark' : 'marks'}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {q.image && (
+                    <img src={q.image} alt="Question" className="mb-4 max-w-xs rounded-lg border" />
+                  )}
+                  
+                  {q.type === 'Text Base' ? (
+                    <div className="p-4 bg-white border border-gray-200 rounded-lg">
+                      <p className="text-gray-500 italic">Text-based answer expected</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {q.options.map((opt, i) => (
+                        <div key={i} className="flex items-center space-x-3 p-3 bg-white border border-gray-200 rounded-lg">
+                          <input
+                            type={q.type === 'Multiple Choice' ? 'checkbox' : 'radio'}
+                            checked={q.correctAnswers.includes(i)}
+                            readOnly
+                            className="w-4 h-4 text-blue-600"
+                          />
+                          <div className="w-6 h-6 bg-blue-100 text-blue-800 rounded-full flex items-center justify-center text-xs font-bold">
+                            {String.fromCharCode(65 + i)}
+                          </div>
+                          <label className="text-gray-700">{opt || `Option ${i + 1}`}</label>
+                          {q.correctAnswers.includes(i) && (
+                            <CheckCircle className="w-4 h-4 text-green-600 ml-auto" />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
-          )}
-
-          <div className="mb-2">
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => handleImageUpload(e, index)}
-            />
-            {q.image && (
-              <img
-                src={q.image}
-                alt="Question"
-                className="mt-2 max-w-xs border rounded"
-              />
-            )}
           </div>
+        )}
 
-          <button
-            className={`bg-red-500 text-white px-4 py-1 rounded hover:bg-red-600 ${questions.length === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
-            onClick={() => deleteQuestion(index)}
-            disabled={questions.length === 1}
+        {/* Action Buttons */}
+        <div className="flex justify-end space-x-4 mt-8">
+          <button className="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
+            Cancel
+          </button>
+          <button 
+            onClick={handleSaveQuiz}
+            className="flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
-            Delete Question
+            <Save className="w-4 h-4 mr-2" />
+            Save Quiz
           </button>
         </div>
-      ))}
-
-      <button
-        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 mr-2"
-        onClick={addQuestion}
-      >
-        + Add Question
-      </button>
-
-      <div className="mt-8">
-        <h3 className="text-lg font-semibold mb-2">Preview</h3>
-        {questions.map((q, index) => (
-          <div key={index} className="border p-4 mb-2 rounded bg-gray-100">
-            <p className="mb-1 font-medium">{q.questionText || 'Sample Question'}</p>
-            <p className="mb-2 font-semibold">Marks: {q.marks}</p>
-            {q.image && <img src={q.image} alt="Question" className="mb-2 max-w-xs" />}
-            {q.type === 'Text Base' ? (
-              <p className="italic text-gray-600">Text-based answer</p>
-            ) : (
-              q.options.map((opt, i) => (
-                <div key={i} className="flex items-center gap-2">
-                  <input
-                    type={q.type === 'Multiple Choice' ? 'checkbox' : 'radio'}
-                    checked={q.correctAnswers.includes(i)}
-                    readOnly
-                  />
-                  <label className="ml-2">{opt || `Option ${i + 1}`}</label>
-                </div>
-              ))
-            )}
-          </div>
-        ))}
-      </div>
-
-      <div className="flex justify-end gap-2 mt-6">
-        <button className="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600" onClick={handleSaveQuiz}>
-          Save
-        </button>
-        <button className="bg-gray-300 text-black px-6 py-2 rounded hover:bg-gray-400">Cancel</button>
       </div>
     </div>
   );

@@ -20,7 +20,7 @@ const QuizTable = () => {
           Active Quizzes
         </h2>
         <p className="px-5 py-2 bg-[#4F46E5] text-white rounded">
-          <a href="/addNewQuiz">+ Add New Quiz</a>
+          <a href="/admin/addNewQuiz">+ Add New Quiz</a>
         </p>
       </div>
       <table className="w-full table-auto">
@@ -45,7 +45,7 @@ const QuizTable = () => {
               </td>
               <td className="py-3 px-4">
                 <button
-                  onClick={() => navigate(`/tryout/${quiz.id}`)}
+                  onClick={() => navigate(`/admin/tryout/${quiz.id}`)}
                   className="bg-blue-200 hover:bg-blue-300 text-blue-800 font-semibold py-1 px-4 rounded-full shadow-sm"
                 >
                   TryOut

@@ -1,6 +1,5 @@
-import { useState } from 'react';
-import { FiMenu, FiSearch, FiX, FiMail } from 'react-icons/fi';
-import { Link } from 'react-router-dom';
+import {useState} from 'react';
+import {FiMail, FiMenu, FiSearch, FiX} from 'react-icons/fi';
 import UserSidebar from '../../components/UserSidebar'; // Adjusted path as previously fixed
 
 const Invite = () => {
