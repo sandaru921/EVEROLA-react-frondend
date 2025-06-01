@@ -20,6 +20,10 @@ import ForgotPasswordPage from "./pages/User/ForgotPasswordPage";
 import HomePage from "./pages/User/HomePage";
 import "./pages/User/HomePage.css";
 import AdminChat from "./pages/Admin/AdminChat";
+import Test from "./pages/Admin/Test";
+import QuizDash from "./pages/Admin/QuizDash";
+import AddQuiz from "./pages/Admin/NewQuiz";
+import TryOutQuiz from "./pages/Admin/TryOutQuiz";
 
 function App() {
   console.log("App component is rendering"); // Debug log
@@ -45,6 +49,9 @@ function App() {
         <Route path="/privacy" element={<Privacy/>}/>
         <Route path="/profile" element={<UserProfile />} />
         <Route path="/adminchat" element={<AdminChat />} />
+        <Route path="/quizDash" element={<QuizDash />} />
+        <Route path="/addNewQuiz" element={<AddQuiz />} />
+        <Route path="/tryout/:id" element={<TryOutQuiz />} />
 
       </Routes>
     </BrowserRouter>

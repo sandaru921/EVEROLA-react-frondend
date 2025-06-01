@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
-body {
+/* body {
   background-color: #008eab;
-}
+} */
 
 .bgImage {
   background-size: cover;
