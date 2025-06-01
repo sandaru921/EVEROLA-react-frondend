@@ -5,15 +5,20 @@ import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faFacebookF, faGoogle, faTwitter,} from "@fortawesome/free-brands-svg-icons";
 import axiosInstance from "../../api/axiosInstance.js";
 import {backendBaseURL} from "../../data/environment.js";
+import {toast} from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import {ErrorBanner} from "@components/ErrorBanner.jsx";
 
 const ForgotPasswordPage = () => {
+ const [error, setError] = useState(null); // Holds error messages for form validation
+
     const [formData, setFormData] = useState({
         email: "",
         newPassword: "",
         confirmPassword: "",
       });
-    
-      const handleChange = (e) => {
+
+  const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData((prevData) => ({
           ...prevData,
@@ -23,20 +28,29 @@ const ForgotPasswordPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?#&_])[A-Za-z\d@$!%*?#&_]{8,}$/;
+
+    if (!passwordRegex.test(formData.newPassword)) {
+      setError("Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.");
+      return;
+    }
+
     if (formData.newPassword !== formData.confirmPassword) {
-      alert("Passwords do not match");
+      setError("Passwords do not match");
       return;
     }
 
     try {
+      setError(null); // clear previous errors
       await axiosInstance.post(`${backendBaseURL}user/reset-password`, {
         email: formData.email,
         newPassword: formData.newPassword
       });
-      alert("Password updated successfully!");
+      toast.success("Password updated successfully!");
     } catch (err) {
       console.error("Password update failed", err);
-      alert("Failed to update password.");
+      toast.error("Failed to update password.");
     }
   };
 
@@ -52,6 +66,10 @@ const ForgotPasswordPage = () => {
             </Link>
             </div>
             <h2 className="forgot-password-heading">Forgot Your Password?</h2>
+
+            {/* Show error banner here */}
+            {error && <ErrorBanner message={error} onClose={() => setError(null)} />}
+
             <form onSubmit={handleSubmit}>
             <div className="input-group">
                 <label>E-mail</label>

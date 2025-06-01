@@ -14,10 +14,16 @@ const LoginPage = () => {
   const [error, setError] = useState(null);
 
   const [formData, setFormData] = useState({
-    email: "",
+    identifier: "", // can be username or email
     password: "",
     rememberMe: false
   });
+
+  const isValidIdentifier = (identifier) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const usernameRegex = /^[a-zA-Z0-9_]{3,}$/;
+    return emailRegex.test(identifier) || usernameRegex.test(identifier);
+  };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -29,13 +35,32 @@ const LoginPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault(); //  Prevent form default behavior
-    const result = await loginUser(formData);
+
+    // Basic validation
+    if (!formData.identifier.trim()) {
+      setError("Please enter your username or email.");
+      return;
+    }
+
+    if (!isValidIdentifier(formData.identifier.trim())) {
+      setError("Please enter a valid username or email.");
+      return;
+    }
+
+    if (!formData.password) {
+      setError("Please enter your password.");
+      return;
+    }
+
+    const result = await loginUser(formData);// send identifier instead of email
 
     if (result.success) {
       toast.success(result.message || "login successfully!");
-      // setToken(result.data.token);
-      // setPermissions(result.data.permissions || []);
-        localStorage.setItem("token", result.data.token); // ✅ explicitly store token
+
+      // ✅ Store token and permissions in localStorage
+      localStorage.setItem("token", result.data.token);
+      localStorage.setItem("permissions", JSON.stringify(result.data.permissions));
+
       setTimeout(() => navigate("/sample"), 1500);
     } else {
       setError(result.message);
@@ -59,9 +84,9 @@ const LoginPage = () => {
           <div className="input-group">
             <label>Username or E-mail</label>
             <input
-              type="email"
-              name="email"
-              value={formData.email}
+              type="text"
+              name="identifier"
+              value={formData.identifier}
               onChange={handleChange}
               required
             />

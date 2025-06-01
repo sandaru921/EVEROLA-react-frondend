@@ -5,14 +5,13 @@ import { backendBaseURL } from "../../data/environment";
 import { toast } from "react-toastify";
 import {useLocalStorage} from "react-use";
 import LogOutButton from "../../components/LogOutButton.jsx";
-import "../../pages/User/HomePage.css";
 import useLogout from "../../data/useLogout.js";
 
 const SamplePage = () => {
     const logout = useLogout();
     const navigate = useNavigate();
     const [token, setToken] = useLocalStorage("token", "");
-    const [setPermissions] = useLocalStorage("permissions", []);
+    const [permissions, setPermissions] = useLocalStorage("permissions", []);
     const [apiMessage, setApiMessage] = useState(""); // State to hold API response message
 
     // ✅ Set Authorization header once token is available
@@ -23,6 +22,10 @@ const SamplePage = () => {
             delete axiosInstance.defaults.headers.common["Authorization"];
         }
     }, [token]);
+
+    const handleGoToPermissionManager = () => {
+        navigate("/permission-manager");
+    };
 
     const handleProtectedCall = async () => {
         try {
@@ -48,22 +51,35 @@ const SamplePage = () => {
     };
 
     return (
-        <div className="sample-page">
-            <h1>Sample Page</h1>
-            <button
-                className="signup-btn"
-                onClick={handleProtectedCall}
-            >
-                Call Protected API
-            </button>
+        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
+            <h1 className="text-3xl font-bold mb-6">Sample Page</h1>
+
+            <div className="flex gap-4 mb-6">
+                <button
+                    onClick={handleProtectedCall}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg shadow-md transition"
+                >
+                    Call Protected API
+                </button>
+                {permissions.includes("Admin") && (
+                <button
+                    onClick={handleGoToPermissionManager}
+                    className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg shadow-md transition"
+                >
+                    Go to User Permissions Manager
+                </button>
+                    )}
+            </div>
 
             {apiMessage && (
-                <div className="api-message">
-                    <p>{apiMessage}</p>
+                <div className="bg-white p-4 rounded shadow-md w-full max-w-md text-center">
+                    <p className="text-gray-700">{apiMessage}</p>
                 </div>
             )}
 
-            <LogOutButton onLogout={logout} />
+            <div className="mt-10">
+                <LogOutButton onLogout={logout} />
+            </div>
         </div>
     );
 };

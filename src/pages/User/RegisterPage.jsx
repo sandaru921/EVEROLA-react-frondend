@@ -26,8 +26,53 @@ const RegisterPage = () => {
             [name]: value,
         }));
     };
+
+    const isValidEmail = (email) => {
+        // Simple regex for most email formats
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    };
+
+    const validatePassword = (password) => {
+        const minLength = /.{8,}/;
+        const upper = /[A-Z]/;
+        const lower = /[a-z]/;
+        const number = /[0-9]/;
+        const special = /[!@#$%^&*(),.?":{}|<>]/;
+
+        if (!minLength.test(password)) {
+            return "Password must be at least 8 characters long.";
+        }
+        if (!upper.test(password)) {
+            return "Password must contain at least one uppercase letter.";
+        }
+        if (!lower.test(password)) {
+            return "Password must contain at least one lowercase letter.";
+        }
+        if (!number.test(password)) {
+            return "Password must contain at least one number.";
+        }
+        if (!special.test(password)) {
+            return "Password must contain at least one special character.";
+        }
+        return null;
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+        // Email validation
+        if (!isValidEmail(formData.email)) {
+            setError("Please enter a valid email address.");
+            return;
+        }
+
+        // Password validation
+        const passwordError = validatePassword(formData.password);
+        if (passwordError) {
+            setError(passwordError);
+            return;
+        }
+
         const result = await registerUser(formData);
         if (!result.success) {
             setError(result.message);
