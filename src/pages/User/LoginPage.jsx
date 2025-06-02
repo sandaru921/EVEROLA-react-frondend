@@ -25,6 +25,7 @@ const LoginPage = () => {
     return emailRegex.test(identifier) || usernameRegex.test(identifier);
   };
 
+  // Update form inputs on change
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData({
@@ -33,6 +34,7 @@ const LoginPage = () => {
     });
   };
 
+  // On form submit, validate inputs, call loginUser, handle success/error
   const handleSubmit = async (e) => {
     e.preventDefault(); //  Prevent form default behavior
 
@@ -57,7 +59,7 @@ const LoginPage = () => {
     if (result.success) {
       toast.success(result.message || "login successfully!");
 
-      // ✅ Store token and permissions in localStorage
+      // Store token and permissions in localStorage
       localStorage.setItem("token", result.data.token);
       localStorage.setItem("permissions", JSON.stringify(result.data.permissions));
 

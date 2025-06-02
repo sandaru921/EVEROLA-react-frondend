@@ -29,6 +29,7 @@ const ForgotPasswordPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+      // Password strength regex: min 8 chars, uppercase, lowercase, number, special char
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?#&_])[A-Za-z\d@$!%*?#&_]{8,}$/;
 
     if (!passwordRegex.test(formData.newPassword)) {

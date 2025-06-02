@@ -19,6 +19,7 @@ const RegisterPage = () => {
     const {registerUser} = useRegister();
     const navigate = useNavigate();
 
+    // Update form inputs on change
     const handleChange = (e) => {
         const {name, value} = e.target;
         setFormData((prevData) => ({
@@ -27,12 +28,14 @@ const RegisterPage = () => {
         }));
     };
 
+    // Simple email format validation
     const isValidEmail = (email) => {
         // Simple regex for most email formats
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return emailRegex.test(email);
     };
 
+    // Password validation rules
     const validatePassword = (password) => {
         const minLength = /.{8,}/;
         const upper = /[A-Z]/;
@@ -73,10 +76,12 @@ const RegisterPage = () => {
             return;
         }
 
+        // Call register API hook
         const result = await registerUser(formData);
         if (!result.success) {
             setError(result.message);
         } else {
+            // Show success toast and redirect to login
             toast.success(result.message || "Registered successfully!", {
                 position: "bottom-right",
                 autoClose: 5000,

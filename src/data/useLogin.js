@@ -3,16 +3,19 @@ import axiosInstance from "../api/axiosInstance.js";
 
 export const useLogin = () => {
     const loginUser = async ({ identifier, password }) => {
-        // Determine whether identifier is an email or username
+        // Check if input is email or username
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         const payload = emailRegex.test(identifier)
             ? { email: identifier, password }
             : { username: identifier, password };
 
         try {
+            // Attempt to log in the user
             const response = await axiosInstance.post(`${backendBaseURL}user/login`, payload);
             return { success: true, data: response.data };
+
         } catch (error) {
+            // Handle errors based on the type of error
             if (error.response) {
                 if (error.response.status === 401) {
                     return { success: false, message: "Invalid credentials." };

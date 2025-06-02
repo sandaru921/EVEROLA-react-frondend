@@ -16,7 +16,6 @@ import HomePage from "./pages/User/HomePage";
 import "./pages/User/HomePage.css";
 import AdminChat from "./pages/Admin/AdminChat";
 import ToastWrapper from "./components/ToastWrapper";
-import Sample from "./pages/User/Sample";
 import AuthInterceptor from "@components/AuthInterceptor.jsx";
 import PermissionManager from "./pages/Admin/PermissionManager.jsx";
 import ProtectedRoute from "@components/ProtectedRoute.jsx";
@@ -47,7 +46,6 @@ function App() {
                 <Route path="/privacy" element={<Privacy/>}/>
                 <Route path="/profile" element={<UserProfile/>}/>
                 <Route path="/adminchat" element={<AdminChat/>}/>
-                <Route path="/sample" element={<Sample/>}/>
                 <Route
                     path="/permission-manager"
                     element={

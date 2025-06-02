@@ -18,6 +18,7 @@ const PermissionManager = () => {
         fetchPermissions();
     }, []);
 
+    // Fetch users with their permissions from backend
     const fetchUsers = async () => {
         try {
             const res = await axios.get(`${backendBaseURL}user/with-permissions`, {
@@ -32,6 +33,7 @@ const PermissionManager = () => {
         }
     };
 
+    // Fetch all available permissions
     const fetchPermissions = async () => {
         try {
             const res = await axios.get(`${backendBaseURL}permission/all`, {
@@ -46,6 +48,7 @@ const PermissionManager = () => {
         }
     };
 
+    // Open modal and set current user and their permissions for editing
     const openEditModal = (user) => {
         setEditingUser(user);
         setEditingPermissions(user.permissions.map((p) => p.id));
@@ -59,6 +62,7 @@ const PermissionManager = () => {
         );
     };
 
+    // Save updated permissions to backend
     const savePermissions = async () => {
         try {
             await axios.put(

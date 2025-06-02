@@ -4,6 +4,7 @@ import bgImage from "../../assets/bgImage.jpg";
 import React, { useState, useRef, useEffect } from "react";
 
 const HomePage = () => {
+  // State to track dropdown open/close
 const [dropdownOpen, setDropdownOpen] = useState(false);
 const dropdownRef = useRef(null);
 
@@ -11,6 +12,7 @@ const toggleDropdown = () => {
   setDropdownOpen(!dropdownOpen);
 };
 
+// Close dropdown if click outside detected
 const handleClickOutside = (event) => {
   if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
     setDropdownOpen(false);

@@ -5,6 +5,7 @@ const AdminSearchBar = () => {
     const [query, setQuery] = useState("");
     const navigate = useNavigate();
 
+    // Get user permissions from local storage
     const permissions = JSON.parse(localStorage.getItem("permissions") || "[]");
 
     const handleSearch = (e) => {
@@ -13,6 +14,7 @@ const AdminSearchBar = () => {
         // Normalize the query for flexibility
         const normalizedQuery = query.trim().toLowerCase();
 
+        // If user has admin permission and types "permission-manager", navigate
         if (permissions.includes("admin") && normalizedQuery === "permission-manager") {
             navigate("/permission-manager");
         } else {

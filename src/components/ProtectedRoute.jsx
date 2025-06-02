@@ -15,6 +15,7 @@ const ProtectedRoute = ({ children, allowedRole }) => {
         return <Navigate to="/" />;// or /unauthorized
     }
 
+    // Allow access
     return children;
 };
 
