@@ -3,6 +3,7 @@ import axios from "axios";
 import {backendBaseURL} from "../../data/environment.js";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import UserSidebar from "../../components/UserSidebar.jsx";
 
 const PermissionManager = () => {
     const [users, setUsers] = useState([]);
@@ -82,10 +83,16 @@ const PermissionManager = () => {
     };
 
     return (
-        <div className="p-6 max-w-6xl mx-auto">
-            <h1 className="text-2xl font-bold mb-6">User Permissions Manager</h1>
+        <div className="flex h-screen">
+            {/* Sidebar */}
+            <div className="w-64">
+                <UserSidebar />
+            </div>
 
-            <div className="overflow-x-auto shadow rounded border border-gray-200">
+        <div className="flex-1 p-6 bg-cyan-700 overflow-auto">
+            <h1 className="text-2xl font-bold mb-6 text-white">User Permissions Manager</h1>
+
+            <div className="overflow-x-auto shadow rounded border border-gray-200 bg-indigo-50 ">
                 <table className="min-w-full text-sm text-left">
                     <thead className="bg-gray-100 text-gray-700">
                     <tr>
@@ -158,6 +165,8 @@ const PermissionManager = () => {
                     </div>
                 </div>
             )}
+        </div>
+            <ToastContainer />
         </div>
     );
 };
