@@ -3,12 +3,14 @@ import {Link, useNavigate} from "react-router-dom";
 import logo from "../../assets/logo.jpg";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faFacebookF, faGoogle, faTwitter,} from "@fortawesome/free-brands-svg-icons";
+import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import {useLogin} from "../../data/useLogin";
 import {toast} from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 import {ErrorBanner} from "@components/ErrorBanner.jsx";
 
 const LoginPage = () => {
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const { loginUser } = useLogin();
   const [error, setError] = useState(null);
@@ -68,6 +70,11 @@ const LoginPage = () => {
       setError(result.message);
     }
   };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword((prev) => !prev);
+  };
+
   const handleSignUp = () => {
     navigate("/register");
   };
@@ -93,15 +100,22 @@ const LoginPage = () => {
               required
             />
           </div>
-          <div className="input-group">
+          <div className="input-group relative">
             <label>Password</label>
             <input
-              type="password"
+              type={showPassword ? "text" : "password"}
               name="password"
               value={formData.password}
               onChange={handleChange}
               required
             />
+            <button
+                type="button"
+                onClick={togglePasswordVisibility}
+                className="absolute right-2 top-10 transform -translate-y-1/2 text-gray-500"
+            >
+              <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
+            </button>
           </div>
           <div className="options">
             <div>

@@ -455,3 +455,19 @@ strong {
 .dropdown-menu li:hover {
   background: #f0f0f0;
 }
+
+
+.password-input-wrapper {
+  position: relative;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #666;
+}

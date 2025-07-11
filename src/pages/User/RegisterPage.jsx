@@ -3,6 +3,7 @@ import {Link, useNavigate} from "react-router-dom";
 import logo from "../../assets/logo.jpg";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faFacebookF, faGoogle, faTwitter,} from "@fortawesome/free-brands-svg-icons";
+import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import {useRegister} from "../../data/useRegister";
 import {ErrorBanner} from "@components/ErrorBanner.jsx";
 import {toast} from "react-toastify";
@@ -16,6 +17,8 @@ const RegisterPage = () => {
         confirmPassword: "",
     });
 
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [error, setError] = useState(null);
     const {registerUser} = useRegister();
     const navigate = useNavigate();
@@ -129,25 +132,44 @@ const RegisterPage = () => {
                             required
                         />
                     </div>
-                    <div className="input-group">
+
+                    <div className="input-group password-group">
                         <label>Password</label>
+                        <div className="password-input-wrapper">
                         <input
-                            type="password"
+                            type={showPassword ? "text" : "password"}
                             name="password"
                             value={formData.password}
                             onChange={handleChange}
                             required
                         />
+                            <button
+                                type="button"
+                                className="toggle-password"
+                                onClick={() => setShowPassword((prev) => !prev)}
+                            >
+                                <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
+                            </button>
+                        </div>
                     </div>
-                    <div className="input-group">
+                    <div className="input-group password-group">
                         <label>Confirm Password</label>
+                        <div className="password-input-wrapper">
                         <input
-                            type="password"
+                            type={showConfirmPassword ? "text" : "password"}
                             name="confirmPassword"
                             value={formData.confirmPassword}
                             onChange={handleChange}
                             required
                         />
+                        <button
+                            type="button"
+                            className="toggle-password"
+                            onClick={() => setShowConfirmPassword((prev) => !prev)}
+                        >
+                            <FontAwesomeIcon icon={showConfirmPassword ? faEyeSlash : faEye} />
+                        </button>
+                    </div>
                     </div>
                     <button type="submit" className="btn-signup">
                         Sign Up
