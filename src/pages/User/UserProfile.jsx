@@ -275,6 +275,7 @@ const UserProfile = () => {
                 <div className="mt-4">
                   <p className="flex items-center text-[#000000] dark:text-[#D3E0E2] mb-2">
                     <FaLinkedin className="mr-2 text-[#A0B3B5]" />{' '}
+                    
                     {user.linkedIn ? (
                       <a href={user.linkedIn} target="_blank" rel="noopener noreferrer" className="hover:underline">
                         {user.name || 'Name not set'} {/* Show name in the link */}

@@ -2,86 +2,97 @@ import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import UserSidebar from '../../components/UserSidebar';
 import EmojiPicker from 'emoji-picker-react';
-import { format } from 'date-fns';
 import { IoSend, IoClose, IoHappyOutline } from 'react-icons/io5';
+import { toast } from 'react-toastify';
 
+// Chat component for logged-in user
 const Chat = () => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [darkMode, setDarkMode] = useState(false); // State for dark mode
-  const [isOpen, setIsOpen] = useState(false); // State for sidebar open/close
-  const userId = 'Sandaru71';
-  const recipient = 'Admin';
+  const [darkMode, setDarkMode] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const userId = localStorage.getItem('userId') || 'User';
   const messagesEndRef = useRef(null);
 
-  // Mock user data (replace with actual user data from auth context or API)
-  const user = {
-    username: 'Sandaru71',
-    role: 'User',
-  };
-
-  // Auto-scroll to the latest message
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // Fetch messages
   useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setError('Authentication token not found. Please log in.');
+      return;
+    }
+
+    const axiosInstance = axios.create({
+      baseURL: 'http://localhost:5031',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
     const fetchMessages = async () => {
       setLoading(true);
       setError(null);
       try {
-        const response = await axios.get(`http://localhost:5031/api/messages/${userId}`);
+        const response = await axiosInstance.get(`/api/messages/${userId}`);
         setMessages(response.data);
       } catch (error) {
         console.error('Error fetching messages:', error);
-        setError('Failed to load messages. Please try again.');
+        setError('Failed to load messages.');
+        toast.error('Failed to load messages');
       } finally {
         setLoading(false);
       }
     };
 
     fetchMessages();
-    const interval = setInterval(fetchMessages, 5000);
+
+    // Poll for new messages every 60 seconds
+    const interval = setInterval(fetchMessages, 60000);
+
     return () => clearInterval(interval);
   }, [userId]);
 
-  // Scroll to bottom when messages change
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
-  // Handle sending a new message
   const handleSendMessage = async () => {
     if (!newMessage.trim()) return;
 
     const message = {
       text: newMessage,
       sender: userId,
-      recipient: recipient,
-      timestamp: new Date().toISOString(),
+      recipient: 'Admin', // Messages go to admin
+      role: 'User',
     };
 
     try {
-      await axios.post('http://localhost:5031/api/messages', message);
-      setMessages([...messages, message]);
+      const token = localStorage.getItem('token');
+      await axios.post('http://localhost:5031/api/messages', message, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setNewMessage('');
       setShowEmojiPicker(false);
+      // Refetch messages to include the new one
+      const response = await axios.get(`http://localhost:5031/api/messages/${userId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setMessages(response.data);
     } catch (error) {
       console.error('Error sending message:', error);
-      setError('Failed to send message. Please try again.');
+      setError('Failed to send message.');
+      toast.error('Failed to send message');
     }
   };
 
-  // Handle emoji selection
   const onEmojiClick = (emojiObject) => {
     setNewMessage((prev) => prev + emojiObject.emoji);
   };
 
-  // Handle Enter key to send message
   const handleKeyPress = (e) => {
     if (e.key === 'Enter') {
       handleSendMessage();
@@ -90,34 +101,23 @@ const Chat = () => {
 
   return (
     <div className={`flex min-h-[calc(100vh-64px)] ${darkMode ? 'bg-gray-900' : 'bg-gray-100'}`}>
-      {/* Sidebar */}
       <UserSidebar
         darkMode={darkMode}
         setDarkMode={setDarkMode}
         isOpen={isOpen}
         setIsOpen={setIsOpen}
-        user={user}
       />
-
-      {/* Chat Area */}
       <div className="flex-1 p-6">
         <div className="relative max-w-3xl mx-auto bg-white rounded-lg shadow-lg">
-          {/* Close Button */}
           <button
             className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 transition-colors"
             onClick={() => window.history.back()}
           >
             <IoClose size={24} />
           </button>
-
-          {/* Chat Messages */}
           <div className="h-[500px] overflow-y-auto p-6">
-            {loading && (
-              <div className="text-center text-gray-500">Loading messages...</div>
-            )}
-            {error && (
-              <div className="text-center text-red-500 mb-4">{error}</div>
-            )}
+            {loading && <div className="text-center text-gray-500">Loading messages...</div>}
+            {error && <div className="text-center text-red-500 mb-4">{error}</div>}
             {messages.map((msg, index) => (
               <div
                 key={index}
@@ -126,20 +126,20 @@ const Chat = () => {
                 }`}
               >
                 {msg.sender !== userId && (
-                  <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-white font-medium">
+                  <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-black font-medium">
                     {msg.sender.charAt(0).toUpperCase()}
                   </div>
                 )}
                 <div
                   className={`max-w-xs p-3 rounded-lg ${
                     msg.sender === userId
-                      ? 'bg-primary text-white rounded-br-none'
+                      ? 'bg-primary text-black rounded-br-none'
                       : 'bg-gray-200 text-textPrimary rounded-bl-none'
                   }`}
                 >
                   <p>{msg.text}</p>
                   <p className="text-xs mt-1 opacity-70">
-                    {format(new Date(msg.timestamp), 'h:mm a')}
+                    {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </p>
                 </div>
                 {msg.sender === userId && (
@@ -151,8 +151,6 @@ const Chat = () => {
             ))}
             <div ref={messagesEndRef} />
           </div>
-
-          {/* Message Input */}
           <div className="p-4 border-t border-gray-200">
             <div className="flex items-center gap-3">
               <div className="relative">

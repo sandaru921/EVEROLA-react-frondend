@@ -1,20 +1,18 @@
-import {useEffect, useState} from 'react';
-import {FiMenu, FiRefreshCw, FiSearch} from 'react-icons/fi';
-import UserSidebar from "../../components/UserSidebar.jsx";
-
-
+import { useEffect, useState } from 'react';
+import { FiMenu, FiRefreshCw, FiSearch } from 'react-icons/fi';
+import UserSidebar from '../../components/UserSidebar.jsx';
 
 const ProgressChart = ({ completed, total }) => {
   const percentage = (completed / total) * 100;
   return (
-    <div className="w-32 h-32 relative">
+    <div className="relative w-24 h-24">
       <svg className="w-full h-full" viewBox="0 0 36 36">
         <circle
           cx="18"
           cy="18"
           r="15.91549430918954"
           fill="none"
-          stroke="#e0e0e0"
+          stroke="#e5e7eb"
           strokeWidth="3"
         />
         <circle
@@ -24,7 +22,7 @@ const ProgressChart = ({ completed, total }) => {
           fill="none"
           stroke={percentage > 50 ? '#4caf50' : '#2196f3'}
           strokeWidth="3"
-          strokeDasharray={`${percentage * 0.629, 100 - percentage * 0.629}`}
+          strokeDasharray={`${percentage * 0.629}, 100 - ${percentage * 0.629}`}
           strokeDashoffset="25"
           transform="rotate(-90 18 18)"
         />
@@ -33,9 +31,9 @@ const ProgressChart = ({ completed, total }) => {
           y="50%"
           textAnchor="middle"
           dy=".3em"
-          className="text-gray-800 dark:text-gray-200 font-bold"
+          className="text-sm font-semibold text-gray-900 dark:text-gray-100"
         >
-          {completed}
+          {Math.round(percentage)}%
         </text>
       </svg>
     </div>
@@ -48,6 +46,7 @@ const UserActivities = () => {
   const [filterStatus, setFilterStatus] = useState('all');
   const [loading, setLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const user = { username: 'Sandaru71', email: 'rohanasandaru@gmail.com', role: 'Recruiter' };
 
   useEffect(() => {
@@ -127,101 +126,109 @@ const UserActivities = () => {
     }, 1000);
   };
 
-  const filteredActivities = activities.filter(activity => 
-    filterStatus === 'all' || 
-    (filterStatus === 'ongoing' && activity.completed < activity.total) || 
-    (filterStatus === 'completed' && activity.completed === activity.total)
+  const filteredActivities = activities.filter(
+    (activity) =>
+      (filterStatus === 'all' ||
+        (filterStatus === 'ongoing' && activity.completed < activity.total) ||
+        (filterStatus === 'completed' && activity.completed === activity.total)) &&
+      activity.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
-    <div className={`min-h-screen ${darkMode ? 'dark bg-gray-900' : 'bg-gray-100'}`}>
-
-      
-      <UserSidebar darkMode={darkMode} setDarkMode={setDarkMode} isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} user={user} />
-      <div className="md:ml-64">
-        <header className="bg-white dark:bg-gray-800 shadow-sm p-4 flex justify-between items-center">
-          <button onClick={() => setIsSidebarOpen(true)} className="md:hidden">
-            <FiMenu size={24} className="text-gray-800 dark:text-gray-200" />
+    <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gray-50'} transition-colors duration-300`}>
+      <UserSidebar
+        darkMode={darkMode}
+        setDarkMode={setDarkMode}
+        isOpen={isSidebarOpen}
+        setIsOpen={setIsSidebarOpen}
+        user={user}
+      />
+      <div className="md:ml-64 p-6">
+        <header className="flex items-center justify-between bg-transparent mb-8">
+          <button onClick={() => setIsSidebarOpen(true)} className="md:hidden text-gray-600 dark:text-gray-300">
+            <FiMenu size={24} />
           </button>
-          <div className="flex items-center space-x-4 w-full max-w-md">
-            <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">Hello {user.username}</h2>
+          <div className="flex items-center w-full max-w-lg">
+            <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mr-4">
+              Hello, {user.username}
+            </h2>
             <div className="relative flex-1">
               <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" />
               <input
                 type="text"
-                placeholder="Search activities"
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                placeholder="Search activities..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-all"
               />
             </div>
           </div>
+          <button
+            onClick={handleRefresh}
+            className="flex items-center text-gray-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400 transition-colors"
+          >
+            <FiRefreshCw className="mr-2" /> Refresh
+          </button>
         </header>
-        <main className="p-6">
-          <h2 className="text-2xl font-medium text-gray-800 dark:text-gray-200 mb-6">Ongoing Process</h2>
-          {loading ? (
-            <p className="text-gray-600 dark:text-gray-400">Loading...</p>
-          ) : filteredActivities.length === 0 ? (
-            <p className="text-gray-600 dark:text-gray-400">No activities found.</p>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {filteredActivities.map((activity) => (
-                <div key={activity.id} className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-base font-medium text-gray-700 dark:text-gray-200">{activity.title}</h3>
-                    <span className="text-sm text-gray-500 dark:text-gray-400">
-                      {activity.completed}/{activity.total} Completed
-                    </span>
-                  </div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">{activity.remainingTime}</p>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <h2 className="text-2xl font-medium text-gray-800 dark:text-gray-200 mt-8 mb-6">Process Tracker</h2>
-          {!loading && filteredActivities.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {filteredActivities.map((activity) => (
-                <div key={activity.id} className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-                  <ProgressChart completed={activity.completed} total={activity.total} />
-                  <div className="mt-4">
-                    <p className="text-sm text-gray-600 dark:text-gray-300">
-                      <span className="text-blue-600 dark:text-blue-400">■</span> {activity.passed} Passed
-                    </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-300">
-                      <span className="text-blue-600 dark:text-blue-400">■</span> {activity.fastestTime} Fastest Time
-                    </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-300">
-                      <span className="text-green-600 dark:text-green-400">■</span> {activity.correctAnswers} Correct Answers
-                    </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-300">
-                      <span className="text-green-600 dark:text-green-400">■</span> {activity.totalAnswers} Total Answers
-                    </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-300">
-                      {activity.totalAttempts} Total Quiz Attempts
-                    </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-300">
-                      {activity.totalTime} Total Time
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <div className="mt-6 flex justify-between items-center">
+        <main>
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-medium text-gray-900 dark:text-gray-100">Your Activities</h2>
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-200"
+              className="border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-all"
             >
               <option value="all">All</option>
               <option value="ongoing">Ongoing</option>
               <option value="completed">Completed</option>
             </select>
-            <button onClick={handleRefresh} className="flex items-center text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-gray-100">
-              <FiRefreshCw className="mr-2" /> Refresh
-            </button>
           </div>
+          {loading ? (
+            <p className="text-gray-500 dark:text-gray-400 text-center">Loading activities...</p>
+          ) : filteredActivities.length === 0 ? (
+            <p className="text-gray-500 dark:text-gray-400 text-center">No activities found.</p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredActivities.map((activity) => (
+                <div
+                  key={activity.id}
+                  className="bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 p-6"
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                      {activity.title}
+                    </h3>
+                    <span className="text-sm text-gray-500 dark:text-gray-400">
+                      {activity.completed}/{activity.total}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-4">
+                    <ProgressChart completed={activity.completed} total={activity.total} />
+                    <div className="space-y-2">
+                      <p className="text-sm text-gray-600 dark:text-gray-300">
+                        <span className="text-blue-500 dark:text-blue-400">●</span> {activity.passed} Passed
+                      </p>
+                      <p className="text-sm text-gray-600 dark:text-gray-300">
+                        <span className="text-blue-500 dark:text-blue-400">●</span> {activity.fastestTime} Fastest
+                      </p>
+                      <p className="text-sm text-gray-600 dark:text-gray-300">
+                        <span className="text-green-500 dark:text-green-400">●</span> {activity.correctAnswers}/{activity.totalAnswers} Correct
+                      </p>
+                      <p className="text-sm text-gray-600 dark:text-gray-300">
+                        <span className="text-gray-500 dark:text-gray-400">●</span> {activity.totalAttempts} Attempts
+                      </p>
+                      <p className="text-sm text-gray-600 dark:text-gray-300">
+                        <span className="text-gray-500 dark:text-gray-400">●</span> {activity.totalTime} Total
+                      </p>
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">
+                    Time Remaining: {activity.remainingTime}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
         </main>
       </div>
     </div>

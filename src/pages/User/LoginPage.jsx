@@ -7,7 +7,7 @@ import {useLogin} from "../../data/useLogin";
 import {toast} from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 import {ErrorBanner} from "@components/ErrorBanner.jsx";
-
+import UserDashboard from "./UserDashboard.jsx"; // Importing UserDashboard for potential use
 const LoginPage = () => {
   const navigate = useNavigate();
   const { loginUser } = useLogin();
@@ -36,7 +36,7 @@ const LoginPage = () => {
       // setToken(result.data.token);
       // setPermissions(result.data.permissions || []);
         localStorage.setItem("token", result.data.token); // ✅ explicitly store token
-      setTimeout(() => navigate("/sample"), 1500);
+      setTimeout(() => navigate("/userdashboard"), 1500);
     } else {
       setError(result.message);
     }

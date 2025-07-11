@@ -79,7 +79,7 @@ const UserDashboard = () => {
       />
       <div className="md:ml-64">
         {/* Header with Search, Filter, and Theme Toggle */}
-        // - Header includes menu toggle, search bar, role filter, and dark mode button
+        
         <header className="bg-white dark:bg-gray-800 shadow-sm p-4 flex justify-between items-center">
           <button onClick={() => setIsSidebarOpen(true)} className="md:hidden">
             <FiMenu size={24} className="text-gray-800 dark:text-gray-200" />
@@ -114,7 +114,7 @@ const UserDashboard = () => {
         </header>
         <main className="p-6">
           {/* Main Content with Job Listings */}
-          // - Displays a personalized greeting and job grid based on user role
+          
           <h2 className="text-2xl font-medium text-gray-800 dark:text-gray-200 mb-6">
             Jobs for you, {user.username} ({user.role})
           </h2>

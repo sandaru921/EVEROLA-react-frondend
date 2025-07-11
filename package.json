@@ -14,6 +14,7 @@
     "@fortawesome/fontawesome-svg-core": "^6.7.2",
     "@fortawesome/free-brands-svg-icons": "^6.7.2",
     "@fortawesome/react-fontawesome": "^0.2.2",
+    "@microsoft/signalr": "^8.0.7",
     "@tailwindcss/postcss": "^4.0.12",
     "axios": "^1.8.4",
     "date-fns": "^4.1.0",
@@ -27,6 +28,7 @@
     "react-router-dom": "^7.3.0",
     "react-toastify": "^11.0.5",
     "react-use": "^17.6.0",
+    "react-use-websocket": "^4.13.0",
     "tailwindcss": "^4.0.12"
   },
   "devDependencies": {
