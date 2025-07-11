@@ -13,6 +13,7 @@ const RegisterPage = () => {
         username: "",
         email: "",
         password: "",
+        confirmPassword: "",
     });
 
     const [error, setError] = useState(null);
@@ -41,7 +42,7 @@ const RegisterPage = () => {
         const upper = /[A-Z]/;
         const lower = /[a-z]/;
         const number = /[0-9]/;
-        const special = /[!@#$%^&*(),.?":{}|<>]/;
+        const special = /[!@#$%^&(),.?":{}|<>]/;
 
         if (!minLength.test(password)) {
             return "Password must be at least 8 characters long.";
@@ -73,6 +74,11 @@ const RegisterPage = () => {
         const passwordError = validatePassword(formData.password);
         if (passwordError) {
             setError(passwordError);
+            return;
+        }
+
+        if (formData.password !== formData.confirmPassword) {
+            setError("Passwords do not match.");
             return;
         }
 
@@ -129,6 +135,16 @@ const RegisterPage = () => {
                             type="password"
                             name="password"
                             value={formData.password}
+                            onChange={handleChange}
+                            required
+                        />
+                    </div>
+                    <div className="input-group">
+                        <label>Confirm Password</label>
+                        <input
+                            type="password"
+                            name="confirmPassword"
+                            value={formData.confirmPassword}
                             onChange={handleChange}
                             required
                         />

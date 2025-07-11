@@ -115,7 +115,17 @@ const PermissionManager = () => {
                             <td className="px-4 py-2">{user.username}</td>
                             <td className="px-4 py-2">{user.email}</td>
                             <td className="px-4 py-2">
-                                {user.permissions.map((p) => p.name).join(", ") || "None"}
+                                {user.permissions.length > 0 ? (
+                                    <ul className="list-disc list-inside space-y-1 text-gray-800">
+                                        {user.permissions.map((p) => (
+                                            <li key={p.id}>
+                                                {p.displayName ||p.name || <span className="text-red-500 italic">Missing name</span>}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                ) : (
+                                    <span className="text-gray-500 italic">None</span>
+                                )}
                             </td>
                             <td className="px-4 py-2">
                                 <button
@@ -147,7 +157,7 @@ const PermissionManager = () => {
                                         checked={editingPermissions.includes(perm.id)}
                                         onChange={() => togglePermission(perm.id)}
                                     />
-                                    {perm.name}
+                                    <span>{perm.displayName || perm.name}</span>
                                 </label>
                             ))}
                         </div>
