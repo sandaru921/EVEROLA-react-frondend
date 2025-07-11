@@ -3,6 +3,7 @@ import {Link, useNavigate} from "react-router-dom";
 import logo from "../../assets/logo.jpg";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faFacebookF, faGoogle, faTwitter,} from "@fortawesome/free-brands-svg-icons";
+import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import {useRegister} from "../../data/useRegister";
 import {ErrorBanner} from "@components/ErrorBanner.jsx";
 import {toast} from "react-toastify";
@@ -13,12 +14,16 @@ const RegisterPage = () => {
         username: "",
         email: "",
         password: "",
+        confirmPassword: "",
     });
 
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [error, setError] = useState(null);
     const {registerUser} = useRegister();
     const navigate = useNavigate();
 
+    // Update form inputs on change
     const handleChange = (e) => {
         const {name, value} = e.target;
         setFormData((prevData) => ({
@@ -26,12 +31,66 @@ const RegisterPage = () => {
             [name]: value,
         }));
     };
+
+    // Simple email format validation
+    const isValidEmail = (email) => {
+        // Simple regex for most email formats
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    };
+
+    // Password validation rules
+    const validatePassword = (password) => {
+        const minLength = /.{8,}/;
+        const upper = /[A-Z]/;
+        const lower = /[a-z]/;
+        const number = /[0-9]/;
+        const special = /[!@#$%^&(),.?":{}|<>]/;
+
+        if (!minLength.test(password)) {
+            return "Password must be at least 8 characters long.";
+        }
+        if (!upper.test(password)) {
+            return "Password must contain at least one uppercase letter.";
+        }
+        if (!lower.test(password)) {
+            return "Password must contain at least one lowercase letter.";
+        }
+        if (!number.test(password)) {
+            return "Password must contain at least one number.";
+        }
+        if (!special.test(password)) {
+            return "Password must contain at least one special character.";
+        }
+        return null;
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+        // Email validation
+        if (!isValidEmail(formData.email)) {
+            setError("Please enter a valid email address.");
+            return;
+        }
+
+        // Password validation
+        const passwordError = validatePassword(formData.password);
+        if (passwordError) {
+            setError(passwordError);
+            return;
+        }
+
+        if (formData.password !== formData.confirmPassword) {
+            setError("Passwords do not match.");
+            return;
+        }
+
+        // Call register API hook
         const result = await registerUser(formData);
         if (!result.success) {
             setError(result.message);
         } else {
+            // Show success toast and redirect to login
             toast.success(result.message || "Registered successfully!", {
                 position: "bottom-right",
                 autoClose: 5000,
@@ -73,15 +132,44 @@ const RegisterPage = () => {
                             required
                         />
                     </div>
-                    <div className="input-group">
+
+                    <div className="input-group password-group">
                         <label>Password</label>
+                        <div className="password-input-wrapper">
                         <input
-                            type="password"
+                            type={showPassword ? "text" : "password"}
                             name="password"
                             value={formData.password}
                             onChange={handleChange}
                             required
                         />
+                            <button
+                                type="button"
+                                className="toggle-password"
+                                onClick={() => setShowPassword((prev) => !prev)}
+                            >
+                                <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
+                            </button>
+                        </div>
+                    </div>
+                    <div className="input-group password-group">
+                        <label>Confirm Password</label>
+                        <div className="password-input-wrapper">
+                        <input
+                            type={showConfirmPassword ? "text" : "password"}
+                            name="confirmPassword"
+                            value={formData.confirmPassword}
+                            onChange={handleChange}
+                            required
+                        />
+                        <button
+                            type="button"
+                            className="toggle-password"
+                            onClick={() => setShowConfirmPassword((prev) => !prev)}
+                        >
+                            <FontAwesomeIcon icon={showConfirmPassword ? faEyeSlash : faEye} />
+                        </button>
+                    </div>
                     </div>
                     <button type="submit" className="btn-signup">
                         Sign Up

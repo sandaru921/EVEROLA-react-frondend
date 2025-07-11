@@ -16,13 +16,21 @@ import HomePage from "./pages/User/HomePage";
 import "./pages/User/HomePage.css";
 import AdminChat from "./pages/Admin/AdminChat";
 import ToastWrapper from "./components/ToastWrapper";
-import Sample from "./pages/User/Sample";
 import AuthInterceptor from "@components/AuthInterceptor.jsx";
+import PermissionManager from "./pages/Admin/PermissionManager.jsx";
+import ProtectedRoute from "@components/ProtectedRoute.jsx";
+import AdminSearchBar from "@components/AdminSearchBar.jsx";
 
 function App() {
+    const user = JSON.parse(localStorage.getItem("user"));
+
     return (
         <BrowserRouter>
-            <AuthInterceptor /> {/* ✅ Interceptor safely inside router context */}
+            <AuthInterceptor /> {/* Interceptor safely inside router context */}
+
+            {/* Admin Search Bar (only show for logged-in admins) */}
+            {user?.permissions?.includes("admin") && <AdminSearchBar />}
+
             <Routes>
                 <Route path="/" element={<HomePage/>}/>
                 <Route path="/login" element={<LoginPage/>}/>
@@ -38,7 +46,12 @@ function App() {
                 <Route path="/privacy" element={<Privacy/>}/>
                 <Route path="/profile" element={<UserProfile/>}/>
                 <Route path="/adminchat" element={<AdminChat/>}/>
-                <Route path="/sample" element={<Sample/>}/>
+                <Route
+                    path="/permission-manager"
+                    element={
+                    <ProtectedRoute allowedRole="Admin">
+                        <PermissionManager/>
+                    </ProtectedRoute>}/>
             </Routes>
             <ToastWrapper />
         </BrowserRouter>
