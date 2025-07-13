@@ -20,7 +20,7 @@ export const UserProfileProvider = ({ children }) => {
 
     // Create an Axios instance with the token for authenticated requests
     const axiosInstance = axios.create({
-      baseURL: 'http://localhost:5031',
+      baseURL: 'https://localhost:5031',
       headers: { Authorization: `Bearer ${token}` },
     });
 

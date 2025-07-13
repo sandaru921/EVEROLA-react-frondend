@@ -1,10 +1,13 @@
 import { useContext } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { FiMoon, FiSun } from 'react-icons/fi';
+import LogOutButton from './LogOutButton';
+import useLogout from "../data/useLogout.js";
 import { UserProfileContext } from '../context/UserProfileContext'; // Import the context
 import { UserProfileProvider } from '../context/UserProfileContext';
 
 const UserSidebar = ({ darkMode = false, setDarkMode = () => {}, isOpen = false, setIsOpen = () => {} }) => {
+  const logout = useLogout(); // get logout function
   const { userProfile, loading, error } = useContext(UserProfileContext); // Consume context
   const username = userProfile?.name || 'Guest'; // Use name from userProfile, fallback to 'Guest'
   const role = userProfile?.role || localStorage.getItem('role') || 'User'; // Fallback to localStorage or 'User'
@@ -58,6 +61,18 @@ const UserSidebar = ({ darkMode = false, setDarkMode = () => {}, isOpen = false,
               }
             >
               Dashboard
+            </NavLink>
+          </li>
+          <li className="mb-2">
+            <NavLink
+                to="/permission-manager"
+                className={({ isActive }) =>
+                    `block p-3 rounded-lg text-gray-700 transition-all duration-200 ${
+                        isActive ? 'bg-gray-200 text-gray-900 font-medium' : 'hover:bg-gray-200 hover:text-gray-900'
+                    }`
+                }
+            >
+              Permissions
             </NavLink>
           </li>
           <li className="mb-2">
@@ -142,13 +157,9 @@ const UserSidebar = ({ darkMode = false, setDarkMode = () => {}, isOpen = false,
         </button>
       </div>
 
+      {/* Logout Button */}
       <div className="mt-4">
-        <button
-          onClick={handleLogout}
-          className="flex items-center justify-center w-full p-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-all duration-200"
-        >
-          Logout
-        </button>
+        <LogOutButton onLogout={logout} />
       </div>
     </div>
   );

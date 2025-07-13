@@ -51,7 +51,7 @@ const UserProfile = () => {
 
       try {
         // Make a GET request to the backend to fetch user profile
-        const response = await fetch('http://localhost:5031/api/UserProfile', {
+        const response = await fetch('https://localhost:5031/api/UserProfile', {
           headers: {
             'Authorization': `Bearer ${token}`, // Include JWT token in the Authorization header
             'Content-Type': 'application/json', // Specify that we're expecting JSON
@@ -129,7 +129,7 @@ const UserProfile = () => {
 
     try {
       // Make a POST request to the backend to update the user profile
-      const response = await fetch('http://localhost:5031/api/UserProfile/update', {
+      const response = await fetch('https://localhost:5031/api/UserProfile/update', {
         method: 'POST', // Use POST method to update data
         headers: {
           'Authorization': `Bearer ${token}`, // Include JWT token in the Authorization header

@@ -31,7 +31,7 @@ const UserDashboard = () => {
       const token = localStorage.getItem('token');
       if (token) {
         try {
-          const response = await axios.get('http://localhost:5031/api/user', {
+          const response = await axios.get('https://localhost:5031/api/user', {
             headers: { Authorization: `Bearer ${token}` },
           });
           setUser((prev) => ({ ...prev, ...response.data }));
@@ -45,7 +45,7 @@ const UserDashboard = () => {
       const token = localStorage.getItem('token');
       if (token) {
         try {
-          const response = await axios.get('http://localhost:5031/api/jobs', {
+          const response = await axios.get('https://localhost:5031/api/jobs', {
             headers: { Authorization: `Bearer ${token}` },
           });
           setJobs(response.data); // Expecting an array of jobs

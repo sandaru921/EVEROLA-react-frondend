@@ -21,14 +21,22 @@ import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import SampleQuestions from "./pages/User/SampleQuestions";
 import QuestionsByRole from "./pages/User/QuestionsByRole";import ToastWrapper from "./components/ToastWrapper";
-import Sample from "./pages/User/Sample";
 import AuthInterceptor from "@components/AuthInterceptor.jsx";
+import PermissionManager from "./pages/Admin/PermissionManager.jsx";
+import ProtectedRoute from "@components/ProtectedRoute.jsx";
+import AdminSearchBar from "@components/AdminSearchBar.jsx";
 
 function App() {
+    const user = JSON.parse(localStorage.getItem("user"));
+
   return (
     
     <BrowserRouter>
-            <AuthInterceptor /> {/* ✅ Interceptor safely inside router context */}
+            <AuthInterceptor /> {/* Interceptor safely inside router context */}
+
+            {/* Admin Search Bar (only show for logged-in admins) */}
+            {user?.permissions?.includes("admin") && <AdminSearchBar />}
+
       <Routes>
       
       <Route path="/" element={<HomePage/>}/>
@@ -52,7 +60,12 @@ function App() {
         <Route path="/sample-questions" element={<SampleQuestions />} />
          <Route path="/questions/:role" element={<QuestionsByRole />} />
 
-                <Route path="/sample" element={<Sample/>}/>
+                <Route
+                    path="/permission-manager"
+                    element={
+                    <ProtectedRoute allowedRole="Admin">
+                        <PermissionManager/>
+                    </ProtectedRoute>}/>
       </Routes>
             <ToastWrapper />
     </BrowserRouter>
