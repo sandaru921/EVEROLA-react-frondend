@@ -18,6 +18,7 @@ import PostJob from "./pages/Admin/postjob";
 import AdminJobview from "./pages/Admin/AdminJobview";
 import EditJob from "./pages/Admin/EditJob";
 import UserJobview from "./pages/User/UserJobView";
+import JobQuizDetails from "./pages/User/JobQuizDetails";
 
 
 
@@ -37,7 +38,7 @@ function App() {
         <Route path="/activities" element={<UserActivities />} />
         <Route path="/support" element={<Support />} />
         <Route path="/invite" element={<Invite />} />
-        <Route path="/chat" element={<Chat />} />
+        <Route path="/chat" element={<Chat />} /> 
 
         <Route path="/contact" element={<Contact />} />
         <Route path="/privacy" element={<Privacy />} />
@@ -45,9 +46,11 @@ function App() {
         <Route path="/adminchat" element={<AdminChat />} />
 
         <Route path="/User/Jobview" element={<UserJobview/>} />
+         <Route path="/User/Jobquizdetails/:id" element={<JobQuizDetails/>} />
         <Route path="/Admin/Jobview" element={<AdminJobview />} />
         <Route path="/Admin/Jobupload" element={<PostJob/>} />
       <Route path="/Admin/edit-job/:id" element={<EditJob />} />
+
         
       </Routes>
     </BrowserRouter>

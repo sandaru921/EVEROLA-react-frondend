@@ -3,9 +3,15 @@ import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FaTimes, FaUpload } from 'react-icons/fa';
 
+// EditJob component for updating existing job listings
 const EditJob = () => {
+  // Hook for programmatic navigation
   const navigate = useNavigate();
+
+  // Extract job ID from URL parameters
   const { id } = useParams();
+
+  // State for job form data
   const [job, setJob] = useState({
     title: '',
     description: '',
@@ -15,15 +21,27 @@ const EditJob = () => {
     createdBy: 'admin1',
     workMode: 'remote',
     existingImageUrl: '',
+    keyResponsibilities: '',
+    educationalBackground: '',
+    technicalSkills: '',
+    experience: '',
+    softSkills: '',
   });
+
+  // State for loading status
   const [loading, setLoading] = useState(true);
+
+  // State for form validation errors
   const [errors, setErrors] = useState({});
 
+  // Fetch job details on component mount
   useEffect(() => {
     const fetchJob = async () => {
       try {
+        // Send GET request to fetch job by ID
         const response = await axios.get(`https://localhost:5031/api/jobs/${id}`);
         const jobData = response.data;
+        // Set job state with fetched data
         setJob({
           title: jobData.Title,
           description: jobData.Description,
@@ -33,14 +51,21 @@ const EditJob = () => {
           createdBy: jobData.CreatedBy,
           workMode: jobData.WorkMode,
           existingImageUrl: jobData.ImageUrl,
+          keyResponsibilities: jobData.KeyResponsibilities || '',
+          educationalBackground: jobData.EducationalBackground || '',
+          technicalSkills: jobData.TechnicalSkills || '',
+          experience: jobData.Experience || '',
+          softSkills: jobData.SoftSkills || '',
         });
         setLoading(false);
       } catch (error) {
+        // Log detailed error information
         console.error('Error fetching job:', {
           message: error.message,
           code: error.code,
           response: error.response ? { status: error.response.status, data: error.response.data } : 'No response',
         });
+        // Display error and navigate back
         const errorMessage = error.response?.data?.message || error.response?.data || error.message || 'Unknown error';
         alert('Failed to load job details: ' + errorMessage);
         navigate('/admin/jobview');
@@ -49,6 +74,7 @@ const EditJob = () => {
     fetchJob();
   }, [id, navigate]);
 
+  // Handle form input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setJob({ ...job, [name]: value });
@@ -69,6 +95,7 @@ const EditJob = () => {
     setErrors(newErrors);
   };
 
+  // Handle file input for new image
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -76,10 +103,12 @@ const EditJob = () => {
     }
   };
 
+  // Remove selected new image
   const removeNewImage = () => {
     setJob({ ...job, imageFile: null });
   };
 
+  // Validate form before submission
   const validateForm = () => {
     const newErrors = {};
     if (!job.title) newErrors.title = 'Title is required';
@@ -97,6 +126,7 @@ const EditJob = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) {
@@ -104,6 +134,7 @@ const EditJob = () => {
       return;
     }
 
+    // Create FormData for API request
     const formData = new FormData();
     formData.append('Title', job.title);
     formData.append('Description', job.description);
@@ -114,8 +145,14 @@ const EditJob = () => {
     formData.append('ExpiringDate', job.expiringDate);
     formData.append('CreatedBy', job.createdBy);
     formData.append('WorkMode', job.workMode);
+    formData.append('KeyResponsibilities', job.keyResponsibilities);
+    formData.append('EducationalBackground', job.educationalBackground);
+    formData.append('TechnicalSkills', job.technicalSkills);
+    formData.append('Experience', job.experience);
+    formData.append('SoftSkills', job.softSkills);
 
     try {
+      // Send PUT request to update job
       const response = await axios.put(`https://localhost:5031/api/jobs/${id}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -124,6 +161,7 @@ const EditJob = () => {
       alert('Job updated successfully!');
       navigate('/admin/jobview');
     } catch (error) {
+      // Log detailed error information
       console.error('Error updating job:', {
         message: error.message,
         code: error.code,
@@ -131,15 +169,18 @@ const EditJob = () => {
         request: error.request ? { status: error.request.status, statusText: error.request.statusText } : 'No request',
         response: error.response ? { status: error.response.status, data: error.response.data } : 'No response',
       });
+      // Display error message
       const errorMessage = error.response?.data?.message || error.response?.data || error.message || 'Unknown error';
       alert('Failed to update job: ' + errorMessage);
     }
   };
 
+  // Navigate back to job view
   const handleCancel = () => {
     navigate('/admin/jobview');
   };
 
+  // Render loading state
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#005b7c] via-[#008eab] to-[#01bcc6] flex items-center justify-center">
@@ -151,6 +192,7 @@ const EditJob = () => {
     );
   }
 
+  // Render edit job form
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#005b7c] via-[#008eab] to-[#01bcc6] flex items-center justify-center p-4 sm:p-6 lg:p-8">
       <div className="bg-white/30 backdrop-blur-lg rounded-2xl shadow-2xl p-8 max-w-lg w-full border border-[#d5d1ca]/20 animate-fadeIn">
@@ -158,6 +200,7 @@ const EditJob = () => {
           Edit Job
         </h2>
         <form onSubmit={handleSubmit} className="space-y-6">
+         
           <div>
             <label className="block text-[#005b7c] font-medium mb-2" htmlFor="title">
               Title
@@ -176,6 +219,7 @@ const EditJob = () => {
             {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title}</p>}
           </div>
 
+         
           <div>
             <label className="block text-[#005b7c] font-medium mb-2" htmlFor="description">
               Description
@@ -194,6 +238,7 @@ const EditJob = () => {
             {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description}</p>}
           </div>
 
+          
           <div>
             <label className="block text-[#005b7c] font-medium mb-2">Current Image</label>
             {job.existingImageUrl && (
@@ -250,6 +295,86 @@ const EditJob = () => {
             )}
           </div>
 
+         
+          <div>
+            <label className="block text-[#005b7c] font-medium mb-2" htmlFor="keyResponsibilities">
+              Key Responsibilities
+            </label>
+            <textarea
+              id="keyResponsibilities"
+              name="keyResponsibilities"
+              value={job.keyResponsibilities}
+              onChange={handleChange}
+              className="w-full p-3 rounded-lg border border-[#d5d1ca] focus:outline-none focus:ring-2 focus:ring-[#01bcc6] transition-all duration-300 bg-white/70 text-[#005b7c] placeholder-[#008eab]/50 resize-y"
+              rows="4"
+              placeholder="Enter key responsibilities (e.g., - Manage projects\n- Lead team)"
+            />
+          </div>
+
+         
+          <div>
+            <label className="block text-[#005b7c] font-medium mb-2" htmlFor="educationalBackground">
+              Educational Background
+            </label>
+            <textarea
+              id="educationalBackground"
+              name="educationalBackground"
+              value={job.educationalBackground}
+              onChange={handleChange}
+              className="w-full p-3 rounded-lg border border-[#d5d1ca] focus:outline-none focus:ring-2 focus:ring-[#01bcc6] transition-all duration-300 bg-white/70 text-[#005b7c] placeholder-[#008eab]/50 resize-y"
+              rows="4"
+              placeholder="Enter required educational background (e.g., Bachelor's in Computer Science)"
+            />
+          </div>
+
+        
+          <div>
+            <label className="block text-[#005b7c] font-medium mb-2" htmlFor="technicalSkills">
+              Technical Skills
+            </label>
+            <textarea
+              id="technicalSkills"
+              name="technicalSkills"
+              value={job.technicalSkills}
+              onChange={handleChange}
+              className="w-full p-3 rounded-lg border border-[#d5d1ca] focus:outline-none focus:ring-2 focus:ring-[#01bcc6] transition-all duration-300 bg-white/70 text-[#005b7c] placeholder-[#008eab]/50 resize-y"
+              rows="4"
+              placeholder="Enter technical skills (e.g., - JavaScript\n- Python\n- AWS)"
+            />
+          </div>
+
+       
+          <div>
+            <label className="block text-[#005b7c] font-medium mb-2" htmlFor="experience">
+              Experience
+            </label>
+            <textarea
+              id="experience"
+              name="experience"
+              value={job.experience}
+              onChange={handleChange}
+              className="w-full p-3 rounded-lg border border-[#d5d1ca] focus:outline-none focus:ring-2 focus:ring-[#01bcc6] transition-all duration-300 bg-white/70 text-[#005b7c] placeholder-[#008eab]/50 resize-y"
+              rows="4"
+              placeholder="Enter experience requirements (e.g., 5+ years in software development)"
+            />
+          </div>
+
+          
+          <div>
+            <label className="block text-[#005b7c] font-medium mb-2" htmlFor="softSkills">
+              Soft Skills
+            </label>
+            <textarea
+              id="softSkills"
+              name="softSkills"
+              value={job.softSkills}
+              onChange={handleChange}
+              className="w-full p-3 rounded-lg border border-[#d5d1ca] focus:outline-none focus:ring-2 focus:ring-[#01bcc6] transition-all duration-300 bg-white/70 text-[#005b7c] placeholder-[#008eab]/50 resize-y"
+              rows="4"
+              placeholder="Enter soft skills (e.g., - Communication\n- Teamwork\n- Problem-solving)"
+            />
+          </div>
+
           <div>
             <label className="block text-[#005b7c] font-medium mb-2" htmlFor="jobType">
               Job Type
@@ -271,6 +396,7 @@ const EditJob = () => {
             {errors.jobType && <p className="text-red-500 text-sm mt-1">{errors.jobType}</p>}
           </div>
 
+          
           <div>
             <label className="block text-[#005b7c] font-medium mb-2" htmlFor="workMode">
               Work Mode
@@ -291,6 +417,7 @@ const EditJob = () => {
             {errors.workMode && <p className="text-red-500 text-sm mt-1">{errors.workMode}</p>}
           </div>
 
+        
           <div>
             <label className="block text-[#005b7c] font-medium mb-2" htmlFor="expiringDate">
               Expiring Date
@@ -309,6 +436,7 @@ const EditJob = () => {
             {errors.expiringDate && <p className="text-red-500 text-sm mt-1">{errors.expiringDate}</p>}
           </div>
 
+         
           <div className="flex justify-between gap-4">
             <button
               type="button"
@@ -330,7 +458,7 @@ const EditJob = () => {
   );
 };
 
-// CSS Animations
+// CSS animations for fade-in and spin effects
 const styles = `
   @keyframes fadeIn {
     from { opacity: 0; transform: translateY(20px); }
@@ -346,6 +474,8 @@ const styles = `
     animation: spin 0.8s linear infinite;
   }
 `;
+
+// Inject styles into document head
 const styleSheet = document.createElement("style");
 styleSheet.textContent = styles;
 document.head.appendChild(styleSheet);
