@@ -1,8 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { FaSearch } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import Navbar from "../components/Navbar";
-import axios from "axios";
+import Navbar from "@components/Navbar"; // Adjust path based on your structure
+
+// Sample job data
+const jobsData = [
+  { id: 1, title: "Senior Software Engineer", type: "Full Time", location: "Onsite", image: "/img/junior.jpg" },
+  { id: 2, title: "Junior Software Engineer", type: "Full Time", location: "Onsite", image: "/img/junior.jpg" },
+  { id: 3, title: "Intern Software Engineer", type: "Full Time", location: "Onsite", image: "/img/intern.jpg" },
+];
 
 const JobLanding = () => {
   const navigate = useNavigate();

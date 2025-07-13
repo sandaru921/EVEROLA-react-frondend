@@ -1,8 +1,9 @@
 @import "tailwindcss";
 
-body {
+
+/* body {
   background-color: #008eab;
-}
+} */
 
 .bgImage {
   background-size: cover;
@@ -29,6 +30,7 @@ body {
   font-size: 50px;
   margin-bottom: 20px;
   color: white;
+
 }
 
 .auth-buttons {
@@ -110,7 +112,7 @@ body {
   text-decoration: none;
   display: block;
   text-align: left;
-  
+
 }
 
 .dropdown-content a:hover {
@@ -357,13 +359,13 @@ strong {
 }
 
 .register-box {
-  margin-top: 5%;
+  margin-top: 3%;
   background-color: white;
   padding: 30px;
   border-radius: 12px;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
   text-align: center;
-  width: 400px;
+  width: 450px;
 }
 
 .logo-container {
@@ -386,7 +388,7 @@ strong {
 
 .input-group input {
   width: 100%;
-  padding: 10px;
+  padding: 5px;
   border: 1px solid #ccc;
   border-radius: 6px;
   font-size: 14px;
@@ -481,4 +483,20 @@ strong {
 
 .dropdown-menu li:hover {
   background: #f0f0f0;
+}
+
+
+.password-input-wrapper {
+  position: relative;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #666;
 }

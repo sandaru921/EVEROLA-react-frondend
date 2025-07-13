@@ -9,6 +9,7 @@ const AdminNavbar = () => {
   const handleLogout = () => {
     // Implement logout logic here
     // For example: clear localStorage, reset auth state, etc.
+    localStorage.removeItem("authToken") // or whatever key you use for authentication
     navigate("/login")
   }
 
@@ -107,3 +108,7 @@ const AdminNavbar = () => {
 }
 
 export default AdminNavbar
+
+
+
+
