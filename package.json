@@ -21,6 +21,7 @@
     "date-fns": "^4.1.0",
     "emailjs": "^4.0.3",
     "emoji-picker-react": "^4.12.2",
+    "framer-motion": "^12.23.5",
     "google-map-react": "^2.2.1",
     "postcss": "^8.5.3",
     "react": "^19.0.0",

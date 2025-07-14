@@ -1,446 +1,302 @@
-// Import necessary React hooks and components
-import { useState, useEffect } from 'react'; // useState for state management, useEffect for side effects
-import { useNavigate } from 'react-router-dom'; // useNavigate for redirecting to login or other routes
-import UserSidebar from '../../components/UserSidebar.jsx'; // Sidebar component for navigation
-import { FiEdit, FiSave } from 'react-icons/fi'; // Icons for edit and save actions
-import { FaLinkedin } from 'react-icons/fa'; // LinkedIn icon for social link
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import UserSidebar from '../../components/UserSidebar.jsx';
+import { FiEdit, FiUpload, FiX, FiCheck } from 'react-icons/fi';
+import { FaLinkedin } from 'react-icons/fa';
+
+const API_BASE = import.meta.env.VITE_API_URL || 'https://localhost:5031';
 
 const UserProfile = () => {
-  // State for sidebar visibility
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Controls sidebar visibility
-  // State for dark mode toggle
-  const [darkMode, setDarkMode] = useState(false); // Toggles between light and dark theme
-  // State for user profile data, aligned with backend UserProfile model
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
   const [user, setUser] = useState({
-    profilePicture: 'https://via.placeholder.com/150.png?text=User', // Default profile picture URL
-    education: '', // User's education details
-    workExperience: '', // User's work experience
-    skills: '', // User's skills
-    name: '', // User's name (used as username)
-    role: 'User', // Role (assumed to be fetched or passed; not in UserProfile model)
-    age: null, // User's age (nullable integer)
-    gender: '', // User's gender
-    linkedIn: '', // LinkedIn profile URL
+    profilePicture: 'https://via.placeholder.com/150.png?text=User',
+    education: '',
+    workExperience: '',
+    skills: '',
+    name: '',
+    role: 'User',
+    age: null,
+    gender: '',
+    linkedIn: '',
   });
-  // State to track which section is being edited
-  const [editSection, setEditSection] = useState(null); // Null when not editing, set to section name when editing
-  // State for loading indicator during API calls
-  const [isLoading, setIsLoading] = useState(false); // Shows loading state during fetch requests
-  // State for error messages to display to the user
-  const [error, setError] = useState(null); // Stores error messages to show in UI
-  // Hook to navigate to other routes
+  const [editSection, setEditSection] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [confirmEdit, setConfirmEdit] = useState(false);
   const navigate = useNavigate();
 
-  // Effect to fetch user profile data when the component mounts
   useEffect(() => {
-    // Async function to fetch user profile from the backend
     const fetchUserProfile = async () => {
-      // Get the JWT token from localStorage (set during login by LoginPage)
       const token = localStorage.getItem('token');
-      // If token is missing, redirect to login page
-      if (!token) {
-        console.error('No token found, user not authenticated.');
-        navigate('/login'); // Redirect to login page
-        return;
-      }
+      if (!token) return navigate('/login');
 
-      // Set loading state to true while fetching data
       setIsLoading(true);
-      // Clear any previous errors
       setError(null);
 
       try {
-        // Make a GET request to the backend to fetch user profile
-        const response = await fetch('https://localhost:5031/api/UserProfile', {
+        const response = await fetch(`${API_BASE}/api/UserProfile`, {
           headers: {
-            'Authorization': `Bearer ${token}`, // Include JWT token in the Authorization header
-            'Content-Type': 'application/json', // Specify that we're expecting JSON
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
           },
         });
 
-        // Check if the response is not OK (e.g., 401, 404, 500)
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error(`Failed to fetch user profile: ${response.status} ${response.statusText}`, errorText);
-          // If unauthorized, the token might be invalid or missing; redirect to login
-          if (response.status === 401) {
-            localStorage.removeItem('token'); // Remove invalid token
-            navigate('/login'); // Redirect to login page
-            return;
-          }
-          throw new Error(`Failed to fetch user profile: ${response.status} ${response.statusText}`);
+        if (response.status === 401) {
+          localStorage.clear();
+          return navigate('/login');
         }
 
-        // Parse the response as JSON
+        if (!response.ok) throw new Error('Failed to fetch profile.');
+
         const data = await response.json();
-        // Update the user state with the fetched data
-        setUser((prev) => ({
+        setUser(prev => ({
           ...prev,
           ...data,
-          role: localStorage.getItem('role') || 'User', // Fetch role from localStorage or default to 'User'
+          role: localStorage.getItem('role') || 'User',
         }));
       } catch (err) {
-        console.error('Error fetching user data:', err);
         setError('Failed to load profile. Please log in again.');
       } finally {
-        // Set loading state to false after the request completes
         setIsLoading(false);
       }
     };
 
-    // Call the fetch function
     fetchUserProfile();
-  }, [navigate]); // Dependency array includes navigate to satisfy React's rules
+  }, [navigate]);
 
-  // Function to handle profile picture upload
   const handleProfilePictureChange = (e) => {
-    // Get the selected file from the input
-    const file = e.target.files[0];
-    // If a file is selected
-    if (file) {
-      // Create a FileReader to read the file
-      const reader = new FileReader();
-      // When the file is read, set the profile picture as a base64 string
-      reader.onloadend = () => {
-        setUser({ ...user, profilePicture: reader.result }); // Update profilePicture in state
-      };
-      // Read the file as a data URL (base64)
-      reader.readAsDataURL(file);
-    }
-  };
+  const file = e.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      const base64Image = reader.result;
+      const updatedUser = { ...user, profilePicture: base64Image };
+      setUser(updatedUser); // Update local state
+      await saveProfilePicture(updatedUser); // Auto-save to backend
+    };
+    reader.readAsDataURL(file);
+  }
+};
 
-  // Function to handle saving the updated profile data
+// Helper function to save profile picture to backend
+const saveProfilePicture = async (updatedUser) => {
+  const token = localStorage.getItem('token');
+  if (!token) return navigate('/login');
+
+  try {
+    const response = await fetch(`${API_BASE}/api/UserProfile/update`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(updatedUser),
+    });
+
+    if (!response.ok) throw new Error('Failed to update profile picture');
+
+    const savedData = await response.json();
+    setUser(prev => ({ ...prev, ...savedData }));
+  } catch (err) {
+    alert('Profile picture upload failed.');
+    console.error(err);
+  }
+};
+
+
   const handleSave = async (section) => {
-    // Get the JWT token from localStorage
     const token = localStorage.getItem('token');
-    // If token is missing, redirect to login page
-    if (!token) {
-      console.error('No token found, user not authenticated.');
-      navigate('/login'); // Redirect to login page
+    if (!token) return navigate('/login');
+
+    if (
+      section === 'basic' &&
+      user.linkedIn &&
+      !user.linkedIn.startsWith('https://www.linkedin.com/')
+    ) {
+      alert('Please enter a valid LinkedIn URL starting with https://www.linkedin.com/');
       return;
     }
 
-    // Log the data being sent for debugging
-    console.log('Saving data:', user);
-    // Set loading state to true while saving
     setIsLoading(true);
-    // Clear any previous errors
     setError(null);
 
     try {
-      // Make a POST request to the backend to update the user profile
-      const response = await fetch('https://localhost:5031/api/UserProfile/update', {
-        method: 'POST', // Use POST method to update data
+      const response = await fetch(`${API_BASE}/api/UserProfile/update`, {
+        method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`, // Include JWT token in the Authorization header
-          'Content-Type': 'application/json', // Specify that we're sending JSON
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify(user), // Convert the user object to JSON string
+        body: JSON.stringify(user),
       });
 
-      // Check if the response is not OK
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error(`Failed to update profile: ${response.status} ${response.statusText}`, errorText);
-        // If unauthorized, the token might be invalid; redirect to login
-        if (response.status === 401) {
-          localStorage.removeItem('token'); // Remove invalid token
-          navigate('/login'); // Redirect to login page
-          return;
-        }
-        throw new Error(`Failed to update profile: ${response.status} ${response.statusText}`);
+      if (response.status === 401) {
+        localStorage.clear();
+        return navigate('/login');
       }
 
-      // Parse the response as JSON
+      if (!response.ok) throw new Error('Failed to update profile.');
+
       const data = await response.json();
-      // Log the response for debugging
-      console.log('Update response:', data);
-      // Show a success alert to the user
-      alert(`${section} updated successfully!`);
-      // Exit edit mode by resetting editSection
+      setUser(prev => ({ ...prev, ...data }));
+
+      alert(`${section.charAt(0).toUpperCase() + section.slice(1)} updated successfully!`);
       setEditSection(null);
+      setConfirmEdit(false);
     } catch (err) {
-      console.error('Error updating profile:', err);
       setError('Failed to save profile. Please log in again.');
     } finally {
-      // Set loading state to false after the request completes
       setIsLoading(false);
     }
   };
 
-  // Render the component UI
+  const handleEditRequest = (section) => {
+    setEditSection(section);
+    setConfirmEdit(true);
+  };
+
+  const cancelEdit = () => {
+    setConfirmEdit(false);
+    setEditSection(null);
+  };
+
+  const inputClass = 'w-full p-2 rounded border border-gray-300 dark:bg-[#00383d] dark:text-white';
+
   return (
-    // Main container with dynamic background based on dark mode
-    <div className={`min-h-screen ${darkMode ? 'dark bg-[#005B66]' : 'bg-[#D3E0E2]'}`}>
-      {/* Sidebar component for navigation */}
+    <div className={`min-h-screen ${darkMode ? 'dark bg-[#00383d]' : 'bg-[#e0f4f5]'}`}>
       <UserSidebar
-        darkMode={darkMode} // Pass darkMode state to sidebar
-        setDarkMode={setDarkMode} // Pass function to toggle dark mode
-        isOpen={isSidebarOpen} // Pass sidebar open state
-        setIsOpen={setIsSidebarOpen} // Pass function to toggle sidebar
-        user={user} // Pass user data to sidebar, including name
+        darkMode={darkMode}
+        setDarkMode={setDarkMode}
+        isOpen={isSidebarOpen}
+        setIsOpen={setIsSidebarOpen}
+        user={user}
       />
-      {/* Main content area */}
       <div className="md:ml-64 p-6">
-        {/* Page title */}
-        <h2 className="text-2xl font-semibold text-[#005B66] dark:text-[#D3E0E2] mb-6">Edit Profile</h2>
-        {/* Show loading indicator while fetching or saving data */}
-        {isLoading && <p className="text-[#005B66] dark:text-[#D3E0E2]">Loading...</p>}
-        {/* Show error message if there's an error */}
+        <h2 className="text-2xl font-bold text-[#005B66] dark:text-white mb-6">User Profile</h2>
+        {isLoading && <p className="text-blue-500">Loading...</p>}
         {error && <p className="text-red-500 mb-4">{error}</p>}
-        {/* Main layout with two columns (profile picture/info and details) */}
-        <div className="flex flex-col md:flex-row gap-6">
-          {/* Left Column: Profile Picture, Username, Role, and Basic Info */}
-          <div className="w-full md:w-1/3 bg-white dark:bg-[#000000] p-6 rounded-lg shadow-sm">
-            {/* Conditional rendering: Edit mode or view mode */}
-            {editSection === 'basic' ? (
-              <div>
-                {/* Profile picture display */}
-                <div className="flex flex-col items-center mb-4">
-                  <img
-                    src={user.profilePicture} // Show the profile picture
-                    alt="Profile"
-                    className="w-32 h-32 rounded-full border-2 border-[#A0B3B5] dark:border-[#D3E0E2] mb-2"
-                  />
-                  {/* Username and Role display */}
-                  <h3 className="text-lg font-medium text-gray-900 dark:text-[#D3E0E2]">
-                    {user.name || 'Guest'} {/* Display name as username */}
-                  </h3>
-                  <p className="text-sm text-gray-500 dark:text-[#A0B3B5]">{user.role}</p> {/* Display role */}
-                </div>
-                {/* File input to upload a new profile picture */}
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-white dark:bg-[#1a2c2d] rounded-xl p-6 shadow">
+            <div className="text-center">
+              <img
+                src={user.profilePicture}
+                alt="Profile"
+                className="w-32 h-32 rounded-full mx-auto border-4 border-[#A0B3B5] mb-4"
+              />
+              <label className="block w-full cursor-pointer">
                 <input
                   type="file"
-                  accept="image/*" // Accept only image files
-                  onChange={handleProfilePictureChange} // Handle file selection
-                  className="mb-4 w-full text-[#005B66] dark:text-[#D3E0E2]"
+                  accept="image/*"
+                  onChange={handleProfilePictureChange}
+                  className="hidden"
                 />
-                {/* Input for LinkedIn URL */}
-                <input
-                  type="text"
-                  value={user.linkedIn || ''} // Display current LinkedIn URL or empty string
-                  onChange={(e) => setUser({ ...user, linkedIn: e.target.value })} // Update LinkedIn in state
-                  className="w-full p-2 mb-2 border border-[#A0B3B5] rounded-lg dark:bg-[#005B66] dark:border-[#D3E0E2] dark:text-[#D3E0E2] focus:outline-none focus:ring-2 focus:ring-[#A0B3B5]"
-                  placeholder="LinkedIn URL"
-                />
-                {/* Input for Name */}
-                <input
-                  type="text"
-                  value={user.name || ''} // Display current name or empty string
-                  onChange={(e) => setUser({ ...user, name: e.target.value })} // Update name in state
-                  className="w-full p-2 mb-2 border border-[#A0B3B5] rounded-lg dark:bg-[#005B66] dark:border-[#D3E0E2] dark:text-[#D3E0E2] focus:outline-none focus:ring-2 focus:ring-[#A0B3B5]"
-                  placeholder="Name"
-                />
-                {/* Input for Age */}
-                <input
-                  type="number"
-                  value={user.age || ''} // Display current age or empty string
-                  onChange={(e) => setUser({ ...user, age: parseInt(e.target.value) || null })} // Update age in state
-                  className="w-full p-2 mb-2 border border-[#A0B3B5] rounded-lg dark:bg-[#005B66] dark:border-[#D3E0E2] dark:text-[#D3E0E2] focus:outline-none focus:ring-2 focus:ring-[#A0B3B5]"
-                  placeholder="Age"
-                />
-                {/* Input for Gender */}
-                <input
-                  type="text"
-                  value={user.gender || ''} // Display current gender or empty string
-                  onChange={(e) => setUser({ ...user, gender: e.target.value })} // Update gender in state
-                  className="w-full p-2 mb-4 border border-[#A0B3B5] rounded-lg dark:bg-[#005B66] dark:border-[#D3E0E2] dark:text-[#D3E0E2] focus:outline-none focus:ring-2 focus:ring-[#A0B3B5]"
-                  placeholder="Gender"
-                />
-                {/* Save button to save changes */}
-                <button
-                  onClick={() => handleSave('Basic Info')} // Call handleSave when clicked
-                  disabled={isLoading} // Disable button while saving
-                  className="w-full p-2 bg-[#A0B3B5] text-[#005B66] dark:text-[#D3E0E2] rounded-lg hover:bg-[#D3E0E2] dark:hover:bg-[#005B66] transition-all duration-200 flex items-center justify-center disabled:opacity-50"
-                >
-                  <FiSave className="mr-2" /> Save
-                </button>
-              </div>
-            ) : (
-              <div>
-                {/* Display profile picture, username, and role in view mode */}
-                <div className="flex flex-col items-center mb-4">
-                  <img
-                    src={user.profilePicture}
-                    alt="Profile"
-                    className="w-32 h-32 rounded-full border-2 border-[#A0B3B5] dark:border-[#D3E0E2] mb-2"
-                  />
-                  {/* Username and Role display */}
-                  <h3 className="text-lg font-medium text-gray-900 dark:text-[#D3E0E2]">
-                    {user.name || 'Guest'} {/* Display name as username */}
-                  </h3>
-                  <p className="text-sm text-gray-500 dark:text-[#A0B3B5]">{user.role}</p> {/* Display role */}
+                <div className="bg-[#005B66] hover:bg-[#00383d] text-white py-1 px-4 rounded-full inline-flex items-center">
+                  <FiUpload className="mr-2" /> Upload New Photo
                 </div>
-                {/* Display LinkedIn link if available */}
-                <div className="mt-4">
-                  <p className="flex items-center text-[#000000] dark:text-[#D3E0E2] mb-2">
-                    <FaLinkedin className="mr-2 text-[#A0B3B5]" />{' '}
-                    
-                    {user.linkedIn ? (
-                      <a href={user.linkedIn} target="_blank" rel="noopener noreferrer" className="hover:underline">
-                        {user.name || 'Name not set'} {/* Show name in the link */}
-                      </a>
-                    ) : (
-                      'LinkedIn not set'
-                    )}
-                  </p>
-                  {/* Display name */}
-                  <p className="text-[#000000] dark:text-[#D3E0E2] mb-2">
-                    <span className="font-medium text-[#005B66] dark:text-[#D3E0E2]">Name:</span> {user.name || 'Not set'}
-                  </p>
-                  {/* Display age */}
-                  <p className="text-[#000000] dark:text-[#D3E0E2] mb-2">
-                    <span className="font-medium text-[#005B66] dark:text-[#D3E0E2]">Age:</span> {user.age || 'Not set'}
-                  </p>
-                  {/* Display gender */}
-                  <p className="text-[#000000] dark:text-[#D3E0E2] mb-4">
-                    <span className="font-medium text-[#005B66] dark:text-[#D3E0E2]">Gender:</span> {user.gender || 'Not set'}
-                  </p>
-                </div>
-                {/* Edit button to enter edit mode */}
-                <button
-                  onClick={() => setEditSection('basic')} // Set editSection to 'basic' to enter edit mode
-                  className="w-full p-2 bg-[#A0B3B5] text-[#005B66] dark:text-[#D3E0E2] rounded-lg hover:bg-[#D3E0E2] dark:hover:bg-[#005B66] transition-all duration-200 flex items-center justify-center"
-                >
-                  <FiEdit className="mr-2" /> Edit
-                </button>
-              </div>
-            )}
+              </label>
+              <h3 className="text-xl font-semibold text-[#005B66] dark:text-white mt-4">
+                {user.name || 'Guest'}
+              </h3>
+              <p className="text-gray-500 dark:text-gray-300">{user.role}</p>
+            </div>
           </div>
 
-          {/* Right Column: Skills, Experience, Education */}
-          <div className="w-full md:w-2/3 space-y-6">
-            {/* Skills Section */}
-            <div className="bg-white dark:bg-[#A0B3B5] p-6 rounded-lg shadow-sm">
-              {/* Section header with title and edit/save button */}
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-[#005B66] dark:text-[#D3E0E2]">Skills</h3>
-                {editSection === 'skills' ? (
-                  <button
-                    onClick={() => handleSave('Skills')} // Call handleSave when clicked
-                    disabled={isLoading} // Disable button while saving
-                    className="p-2 bg-[#A0B3B5] text-[#005B66] dark:text-[#D3E0E2] rounded-lg hover:bg-[#D3E0E2] dark:hover:bg-[#005B66] transition-all duration-200 flex items-center disabled:opacity-50"
-                  >
-                    <FiSave className="mr-2" /> Save
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => setEditSection('skills')} // Set editSection to 'skills' to enter edit mode
-                    className="p-2 bg-[#A0B3B5] text-[#005B66] dark:text-[#D3E0E2] rounded-lg hover:bg-[#D3E0E2] dark:hover:bg-[#005B66] transition-all duration-200 flex items-center"
-                  >
-                    <FiEdit className="mr-2" /> Edit
-                  </button>
-                )}
-              </div>
-              {/* Conditional rendering: Edit mode or view mode */}
-              {editSection === 'skills' ? (
-                <textarea
-                  value={user.skills || ''} // Display current skills or empty string
-                  onChange={(e) => setUser({ ...user, skills: e.target.value })} // Update skills in state
-                  className="w-full p-3 border border-[#A0B3B5] rounded-lg dark:bg-[#005B66] dark:border-[#D3E0E2] dark:text-[#D3E0E2] focus:outline-none focus:ring-2 focus:ring-[#A0B3B5]"
-                  rows="4"
-                  placeholder="Enter skills, one per line"
-                />
-              ) : (
-                <ul className="text-[#000000] dark:text-[#D3E0E2]">
-                  {user.skills ? (
-                    user.skills.split('\n').map((skill, index) => ( // Split skills by newline and display as list
-                      <li key={index} className="mb-1">{skill}</li>
-                    ))
+          <div className="md:col-span-2 space-y-6">
+            {['basic', 'skills', 'workExperience', 'education'].map((section) => (
+              <div key={section} className="bg-white dark:bg-[#1a2c2d] p-6 rounded-lg shadow">
+                <div className="flex justify-between items-center mb-2">
+                  <h3 className="text-lg font-semibold capitalize text-[#005B66] dark:text-white">
+                    {section === 'workExperience' ? 'Experience' : section}
+                  </h3>
+                  {editSection === section && confirmEdit ? (
+                    <div className="flex gap-2">
+                      <button onClick={() => handleSave(section)} className="text-green-600 hover:text-green-800">
+                        <FiCheck size={20} />
+                      </button>
+                      <button onClick={cancelEdit} className="text-red-500 hover:text-red-700">
+                        <FiX size={20} />
+                      </button>
+                    </div>
                   ) : (
-                    <li>Not set</li> // Show placeholder if no skills
+                    <button
+                      onClick={() => handleEditRequest(section)}
+                      className="text-[#005B66] dark:text-[#D3E0E2] hover:underline"
+                    >
+                      <FiEdit size={18} /> Edit
+                    </button>
                   )}
-                </ul>
-              )}
-            </div>
+                </div>
 
-            {/* Experience Section */}
-            <div className="bg-white dark:bg-[#A0B3B5] p-6 rounded-lg shadow-sm">
-              {/* Section header with title and edit/save button */}
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-[#005B66] dark:text-[#D3E0E2]">Experience</h3>
-                {editSection === 'experience' ? (
-                  <button
-                    onClick={() => handleSave('Experience')} // Call handleSave when clicked
-                    disabled={isLoading} // Disable button while saving
-                    className="p-2 bg-[#A0B3B5] text-[#005B66] dark:text-[#D3E0E2] rounded-lg hover:bg-[#D3E0E2] dark:hover:bg-[#005B66] transition-all duration-200 flex items-center disabled:opacity-50"
-                  >
-                    <FiSave className="mr-2" /> Save
-                  </button>
+                {editSection === section && confirmEdit ? (
+                  <>
+                    {section === 'basic' ? (
+                      <div className="space-y-2">
+                        <input
+                          value={user.name || ''}
+                          onChange={(e) => setUser({ ...user, name: e.target.value })}
+                          placeholder="Name"
+                          className={inputClass}
+                        />
+                        <input
+                          type="number"
+                          value={user.age || ''}
+                          onChange={(e) => setUser({ ...user, age: parseInt(e.target.value) || null })}
+                          placeholder="Age"
+                          className={inputClass}
+                        />
+                        <input
+                          value={user.gender || ''}
+                          onChange={(e) => setUser({ ...user, gender: e.target.value })}
+                          placeholder="Gender"
+                          className={inputClass}
+                        />
+                        <input
+                          value={user.linkedIn || ''}
+                          onChange={(e) => setUser({ ...user, linkedIn: e.target.value })}
+                          placeholder="LinkedIn URL"
+                          className={inputClass}
+                        />
+                      </div>
+                    ) : (
+                      <textarea
+                        rows="4"
+                        value={user[section] || ''}
+                        onChange={(e) => setUser({ ...user, [section]: e.target.value })}
+                        className={inputClass}
+                        placeholder={`Enter your ${section === 'workExperience' ? 'experience' : section} here...`}
+                      />
+                    )}
+                  </>
+                ) : section === 'basic' ? (
+                  <div className="space-y-1 text-[#00383d] dark:text-white">
+                    <div><strong>Name:</strong> {user.name || 'Not set'}</div>
+                    <div><strong>Age:</strong> {user.age !== null ? user.age : 'Not set'}</div>
+                    <div><strong>Gender:</strong> {user.gender || 'Not set'}</div>
+                    <div>
+                      <strong>LinkedIn:</strong>{' '}
+                      {user.linkedIn ? (
+                        <a
+                          href={user.linkedIn}
+                          className="text-blue-600 underline"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {user.linkedIn}
+                        </a>
+                      ) : (
+                        'Not set'
+                      )}
+                    </div>
+                  </div>
                 ) : (
-                  <button
-                    onClick={() => setEditSection('experience')} // Set editSection to 'experience' to enter edit mode
-                    className="p-2 bg-[#A0B3B5] text-[#005B66] dark:text-[#D3E0E2] rounded-lg hover:bg-[#D3E0E2] dark:hover:bg-[#005B66] transition-all duration-200 flex items-center"
-                  >
-                    <FiEdit className="mr-2" /> Edit
-                  </button>
+                  <div className="text-[#00383d] dark:text-white whitespace-pre-line">
+                    {user[section] ? user[section] : 'Not set'}
+                  </div>
                 )}
               </div>
-              {/* Conditional rendering: Edit mode or view mode */}
-              {editSection === 'experience' ? (
-                <textarea
-                  value={user.workExperience || ''} // Display current work experience or empty string
-                  onChange={(e) => setUser({ ...user, workExperience: e.target.value })} // Update workExperience in state
-                  className="w-full p-3 border border-[#A0B3B5] rounded-lg dark:bg-[#005B66] dark:border-[#D3E0E2] dark:text-[#D3E0E2] focus:outline-none focus:ring-2 focus:ring-[#A0B3B5]"
-                  rows="4"
-                  placeholder="Enter experience, one per line"
-                />
-              ) : (
-                <ul className="text-[#000000] dark:text-[#D3E0E2]">
-                  {user.workExperience ? (
-                    user.workExperience.split('\n').map((exp, index) => ( // Split experience by newline and display as list
-                      <li key={index} className="mb-1">{exp}</li>
-                    ))
-                  ) : (
-                    <li>Not set</li> // Show placeholder if no experience
-                  )}
-                </ul>
-              )}
-            </div>
-
-            {/* Education Section */}
-            <div className="bg-white dark:bg-[#A0B3B5] p-6 rounded-lg shadow-sm">
-              {/* Section header with title and edit/save button */}
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-[#005B66] dark:text-[#D3E0E2]">Education</h3>
-                {editSection === 'education' ? (
-                  <button
-                    onClick={() => handleSave('Education')} // Call handleSave when clicked
-                    disabled={isLoading} // Disable button while saving
-                    className="p-2 bg-[#A0B3B5] text-[#005B66] dark:text-[#D3E0E2] rounded-lg hover:bg-[#D3E0E2] dark:hover:bg-[#005B66] transition-all duration-200 flex items-center disabled:opacity-50"
-                  >
-                    <FiSave className="mr-2" /> Save
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => setEditSection('education')} // Set editSection to 'education' to enter edit mode
-                    className="p-2 bg-[#A0B3B5] text-[#005B66] dark:text-[#D3E0E2] rounded-lg hover:bg-[#D3E0E2] dark:hover:bg-[#005B66] transition-all duration-200 flex items-center"
-                  >
-                    <FiEdit className="mr-2" /> Edit
-                  </button>
-                )}
-              </div>
-              {/* Conditional rendering: Edit mode or view mode */}
-              {editSection === 'education' ? (
-                <textarea
-                  value={user.education || ''} // Display current education or empty string
-                  onChange={(e) => setUser({ ...user, education: e.target.value })} // Update education in state
-                  className="w-full p-3 border border-[#A0B3B5] rounded-lg dark:bg-[#005B66] dark:border-[#D3E0E2] dark:text-[#D3E0E2] focus:outline-none focus:ring-2 focus:ring-[#A0B3B5]"
-                  rows="4"
-                  placeholder="Enter education, one per line"
-                />
-              ) : (
-                <ul className="text-[#000000] dark:text-[#D3E0E2]">
-                  {user.education ? (
-                    user.education.split('\n').map((edu, index) => ( // Split education by newline and display as list
-                      <li key={index} className="mb-1">{edu}</li>
-                    ))
-                  ) : (
-                    <li>Not set</li> // Show placeholder if no education
-                  )}
-                </ul>
-              )}
-            </div>
+            ))}
           </div>
         </div>
       </div>
@@ -448,5 +304,4 @@ const UserProfile = () => {
   );
 };
 
-// Export the component for use in other parts of the app
 export default UserProfile;
