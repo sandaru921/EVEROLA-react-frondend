@@ -29,7 +29,7 @@ const Chat = () => {
     }
 
     const axiosInstance = axios.create({
-      baseURL: 'http://localhost:5031',
+      baseURL: 'https://localhost:5031',
       headers: { Authorization: `Bearer ${token}` },
     });
 
@@ -72,13 +72,13 @@ const Chat = () => {
 
     try {
       const token = localStorage.getItem('token');
-      await axios.post('http://localhost:5031/api/messages', message, {
+      await axios.post('https://localhost:5031/api/messages', message, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setNewMessage('');
       setShowEmojiPicker(false);
       // Refetch messages to include the new one
-      const response = await axios.get(`http://localhost:5031/api/messages/${userId}`, {
+      const response = await axios.get(`https://localhost:5031/api/messages/${userId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setMessages(response.data);
