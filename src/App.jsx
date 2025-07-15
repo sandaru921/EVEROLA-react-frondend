@@ -13,7 +13,6 @@ import LoginPage from "./pages/User/LoginPage";
 import RegisterPage from "./pages/User/RegisterPage";
 import ForgotPasswordPage from "./pages/User/ForgotPasswordPage";
 import HomePage from "./pages/User/HomePage";
-import "./pages/User/HomePage.css";
 import AdminChat from "./pages/Admin/AdminChat";
 import ToastWrapper from "./components/ToastWrapper";
 import AuthInterceptor from "@components/AuthInterceptor.jsx";
@@ -26,10 +25,10 @@ function App() {
 
     return (
         <BrowserRouter>
-            <AuthInterceptor /> {/* Interceptor safely inside router context */}
+            <AuthInterceptor/> {/* Interceptor safely inside router context */}
 
             {/* Admin Search Bar (only show for logged-in admins) */}
-            {user?.permissions?.includes("admin") && <AdminSearchBar />}
+            {user?.permissions?.includes("admin") && <AdminSearchBar/>}
 
             <Routes>
                 <Route path="/" element={<HomePage/>}/>
@@ -49,11 +48,11 @@ function App() {
                 <Route
                     path="/permission-manager"
                     element={
-                    <ProtectedRoute allowedRole="Admin">
-                        <PermissionManager/>
-                    </ProtectedRoute>}/>
+                        <ProtectedRoute allowedRole="Admin">
+                            <PermissionManager/>
+                        </ProtectedRoute>}/>
             </Routes>
-            <ToastWrapper />
+            <ToastWrapper/>
         </BrowserRouter>
     );
 }

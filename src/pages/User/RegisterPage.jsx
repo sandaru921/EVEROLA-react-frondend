@@ -3,11 +3,98 @@ import {Link, useNavigate} from "react-router-dom";
 import logo from "../../assets/logo.jpg";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faFacebookF, faGoogle, faTwitter,} from "@fortawesome/free-brands-svg-icons";
-import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
+import {faEye, faEyeSlash} from "@fortawesome/free-solid-svg-icons";
 import {useRegister} from "../../data/useRegister";
 import {ErrorBanner} from "@components/ErrorBanner.jsx";
 import {toast} from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
+
+const styles = {
+    container: {
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        minHeight: "100vh",
+        backgroundColor: "#4cbad1",
+    },
+    box: {
+        backgroundColor: "white",
+        padding: "30px",
+        borderRadius: "12px",
+        textAlign: "center",
+        width: "450px",
+    },
+    logo: {
+        width: "50px",
+        marginBottom: "15px",
+    },
+    heading: {
+        fontSize: "24px",
+        fontWeight: "bold",
+        color: "#008cba",
+    },
+    inputGroup: {
+        textAlign: "left",
+        marginBottom: "10px",
+    },
+    label: {
+        display: "block",
+        fontSize: "14px",
+        color: "#555",
+    },
+    input: {
+        width: "100%",
+        padding: "10px",
+        border: "1px solid #ccc",
+        borderRadius: "6px",
+        fontSize: "14px",
+    },
+    passwordWrapper: {
+        position: "relative",
+    },
+    togglePassword: {
+        position: "absolute",
+        right: "10px",
+        top: "50%",
+        transform: "translateY(-50%)",
+        background: "transparent",
+        border: "none",
+        cursor: "pointer",
+        color: "#666",
+    },
+    submitButton: {
+        width: "100%",
+        padding: "10px",
+        backgroundColor: "#005b7c",
+        color: "white",
+        border: "none",
+        borderRadius: "6px",
+        fontSize: "16px",
+        cursor: "pointer",
+        marginTop: "10px",
+    },
+    submitButtonHover: {
+        backgroundColor: "#5e92a8",
+    },
+    alternativeText: {
+        fontSize: "14px",
+        color: "#555",
+        marginBottom: "10px",
+    },
+    socialBtn: {
+        padding: "15px",
+        fontSize: "20px",
+        //borderRadius: "10px",
+        margin: "0 5px",
+        cursor: "pointer",
+        border: "none",
+    },
+    link: {
+        textDecoration: "none",
+        color: "#008cba",
+        fontWeight: "bold",
+    },
+};
 
 const RegisterPage = () => {
     const [formData, setFormData] = useState({
@@ -104,96 +191,104 @@ const RegisterPage = () => {
     };
 
     return (
-        <div className="register-container">
-            <div className="register-box">
-                <div className="logo">
-                    <img src={logo} alt="logo"/>
+        <div style={styles.container}>
+            <div style={styles.box}>
+                <div>
+                    <img src={logo} alt="logo" style={styles.logo}/>
                 </div>
-                <h2 className="heading">GET STARTED</h2>
+                <h2 style={styles.heading}>GET STARTED</h2>
                 {error && <ErrorBanner message={error} onClose={() => setError(null)}/>}
                 <form onSubmit={handleSubmit}>
-                    <div className="input-group">
-                        <label>Username</label>
+                    <div style={styles.inputGroup}>
+                        <label style={styles.label}>Username</label>
                         <input
                             type="text"
                             name="username"
                             value={formData.username}
                             onChange={handleChange}
                             required
+                            style={styles.input}
                         />
                     </div>
-                    <div className="input-group">
-                        <label>E-mail</label>
+                    <div style={styles.inputGroup}>
+                        <label style={styles.label}>E-mail</label>
                         <input
                             type="email"
                             name="email"
                             value={formData.email}
                             onChange={handleChange}
                             required
+                            style={styles.input}
                         />
                     </div>
 
-                    <div className="input-group password-group">
-                        <label>Password</label>
-                        <div className="password-input-wrapper">
-                        <input
-                            type={showPassword ? "text" : "password"}
-                            name="password"
-                            value={formData.password}
-                            onChange={handleChange}
-                            required
-                        />
+                    <div style={styles.inputGroup}>
+                        <label style={styles.label}>Password</label>
+                        <div style={styles.passwordWrapper}>
+                            <input
+                                type={showPassword ? "text" : "password"}
+                                name="password"
+                                value={formData.password}
+                                onChange={handleChange}
+                                required
+                                style={styles.input}
+                            />
                             <button
                                 type="button"
-                                className="toggle-password"
+                                style={styles.togglePassword}
                                 onClick={() => setShowPassword((prev) => !prev)}
                             >
-                                <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
+                                <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye}/>
                             </button>
                         </div>
                     </div>
-                    <div className="input-group password-group">
-                        <label>Confirm Password</label>
-                        <div className="password-input-wrapper">
-                        <input
-                            type={showConfirmPassword ? "text" : "password"}
-                            name="confirmPassword"
-                            value={formData.confirmPassword}
-                            onChange={handleChange}
-                            required
-                        />
-                        <button
-                            type="button"
-                            className="toggle-password"
-                            onClick={() => setShowConfirmPassword((prev) => !prev)}
-                        >
-                            <FontAwesomeIcon icon={showConfirmPassword ? faEyeSlash : faEye} />
-                        </button>
+                    <div style={styles.inputGroup}>
+                        <label style={styles.label}>Confirm Password</label>
+                        <div style={styles.passwordWrapper}>
+                            <input
+                                type={showConfirmPassword ? "text" : "password"}
+                                name="confirmPassword"
+                                value={formData.confirmPassword}
+                                onChange={handleChange}
+                                required
+                                style={styles.input}
+                            />
+                            <button
+                                type="button"
+                                style={styles.togglePassword}
+                                onClick={() => setShowConfirmPassword((prev) => !prev)}
+                            >
+                                <FontAwesomeIcon icon={showConfirmPassword ? faEyeSlash : faEye}/>
+                            </button>
+                        </div>
                     </div>
-                    </div>
-                    <button type="submit" className="btn-signup">
+                    <button type="submit" style={styles.submitButton}>
                         Sign Up
                     </button>
                 </form>
                 <br/>
-                <div className="alternative-signup">
+                <div style={styles.alternativeText}>
                     ------------ Or sign up with ------------
+
+                    <br/>
+                    <div>
+                        <button style={styles.socialBtn}
+                                onClick={() => window.location.href = 'https://www.google.com'}>
+                            <FontAwesomeIcon icon={faGoogle}/>
+                        </button>
+                        <button style={styles.socialBtn}
+                                onClick={() => window.location.href = 'https://www.facebook.com'}>
+                            <FontAwesomeIcon icon={faFacebookF}/>
+                        </button>
+                        <button style={styles.socialBtn}
+                                onClick={() => window.location.href = 'https://www.twitter.com'}>
+                            <FontAwesomeIcon icon={faTwitter}/>
+                        </button>
+                    </div>
                 </div>
-                <br/>
-                <div className="social-btns">
-                    <button className="social-btn" onClick={() => window.location.href = 'https://www.google.com'}>
-                        <FontAwesomeIcon icon={faGoogle}/>
-                    </button>
-                    <button className="social-btn" onClick={() => window.location.href = 'https://www.facebook.com'}>
-                        <FontAwesomeIcon icon={faFacebookF}/>
-                    </button>
-                    <button className="social-btn" onClick={() => window.location.href = 'https://www.twitter.com'}>
-                        <FontAwesomeIcon icon={faTwitter}/>
-                    </button>
-                </div>
-                <p className="signin-text">
+                <p style={styles.signinText}>
                     Already have an account?{' '}
-                    <Link to="/login">
+                    <Link to="/login" style={styles.link}>
                         Sign In
                     </Link>
                 </p>
