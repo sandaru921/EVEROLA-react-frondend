@@ -17,26 +17,33 @@ const AdminSidebar = () => {
     
   ]
 
+  // Helper to check if a nav item is active
   const isActive = (path) => {
     return location.pathname.startsWith(path)
   }
 
+  // Render the sidebar
   return (
     <div
       className={`bg-[#004d66] text-white h-screen transition-all duration-300 ${
         collapsed ? "w-16" : "w-64"
       } fixed left-0 top-0 z-10`}
     >
+
+      {/* Toggles sidebar collapse/expand. Shows right arrow if collapsed, left arrow if expanded. */}
       <div className="p-4">
         <button onClick={() => setCollapsed(!collapsed)} className="w-full text-right text-white/70 hover:text-white">
           {collapsed ? "→" : "←"}
         </button>
       </div>
 
+      {/* Navigation items */}
       <nav className="mt-6">
         <ul className="space-y-2 px-2">
           {navItems.map((item) => (
             <li key={item.name}>
+
+              {/* Render each nav item as a link */}
               <Link
                 to={item.path}
                 className={`flex items-center p-3 rounded-md transition-colors ${

@@ -1,5 +1,5 @@
 // Base API URL configuration
-const API_BASE_URL = "https://localhost:7271"
+const API_BASE_URL = "https://localhost:5031"
 
 export const API_URLS = {
   blogs: `${API_BASE_URL}/api/blogs`,

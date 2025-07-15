@@ -1,12 +1,5 @@
-
-
-
-
-
-
-
 import "./App.css";
-import "./pages/User/HomePage.css"; // Keep CSS import from incoming
+//import "./pages/User/HomePage.css"; // Keep CSS import from incoming
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 
 // User-related imports from incoming
@@ -32,6 +25,7 @@ import BlogDetail from "./pages/User/BlogDetail";
 import AdminChat from "./pages/Admin/AdminChat"; // From incoming
 import ManageBlogs from "./pages/Admin/ManageBlogs"; // From current
 import EditBlog from "./pages/Admin/EditBlog"; // From current
+import AdminDashboard from "./pages/Admin/AdminDashboard";
 
 function App() {
   console.log("App component is rendering"); // Keep debug log from current
@@ -63,6 +57,9 @@ function App() {
         <Route path="/admin/blogs" element={<ManageBlogs />} />
         <Route path="/admin/blogs/add" element={<EditBlog />} />
         <Route path="/admin/blogs/edit/:id" element={<EditBlog />} />
+
+
+        <Route path="/admin/dashboard" element={<AdminDashboard />} />
       </Routes>
     </BrowserRouter>
   );
