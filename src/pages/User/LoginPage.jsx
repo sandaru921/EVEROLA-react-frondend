@@ -1,22 +1,33 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Link } from "react-router-dom";
+import React, {useState} from "react";
+import {Link, useNavigate} from "react-router-dom";
 import logo from "../../assets/logo.jpg";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faGoogle,
-  faFacebookF,
-  faTwitter,
-} from "@fortawesome/free-brands-svg-icons";
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import {faFacebookF, faGoogle, faTwitter,} from "@fortawesome/free-brands-svg-icons";
+import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
+import {useLogin} from "../../data/useLogin";
+import {toast} from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css';
+import {ErrorBanner} from "@components/ErrorBanner.jsx";
 
 const LoginPage = () => {
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+  const { loginUser } = useLogin();
+  const [error, setError] = useState(null);
+
   const [formData, setFormData] = useState({
-    email: "",
+    identifier: "", // can be username or email
     password: "",
-    rememberMe: false,
+    rememberMe: false
   });
 
+  const isValidIdentifier = (identifier) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const usernameRegex = /^[a-zA-Z0-9_]{3,}$/;
+    return emailRegex.test(identifier) || usernameRegex.test(identifier);
+  };
+
+  // Update form inputs on change
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData({
@@ -25,9 +36,43 @@ const LoginPage = () => {
     });
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("Form Submitted", formData);
+  // On form submit, validate inputs, call loginUser, handle success/error
+  const handleSubmit = async (e) => {
+    e.preventDefault(); //  Prevent form default behavior
+
+    // Basic validation
+    if (!formData.identifier.trim()) {
+      setError("Please enter your username or email.");
+      return;
+    }
+
+    if (!isValidIdentifier(formData.identifier.trim())) {
+      setError("Please enter a valid username or email.");
+      return;
+    }
+
+    if (!formData.password) {
+      setError("Please enter your password.");
+      return;
+    }
+
+    const result = await loginUser(formData);// send identifier instead of email
+
+    if (result.success) {
+      toast.success(result.message || "login successfully!");
+
+      // Store token and permissions in localStorage
+      localStorage.setItem("token", result.data.token);
+      localStorage.setItem("permissions", JSON.stringify(result.data.permissions));
+
+      setTimeout(() => navigate("/userdashboard"), 1500);
+    } else {
+      setError(result.message);
+    }
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword((prev) => !prev);
   };
 
   const handleSignUp = () => {
@@ -43,26 +88,34 @@ const LoginPage = () => {
         <h2 className="welcome-text">
           Hello, <strong>Welcome!</strong>
         </h2>
+        {error && <ErrorBanner message={error} onClose={() => setError(null)}/>}
         <form onSubmit={handleSubmit}>
           <div className="input-group">
-            <label>E-mail</label>
+            <label>Username or E-mail</label>
             <input
-              type="email"
-              name="email"
-              value={formData.email}
+              type="text"
+              name="identifier"
+              value={formData.identifier}
               onChange={handleChange}
               required
             />
           </div>
-          <div className="input-group">
+          <div className="input-group relative">
             <label>Password</label>
             <input
-              type="password"
+              type={showPassword ? "text" : "password"}
               name="password"
               value={formData.password}
               onChange={handleChange}
               required
             />
+            <button
+                type="button"
+                onClick={togglePasswordVisibility}
+                className="absolute right-2 top-10 transform -translate-y-1/2 text-gray-500"
+            >
+              <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
+            </button>
           </div>
           <div className="options">
             <div>
@@ -75,7 +128,7 @@ const LoginPage = () => {
               <label>Remember me</label>
             </div>
             <Link to="/login/forgot-password">
-            <a href="/forgot-password">Forgot password</a>
+            Forgot password
             </Link>
           </div>
           <div className="btn">
@@ -113,9 +166,9 @@ const LoginPage = () => {
         </div>
         <br />
         <p className="signup-text">
-          Don't have an account?
+          Don't have an account?{' '}
           <Link to="/register">
-            <a href="/signup"> Sign Up</a>
+             Sign Up
           </Link>
         </p>
       </div>

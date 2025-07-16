@@ -4,6 +4,7 @@
 import { useState, useEffect } from "react"
 import AdminNavbar from "../../components/AdminNavbar"
 import AdminSidebar from "../../components/AdminSidebar"
+import { Outlet } from "react-router-dom"
 
 const AdminDashboard = () => {
   const [loading, setLoading] = useState(true)
@@ -38,16 +39,16 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <AdminNavbar />
-      <div className="pt-14">
-        <div className="flex">
-          <AdminSidebar />
-          <div className="flex-1 ml-64 p-6">
-            <h1 className="text-2xl font-bold text-[#005B7C] mb-6">Dashboard Overview</h1>
-          </div>
+    <AdminNavbar />
+    <div className="pt-14">
+      <div className="flex">
+        <AdminSidebar />
+        <div className="flex-1 ml-64 p-6">
+          <Outlet />
         </div>
       </div>
     </div>
+  </div>
   )
 }
 
