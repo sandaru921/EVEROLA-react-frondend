@@ -3,7 +3,7 @@ name: React Vite PR Build Check
 on:
   pull_request:
     branches:
-      - main  # or your default branch
+      - main
 
 jobs:
   build:
@@ -16,10 +16,16 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '22'  # or 20, depending on your project
+          node-version: '22'
 
-      - name: Install dependencies (with legacy peer deps)
-        run: npm ci --legacy-peer-deps
+      - name: Clean node_modules and lockfile
+        run: |
+          rm -rf node_modules package-lock.json
+
+      - name: Install dependencies with legacy peer deps
+        run: |
+          npm install --legacy-peer-deps
+          npm install rollup@latest --build-from-source
 
       - name: Build project
         run: npm run build
