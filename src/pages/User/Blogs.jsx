@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
-import Navbar from "@components/NavBar"
+import Navbar from "../../components/Navbar"  
 import BlogHeader from "../../assets/blog.jpg"
 import API_BASE_URL, { API_URLS } from "../../config/api"
 

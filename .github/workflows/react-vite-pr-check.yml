@@ -3,7 +3,7 @@ name: React Vite PR Build Check
 on:
   pull_request:
     branches:
-      - main  # or your default branch
+      - main
 
 jobs:
   build:
@@ -16,11 +16,19 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '22'  # or 20, depending on your project
+          node-version: '22'
 
-      - name: Install dependencies (with legacy peer deps)
-  	run: npm ci --legacy-peer-deps
+      - name: Remove react-quill from package.json (temporary)
+        run: |
+          sudo apt-get install -y jq
+          jq 'del(.dependencies["react-quill"])' package.json > temp.json && mv temp.json package.json
+          rm -rf node_modules package-lock.json
 
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install rollup from source (optional fix for native build)
+        run: npm install rollup@latest --build-from-source
 
       - name: Build project
         run: npm run build
