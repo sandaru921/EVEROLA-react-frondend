@@ -27,11 +27,11 @@ import ManageBlogs from "./pages/Admin/ManageBlogs"; // From current
 import EditBlog from "./pages/Admin/EditBlog"; // From current
 import AdminDashboard from "./pages/Admin/AdminDashboard";
 
-import AdminChat from "./pages/Admin/AdminChat";
 
-import Blog from "./pages/User/Blogs.jsx";
-import BlogDetail from "./pages/User/BlogDetail.jsx";
-import AdminDashboard from "./pages/Admin/AdminDashboard.jsx";
+
+// import Blog from "./pages/User/Blogs.jsx";
+// import BlogDetail from "./pages/User/BlogDetail.jsx";
+// import AdminDashboard from "./pages/Admin/AdminDashboard.jsx";
 import QuizDash from "./pages/Admin/QuizDash.jsx";
 import AddQuiz from "./pages/Admin/NewQuiz.jsx";
 import TryOutQuiz from "./pages/Admin/TryOutQuiz.jsx";
