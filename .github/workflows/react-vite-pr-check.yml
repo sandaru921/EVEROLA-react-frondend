@@ -22,9 +22,9 @@ jobs:
         run: |
           rm -rf node_modules package-lock.json
 
-      - name: Install dependencies with legacy peer deps
+      - name: Install dependencies (force resolve conflicts)
         run: |
-          npm install --legacy-peer-deps
+          npm install --force
           npm install rollup@latest --build-from-source
 
       - name: Build project
