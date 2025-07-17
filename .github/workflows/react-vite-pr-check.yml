@@ -18,8 +18,8 @@ jobs:
         with:
           node-version: '22'  # or 20, depending on your project
 
-      - name: Install dependencies (with legacy peer deps)
-  	run: npm ci --legacy-peer-deps
+            - name: Install dependencies (with legacy peer deps)
+        run: npm ci --legacy-peer-deps
 
 
       - name: Build project
