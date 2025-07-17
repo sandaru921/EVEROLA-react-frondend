@@ -18,14 +18,17 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Clean node_modules and lockfile
+      - name: Remove react-quill from package.json (temporary)
         run: |
+          sudo apt-get install -y jq
+          jq 'del(.dependencies["react-quill"])' package.json > temp.json && mv temp.json package.json
           rm -rf node_modules package-lock.json
 
-      - name: Install dependencies (force resolve conflicts)
-        run: |
-          npm install --force
-          npm install rollup@latest --build-from-source
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install rollup from source (optional fix for native build)
+        run: npm install rollup@latest --build-from-source
 
       - name: Build project
         run: npm run build
