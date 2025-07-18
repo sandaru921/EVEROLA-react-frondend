@@ -39,6 +39,8 @@ import AuthInterceptor from "@components/AuthInterceptor.jsx";
 import PermissionManager from "./pages/Admin/PermissionManager.jsx";
 import ProtectedRoute from "@components/ProtectedRoute.jsx";
 import AdminSearchBar from "@components/AdminSearchBar.jsx";
+import AttemptQuiz from "./pages/User/AttemptQuiz.jsx";
+import QuizSummary from "./pages/Admin/QuizResultUser.jsx";
 
 function App() {
     const user = JSON.parse(localStorage.getItem("user"));
@@ -56,6 +58,8 @@ function App() {
                 <Route path="/login/forgot-password" element={<ForgotPasswordPage/>}/>
                 <Route path="/register" element={<RegisterPage/>}/>
                 <Route path="/userdashboard" element={<UserDashboard/>}/>
+                  <Route path="/attemptquiz/:id" element={<AttemptQuiz/>}/>
+                  <Route path="/results/:quizResultId" element={<QuizSummary/>}/>
                 <Route path="/activities" element={<UserActivities/>}/>
                 <Route path="/support" element={<Support/>}/>
                 <Route path="/invite" element={<Invite/>}/>

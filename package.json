@@ -21,6 +21,7 @@
     "emailjs": "^4.0.3",
     "emoji-picker-react": "^4.12.2",
     "google-map-react": "^2.2.1",
+    "jwt-decode": "^4.0.0",
     "lucide-react": "^0.511.0",
     "postcss": "^8.5.3",
     "react": "^19.0.0",
