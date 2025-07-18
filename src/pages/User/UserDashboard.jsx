@@ -1,75 +1,51 @@
-import { useState, useEffect } from 'react'; // Added useEffect for API calls
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { FiSearch, FiMoon, FiSun, FiMenu } from 'react-icons/fi';
+import { FiMoon, FiSun, FiMenu } from 'react-icons/fi';
+import axios from 'axios';
+
 import UserSidebar from '../../components/UserSidebar.jsx';
-import axios from 'axios'; // Added for API requests
+import UserSearchBar from '../../components/UserSearchBar.jsx';
 
 const UserDashboard = () => {
-  // State Management
-  // - isSidebarOpen: Controls sidebar visibility
-  // - darkMode: Toggles dark/light theme
-  // - searchQuery: Filters jobs by title
-  // - filterRole: Filters jobs by role (dynamic based on user)
-  // - user: Stores logged-in user data from localStorage or API
-  // - jobs: Stores job listings fetched from the backend
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterRole, setFilterRole] = useState('');
-  const [user, setUser] = useState(() => ({
-    username: localStorage.getItem('username') || 'Guest',
+  const [user, setUser] = useState({
     email: localStorage.getItem('email') || '',
     role: localStorage.getItem('role') || 'User',
-  }));
+    name: '', // will be fetched from UserProfile table
+  });
   const [jobs, setJobs] = useState([]);
 
-  // Fetch User and Job Data on Mount
-  // - Uses useEffect to fetch user profile and jobs when component mounts
-  // - Includes authentication token from localStorage
   useEffect(() => {
-    const fetchUserData = async () => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        try {
-          const response = await axios.get('https://localhost:5031/api/user', {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          setUser((prev) => ({ ...prev, ...response.data }));
-        } catch (error) {
-          console.error('Error fetching user data:', error);
-        }
-      }
-    };
+    const token = localStorage.getItem('token');
 
-    const fetchJobs = async () => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        try {
-          const response = await axios.get('https://localhost:5031/api/jobs', {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          setJobs(response.data); // Expecting an array of jobs
-        } catch (error) {
-          console.error('Error fetching jobs:', error);
-        }
-      }
-    };
+    if (token) {
+      // Fetch user from UserProfile table
+      axios
+        .get('https://localhost:5031/api/UserProfile', {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((res) => {
+          setUser((prev) => ({ ...prev, ...res.data }));
+        })
+        .catch((err) => console.error('Error fetching user profile:', err));
 
-    fetchUserData();
-    fetchJobs();
+      axios
+        .get('https://localhost:5031/api/jobs', {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((res) => setJobs(res.data))
+        .catch((err) => console.error('Error fetching jobs:', err));
+    }
   }, []);
 
-  // Filter Jobs Based on User Input and Role
-  // - Filters jobs by title (searchQuery) and user role (filterRole)
   const filteredJobs = jobs.filter((job) =>
-    job.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
-    (filterRole ? job.title.toLowerCase().includes(filterRole.toLowerCase()) : true)
+    job.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Render the Dashboard
-  // - Main container with theme toggle and sidebar integration
   return (
-    <div className={`min-h-screen ${darkMode ? 'dark bg-gray-900' : 'bg-gray-100'}`}>
+    <div className={`min-h-screen ${darkMode ? 'dark bg-gray-900 text-white' : 'bg-gray-100 text-black'}`}>
       <UserSidebar
         darkMode={darkMode}
         setDarkMode={setDarkMode}
@@ -77,72 +53,75 @@ const UserDashboard = () => {
         setIsOpen={setIsSidebarOpen}
         user={user}
       />
+
       <div className="md:ml-64">
-        {/* Header with Search, Filter, and Theme Toggle */}
-        
-        <header className="bg-white dark:bg-gray-800 shadow-sm p-4 flex justify-between items-center">
+        {/* Header */}
+        <header className="bg-white/30 dark:bg-gray-700/30 backdrop-blur-md shadow-md p-4 rounded-b-lg flex justify-between items-center">
           <button onClick={() => setIsSidebarOpen(true)} className="md:hidden">
             <FiMenu size={24} className="text-gray-800 dark:text-gray-200" />
           </button>
-          <div className="flex items-center space-x-4 w-full max-w-md">
-            <div className="relative flex-1">
-              <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" />
-              <input
-                type="text"
-                placeholder="Search jobs"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-200"
-              />
-            </div>
-            <select
-              value={filterRole}
-              onChange={(e) => setFilterRole(e.target.value)}
-              className="border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-200"
-            >
-              <option value="">All Roles</option>
-              <option value="software engineer">Software Engineer</option>
-              <option value="hr manager">HR Manager</option>
-              <option value="business analyst">Business Analyst</option>
-              <option value="quality assurance">Quality Assurance</option>
-              {user.role && <option value={user.role.toLowerCase()}>{user.role}</option>}
-            </select>
-          </div>
-          <button onClick={() => setDarkMode(!darkMode)} className="text-gray-800 dark:text-gray-200">
+
+          <UserSearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+
+          <button onClick={() => setDarkMode(!darkMode)} className="text-gray-800 dark:text-gray-200 ml-4">
             {darkMode ? <FiSun size={24} /> : <FiMoon size={24} />}
           </button>
         </header>
+
+        {/* Main Content */}
         <main className="p-6">
-          {/* Main Content with Job Listings */}
-          
-          <h2 className="text-2xl font-medium text-gray-800 dark:text-gray-200 mb-6">
-            Jobs for you, {user.username} ({user.role})
+          <h2 className="text-2xl font-medium mb-6">
+            Jobs for you, <span className="font-bold">{user.name || '...'}</span>
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {filteredJobs.length > 0 ? (
               filteredJobs.map((job) => (
-                <div key={job.id} className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                <div
+  key={job.id}
+  className="bg-[#008eab]/80 text-white dark:bg-[#008eab]/90 backdrop-blur-md p-4 rounded-xl shadow-lg hover:shadow-2xl transition-all"
+>
+
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-base font-medium text-gray-700 dark:text-gray-200">{job.title}</h3>
-                    <span className={`text-xs px-2 py-1 rounded-full ${job.applied ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200'}`}>
+                    <h3 className="text-base font-semibold">{job.title}</h3>
+                    <span
+                      className={`text-xs px-2 py-1 rounded-full ${
+                        job.applied
+                          ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                          : 'bg-white/20 text-white'
+                      }`}
+                    >
                       {job.applied ? 'Applied' : 'Not Applied'}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">{job.type}</p>
-                  <img src="https://via.placeholder.com/150" alt={job.title} className="w-full h-24 object-cover rounded-md mb-2" />
-                  <p className="text-sm text-gray-600 dark:text-gray-300 mb-2 line-clamp-2">{job.description}</p>
-                  <div className="flex space-x-2">
-                    <Link to={`/jobs/${job.id}`} className="text-gray-700 dark:text-gray-200 text-sm hover:underline">
+
+                  <p className="text-sm opacity-90 mb-2">{job.type}</p>
+
+                  <img
+                    src={job.image || 'https://via.placeholder.com/150'}
+                    alt={job.title}
+                    className="w-full h-32 object-cover rounded-lg mb-3"
+                  />
+
+                  <p className="text-sm opacity-90 mb-3 line-clamp-2">{job.description}</p>
+
+                  <div className="flex space-x-3">
+                    <Link
+                      to={`/jobs/${job.id}`}
+                      className="text-sm underline hover:text-[#01bcc6]"
+                    >
                       Read More...
                     </Link>
-                    <button className="bg-gray-700 text-white px-3 py-1 rounded-full text-sm hover:bg-gray-800 dark:bg-gray-600 dark:hover:bg-gray-500">
+                    <button className="bg-[#008eab] hover:bg-[#01bcc6] text-white px-3 py-1 rounded-full text-sm">
                       Quick Apply
                     </button>
                   </div>
                 </div>
               ))
             ) : (
-              <p className="text-gray-500 dark:text-gray-400">No jobs available for your role or search criteria.</p>
+              <p className="text-gray-600 dark:text-gray-400">
+                No jobs available for your role or search criteria.
+              </p>
             )}
           </div>
         </main>

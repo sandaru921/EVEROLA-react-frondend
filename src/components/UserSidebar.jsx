@@ -4,13 +4,12 @@ import { FiMoon, FiSun } from 'react-icons/fi';
 import LogOutButton from './LogOutButton';
 import useLogout from "../data/useLogout.js";
 import { UserProfileContext } from '../context/UserProfileContext'; // Import the context
-import { UserProfileProvider } from '../context/UserProfileContext';
 
 const UserSidebar = ({ darkMode = false, setDarkMode = () => {}, isOpen = false, setIsOpen = () => {} }) => {
   const logout = useLogout(); // get logout function
   const { userProfile, loading, error } = useContext(UserProfileContext); // Consume context
   const username = userProfile?.name || 'Guest'; // Use name from userProfile, fallback to 'Guest'
-  const role = userProfile?.role || localStorage.getItem('role') || 'User'; // Fallback to localStorage or 'User'
+  const title = userProfile?.title || 'No title set'; // Show user title
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -45,7 +44,7 @@ const UserSidebar = ({ darkMode = false, setDarkMode = () => {}, isOpen = false,
           <h3 className="text-lg font-medium text-gray-900 group-hover:text-gray-700 transition-all duration-200">
             {username}
           </h3>
-          <p className="text-sm text-gray-500">{role}</p>
+          <p className="text-sm text-gray-500">{title}</p>
         </div>
       </Link>
 
@@ -63,18 +62,8 @@ const UserSidebar = ({ darkMode = false, setDarkMode = () => {}, isOpen = false,
               Dashboard
             </NavLink>
           </li>
-          <li className="mb-2">
-            <NavLink
-                to="/permission-manager"
-                className={({ isActive }) =>
-                    `block p-3 rounded-lg text-gray-700 transition-all duration-200 ${
-                        isActive ? 'bg-gray-200 text-gray-900 font-medium' : 'hover:bg-gray-200 hover:text-gray-900'
-                    }`
-                }
-            >
-              Permissions
-            </NavLink>
-          </li>
+          {/* Permissions tab removed here */}
+
           <li className="mb-2">
             <NavLink
               to="/activities"
@@ -124,7 +113,7 @@ const UserSidebar = ({ darkMode = false, setDarkMode = () => {}, isOpen = false,
             </NavLink>
           </li>
           <li className="mb-2">
-            <NavLink
+            {/* <NavLink
               to="/sample-questions"
               className={({ isActive }) =>
                 `block p-3 rounded-lg text-gray-700 transition-all duration-200 ${
@@ -133,7 +122,7 @@ const UserSidebar = ({ darkMode = false, setDarkMode = () => {}, isOpen = false,
               }
             >
               Sample Questions
-            </NavLink>
+            </NavLink> */}
           </li>
         </ul>
       </nav>

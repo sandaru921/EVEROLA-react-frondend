@@ -177,6 +177,10 @@ strong {
   color: #008cba;
 }
 
+white {
+  color: #fff;
+}
+
 .input-group {
   text-align: left;
   margin-bottom: 15px;
