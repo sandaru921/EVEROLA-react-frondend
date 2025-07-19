@@ -2,8 +2,9 @@ import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import { Clock, CheckCircle, XCircle, ArrowLeft, ArrowRight, Home } from "lucide-react";
+import { jwtDecode } from "jwt-decode";
 
-const TryOutQuiz = () => {
+const AttemptQuiz = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   
@@ -23,13 +24,14 @@ const TryOutQuiz = () => {
       .get(`https://localhost:5031/api/Quiz/${id}`)
       .then((res) => {
         const data = res.data;
-        const questions = data.Questions.sort(() => Math.random() - 0.5); // Sort questions randomly
-        setQuiz({ ...data, Questions: questions }); // Update quiz with shuffled questions
-        setTimeLeft(data.QuizDuration * 60);
+        const questions = data.questions.$values.sort(() => Math.random() - 0.5);
+        data.questions.$values = questions;
+        setQuiz(data);
+        setTimeLeft(data.quizDuration * 60);
         setQuizLoaded(true);
-        startTimeRef.current = Date.now(); // ⏱️ start time recorded here
+        startTimeRef.current = Date.now();
       })
-      .catch((err) => console.error(err));
+      .catch((err) => console.error("Error fetching quiz:", error.response.data.message || JSON.stringify(error.response.data)));
   }, [id]);
 
   // Countdown Timer
@@ -67,47 +69,99 @@ const TryOutQuiz = () => {
   };
 
   // Submit Handler
-  const handleSubmit = () => {
-    if (!quiz || !quiz.Questions) return;
+  const handleSubmit = async () => {
+    if (!quiz || !quiz.questions?.$values) return;
 
     let score = 0;
     const totalTime = Math.floor((Date.now() - startTimeRef.current) / 1000);
+    const answersList = [];
 
-    quiz.Questions.forEach((q) => {
-      const correct = q.CorrectAnswers;
-      const userAnswer = answers[q.Id] || (q.Type === "Multiple Choice" ? [] : "");
+    // Calculate score and prepare answers list
+    quiz.questions.$values.forEach((q) => {
+      const correct = q.correctAnswers.$values;
+      const userAnswer = answers[q.id] || (q.type === "Multiple Choice" ? [] : "");
+      let questionScore = 0;
+      let isCorrect = false;
 
-      if (q.Type === "Multiple Choice") {
-        // For multiple selection, calculate partial marks
+      if (q.type === "Multiple Choice") {
         const totalCorrect = correct.length;
-        const userCorrect = userAnswer.filter(ans => correct.includes(ans)).length;
-        const userIncorrect = userAnswer.filter(ans => !correct.includes(ans)).length;
+        const userCorrect = userAnswer.filter((ans) => correct.includes(ans)).length;
+        const userIncorrect = userAnswer.filter((ans) => !correct.includes(ans)).length;
         
-        // Check if all answers are correct (regardless of order)
         const sortedCorrect = [...correct].sort();
         const sortedUserAnswer = [...userAnswer].sort();
-        const isCompletelyCorrect = JSON.stringify(sortedCorrect) === JSON.stringify(sortedUserAnswer);
+        isCorrect = JSON.stringify(sortedCorrect) === JSON.stringify(sortedUserAnswer);
         
-        if (isCompletelyCorrect) {
-          // Give full marks if all answers are correct
-          score += q.Marks;
+        if (isCorrect) {
+          questionScore = q.marks;
+          score += q.marks;
         } else if (totalCorrect > 0) {
-          // Give partial credit: (correct selections / total correct) * total marks
-          const partialScore = (userCorrect / totalCorrect) * q.Marks;
-          // Optional: subtract penalty for wrong selections
-          const penalty = (userIncorrect / totalCorrect) * q.Marks * 0.5; // 50% penalty for wrong selections
-          score += Math.max(0, partialScore - penalty); // Don't allow negative scores
+          const partialScore = (userCorrect / totalCorrect) * q.marks;
+          const penalty = (userIncorrect / totalCorrect) * q.marks * 0.5;
+          questionScore = Math.max(0, partialScore - penalty);
+          score += questionScore;
         }
       } else {
-        // For single selection (Radio), all or nothing
-        const isCorrect = userAnswer === correct[0];
-        if (isCorrect) score += q.Marks;
+        isCorrect = userAnswer === correct[0];
+        if (isCorrect) {
+          questionScore = q.marks;
+          score += q.marks;
+        }
       }
+
+      answersList.push({
+        questionId: q.id,
+        selectedOptions: Array.isArray(userAnswer) ? userAnswer : [userAnswer]
+      });
     });
 
     setFinalScore(score);
     setTimeTaken(totalTime);
     setShowResult(true);
+
+    // Hardcode userId for testing (no JWT token)
+    let userId = 8; // Hardcoded for testing
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const decoded = jwtDecode(token);
+        console.log("Decoded token (for reference):", decoded);
+        userId = decoded.sub || decoded.userId || decoded.id || decoded.nameid || userId;
+      } catch (error) {
+        console.warn("No valid token, using hardcoded userId:", userId);
+      }
+    } else {
+      console.warn("No token found in localStorage, using hardcoded userId:", userId);
+    }
+
+    // Prepare payload for backend
+    const payload = {
+      userId: userId.toString(),
+      quizId: parseInt(id), // Convert to number to match expected payload
+      timeTaken: totalTime,
+      answers: answersList
+    };
+
+    console.log("Payload:", JSON.stringify(payload, null, 2)); // Debug payload
+
+    // Send results to backend
+    try {
+      const headers = { "Content-Type": "application/json" };
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+      const response = await axios.post("https://localhost:5031/api/Quiz/save", payload, { headers });
+      console.log("Quiz results submitted successfully:", response.data);
+      alert("Quiz submitted successfully!");
+    } catch (error) {
+      console.error("Error submitting quiz results:", error);
+      if (error.response) {
+        console.error("Backend error response:", error.response.data);
+        alert(`Failed to submit quiz: ${error.response.data.message || JSON.stringify(error.response.data) || "Invalid request. Please check your input and try again."}`);
+      } else {
+        alert("Failed to submit quiz: Network error or server is unreachable.");
+      }
+    }
   };
 
   const formatTime = (seconds) => {
@@ -117,9 +171,9 @@ const TryOutQuiz = () => {
   };
 
   const getTimeColor = () => {
-    if (timeLeft > 300) return "text-green-600"; // > 5 mins
-    if (timeLeft > 60) return "text-yellow-600"; // > 1 min
-    return "text-red-600"; // < 1 min
+    if (timeLeft > 300) return "text-green-600";
+    if (timeLeft > 60) return "text-yellow-600";
+    return "text-red-600";
   };
 
   if (!quizLoaded || !quiz) {
@@ -133,10 +187,10 @@ const TryOutQuiz = () => {
     );
   }
 
-  const question = quiz.Questions[currentIndex];
-  const selected = answers[question.Id] || (question.Type === "Multiple Choice" ? [] : "");
-  const totalMarks = quiz.Questions.reduce((sum, q) => sum + q.Marks, 0);
-  const progressPercentage = ((currentIndex + 1) / quiz.Questions.length) * 100;
+  const question = quiz.questions.$values[currentIndex];
+  const selected = answers[question.id] || (question.type === "Multiple Choice" ? [] : "");
+  const totalMarks = quiz.questions.$values.reduce((sum, q) => sum + q.marks, 0);
+  const progressPercentage = ((currentIndex + 1) / quiz.questions.$values.length) * 100;
 
   if (showResult) {
     const scorePercentage = Math.round((finalScore / totalMarks) * 100);
@@ -149,11 +203,10 @@ const TryOutQuiz = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
         <div className="max-w-6xl mx-auto px-4">
-          {/* Results Header */}
           <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
             <div className="text-center mb-8">
               <h1 className="text-4xl font-bold text-gray-900 mb-2">Quiz Completed!</h1>
-              <h2 className="text-2xl font-semibold text-indigo-600">{quiz.QuizName}</h2>
+              <h2 className="text-2xl font-semibold text-indigo-600">{quiz.quizName}</h2>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -182,36 +235,34 @@ const TryOutQuiz = () => {
             </div>
           </div>
 
-          {/* Detailed Results */}
           <div className="space-y-6">
-            {quiz.Questions.map((q, index) => {
-              const correct = q.CorrectAnswers;
-              const userAnswer = answers[q.Id] || (q.Type === "Multiple Choice" ? [] : "");
+            {quiz.questions.$values.map((q, index) => {
+              const correct = q.correctAnswers.$values;
+              const userAnswer = answers[q.id] || (q.type === "Multiple Choice" ? [] : "");
               
               let isCorrect = false;
               let partialScore = 0;
               
-              if (q.Type === "Multiple Choice") {
+              if (q.type === "Multiple Choice") {
                 const totalCorrect = correct.length;
-                const userCorrect = userAnswer.filter(ans => correct.includes(ans)).length;
-                const userIncorrect = userAnswer.filter(ans => !correct.includes(ans)).length;
+                const userCorrect = userAnswer.filter((ans) => correct.includes(ans)).length;
+                const userIncorrect = userAnswer.filter((ans) => !correct.includes(ans)).length;
                 
                 if (totalCorrect > 0) {
-                  const partialScoreCalc = (userCorrect / totalCorrect) * q.Marks;
-                  const penalty = (userIncorrect / totalCorrect) * q.Marks * 0.5;
+                  const partialScoreCalc = (userCorrect / totalCorrect) * q.marks;
+                  const penalty = (userIncorrect / totalCorrect) * q.marks * 0.5;
                   partialScore = Math.max(0, partialScoreCalc - penalty);
-                  // Fix: Properly sort arrays for comparison
                   const sortedCorrect = [...correct].sort();
                   const sortedUserAnswer = [...userAnswer].sort();
                   isCorrect = JSON.stringify(sortedCorrect) === JSON.stringify(sortedUserAnswer);
                 }
               } else {
                 isCorrect = userAnswer === correct[0];
-                partialScore = isCorrect ? q.Marks : 0;
+                partialScore = isCorrect ? q.marks : 0;
               }
 
               return (
-                <div key={q.Id} className="bg-white rounded-2xl shadow-lg overflow-hidden">
+                <div key={q.id} className="bg-white rounded-2xl shadow-lg overflow-hidden">
                   <div className={`p-6 ${isCorrect ? 'bg-green-50 border-l-4 border-green-500' : partialScore > 0 ? 'bg-yellow-50 border-l-4 border-yellow-500' : 'bg-red-50 border-l-4 border-red-500'}`}>
                     <div className="flex items-start justify-between mb-4">
                       <h3 className="text-lg font-semibold text-gray-900">
@@ -230,19 +281,19 @@ const TryOutQuiz = () => {
                         <span className={`font-semibold ${isCorrect ? 'text-green-600' : partialScore > 0 ? 'text-yellow-600' : 'text-red-600'}`}>
                           {isCorrect ? 'Correct' : partialScore > 0 ? 'Partial Credit' : 'Incorrect'}
                         </span>
-                        {q.Type === "Multiple Choice" && (
+                        {q.type === "Multiple Choice" && (
                           <span className={`text-sm font-medium px-2 py-1 rounded ${isCorrect ? 'bg-green-100 text-green-800' : partialScore > 0 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
-                            {partialScore.toFixed(1)}/{q.Marks} marks
+                            {partialScore.toFixed(1)}/{q.marks} marks
                           </span>
                         )}
                       </div>
                     </div>
                     
-                    <p className="text-gray-800 mb-4">{q.QuestionText}</p>
+                    <p className="text-gray-800 mb-4">{q.questionText}</p>
                     
-                    {q.CodeSnippet && (
+                    {q.codeSnippet && (
                       <pre className="bg-gray-900 text-green-400 p-4 rounded-lg text-sm mb-4 overflow-x-auto">
-                        {q.CodeSnippet}
+                        {q.codeSnippet}
                       </pre>
                     )}
                     
@@ -261,13 +312,13 @@ const TryOutQuiz = () => {
                       </div>
                     </div>
                     
-                    {q.Type === "Multiple Choice" && partialScore > 0 && !isCorrect && (
+                    {q.type === "Multiple Choice" && partialScore > 0 && !isCorrect && (
                       <div className="mt-4 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
                         <p className="text-sm text-yellow-800">
                           <strong>Partial Credit Breakdown:</strong><br/>
                           Correct selections: {userAnswer.filter(ans => correct.includes(ans)).length}/{correct.length}<br/>
                           Incorrect selections: {userAnswer.filter(ans => !correct.includes(ans)).length}<br/>
-                          Score: {partialScore.toFixed(1)} out of {q.Marks} marks
+                          Score: {partialScore.toFixed(1)} out of {q.marks} marks
                         </p>
                       </div>
                     )}
@@ -283,13 +334,12 @@ const TryOutQuiz = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      {/* Header */}
       <div className="bg-white shadow-lg">
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">{quiz.QuizName}</h1>
-              <p className="text-gray-600 mt-1">{quiz.Description}</p>
+              <h1 className="text-3xl font-bold text-gray-900">{quiz.quizName}</h1>
+              <p className="text-gray-600 mt-1">{quiz.description}</p>
             </div>
             <div className="flex items-center space-x-4">
               <div className={`flex items-center space-x-2 ${getTimeColor()}`}>
@@ -299,10 +349,9 @@ const TryOutQuiz = () => {
             </div>
           </div>
           
-          {/* Progress Bar */}
           <div className="mt-6">
             <div className="flex justify-between text-sm text-gray-600 mb-2">
-              <span>Question {currentIndex + 1} of {quiz.Questions.length}</span>
+              <span>Question {currentIndex + 1} of {quiz.questions.$values.length}</span>
               <span>{Math.round(progressPercentage)}% Complete</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
@@ -317,7 +366,6 @@ const TryOutQuiz = () => {
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* Main Question Area */}
           <div className="flex-1">
             <div className="bg-white rounded-2xl shadow-xl p-8">
               <div className="mb-6">
@@ -326,58 +374,57 @@ const TryOutQuiz = () => {
                     Question {currentIndex + 1}
                   </h2>
                   <span className="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-sm font-medium">
-                    {question.Marks} {question.Marks === 1 ? 'mark' : 'marks'}
+                    {question.marks} {question.marks === 1 ? 'mark' : 'marks'}
                   </span>
                 </div>
                 
-                <p className="text-lg text-gray-800 leading-relaxed">{question.QuestionText}</p>
+                <p className="text-lg text-gray-800 leading-relaxed">{question.questionText}</p>
                 
-                {question.CodeSnippet && (
+                {question.codeSnippet && (
                   <div className="mt-4">
                     <pre className="bg-gray-900 text-green-400 p-4 rounded-lg text-sm overflow-x-auto border">
-                      {question.CodeSnippet}
+                      {question.codeSnippet}
                     </pre>
                   </div>
                 )}
               </div>
 
               <div className="space-y-3">
-                {question.Options.map((opt) => (
+                {question.options.$values.map((opt) => (
                   <label 
-                    key={opt.Id} 
+                    key={opt.id} 
                     className="flex items-start p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 hover:bg-gray-50"
                     style={{
-                      borderColor: question.Type === "Multiple Choice" 
-                        ? selected.includes(opt.Key) ? '#4f46e5' : '#e5e7eb'
-                        : selected === opt.Key ? '#4f46e5' : '#e5e7eb',
-                      backgroundColor: question.Type === "Multiple Choice" 
-                        ? selected.includes(opt.Key) ? '#eef2ff' : 'white'
-                        : selected === opt.Key ? '#eef2ff' : 'white'
+                      borderColor: question.type === "Multiple Choice" 
+                        ? selected.includes(opt.key) ? '#4f46e5' : '#e5e7eb'
+                        : selected === opt.key ? '#4f46e5' : '#e5e7eb',
+                      backgroundColor: question.type === "Multiple Choice" 
+                        ? selected.includes(opt.key) ? '#eef2ff' : 'white'
+                        : selected === opt.key ? '#eef2ff' : 'white'
                     }}
                   >
                     <input
-                      type={question.Type === "Multiple Choice" ? "checkbox" : "radio"}
-                      name={`question-${question.Id}`}
-                      value={opt.Key}
+                      type={question.type === "Multiple Choice" ? "checkbox" : "radio"}
+                      name={`question-${question.id}`}
+                      value={opt.key}
                       checked={
-                        question.Type === "Multiple Choice"
-                          ? selected.includes(opt.Key)
-                          : selected === opt.Key
+                        question.type === "Multiple Choice"
+                          ? selected.includes(opt.key)
+                          : selected === opt.key
                       }
                       onChange={() =>
-                        handleChange(question.Id, opt.Key, question.Type === "Multiple Choice")
+                        handleChange(question.id, opt.key, question.type === "Multiple Choice")
                       }
                       className="mt-1 mr-4 w-4 h-4 text-indigo-600 focus:ring-indigo-500"
                     />
                     <div className="flex-1">
-                      <span className="font-semibold text-indigo-600 mr-2">{opt.Key})</span>
-                      <span className="text-gray-800">{opt.Value}</span>
+                      <span className="font-semibold text-indigo-600 mr-2">{opt.key})</span>
+                      <span className="text-gray-800">{opt.value}</span>
                     </div>
                   </label>
                 ))}
               </div>
 
-              {/* Navigation Buttons */}
               <div className="flex justify-between mt-8 pt-6 border-t">
                 <button
                   disabled={currentIndex === 0}
@@ -388,7 +435,7 @@ const TryOutQuiz = () => {
                   Previous
                 </button>
                 
-                {currentIndex < quiz.Questions.length - 1 ? (
+                {currentIndex < quiz.questions.$values.length - 1 ? (
                   <button
                     onClick={() => setCurrentIndex((prev) => prev + 1)}
                     className="inline-flex items-center px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition-colors duration-200 shadow-lg hover:shadow-xl"
@@ -409,16 +456,15 @@ const TryOutQuiz = () => {
             </div>
           </div>
 
-          {/* Question Navigator Sidebar */}
           <div className="lg:w-80">
             <div className="bg-white rounded-2xl shadow-xl p-6 sticky top-8">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Question Navigator</h3>
               <div className="grid grid-cols-5 gap-3">
-                {quiz.Questions.map((q, index) => {
+                {quiz.questions.$values.map((q, index) => {
                   const isCurrent = index === currentIndex;
                   const hasAnswered =
-                    answers[q.Id] &&
-                    (Array.isArray(answers[q.Id]) ? answers[q.Id].length > 0 : true);
+                    answers[q.id] &&
+                    (Array.isArray(answers[q.id]) ? answers[q.id].length > 0 : true);
 
                   let buttonClass = "w-12 h-12 rounded-lg font-semibold transition-all duration-200 hover:shadow-md ";
                   
@@ -432,7 +478,7 @@ const TryOutQuiz = () => {
 
                   return (
                     <button
-                      key={q.Id}
+                      key={q.id}
                       className={buttonClass}
                       onClick={() => setCurrentIndex(index)}
                     >
@@ -464,4 +510,4 @@ const TryOutQuiz = () => {
   );
 };
 
-export default TryOutQuiz;
+export default AttemptQuiz;

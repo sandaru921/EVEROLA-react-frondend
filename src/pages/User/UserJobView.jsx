@@ -4,41 +4,25 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Navbar from "../../components/Navbar";
 
-// Component for displaying a list of jobs to users
 const UserJobview = () => {
-  // Hook for programmatic navigation
   const navigate = useNavigate();
 
-  // State for search term
   const [searchTerm, setSearchTerm] = useState("");
-
-  // State for job data
   const [jobs, setJobs] = useState([]);
-
-  // State for error messages
   const [error, setError] = useState(null);
-
-  // Authentication state (placeholder, adjust based on auth logic)
   const [isAuthenticated] = useState(false);
-
-  // Admin state (false for user-facing view)
   const [isAdmin] = useState(false);
 
-  // API endpoint for fetching jobs
   const API_URL = "https://localhost:5031/api/jobs";
 
-  // Fetch jobs on component mount
   useEffect(() => {
     fetchJobs();
   }, []);
 
-  // Function to fetch jobs from API
   const fetchJobs = async () => {
     try {
-      // Send GET request to fetch all jobs
       const response = await axios.get(API_URL, { timeout: 5000 });
       console.log("API Response:", response.data);
-      // Validate response data
       if (Array.isArray(response.data)) {
         setJobs(response.data);
       } else {
@@ -47,33 +31,30 @@ const UserJobview = () => {
       }
       setError(null);
     } catch (error) {
-      // Log detailed error information
       console.error("Error fetching jobs:", {
         message: error.message,
         code: error.code,
         response: error.response ? error.response.data : "No response",
         status: error.response ? error.response.status : "No status",
       });
-      // Display error message
       setError(`Failed to load jobs. Error: ${error.message}. Check console.`);
     }
   };
 
-  // Filter jobs based on search term
-  const filteredJobs = jobs.filter((job) =>
-    job &&
-    typeof job.Title === "string" &&
-    job.Title.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredJobs = jobs.filter(
+    (job) =>
+      job &&
+      typeof job.Title === "string" &&
+      job.Title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Skeleton loading effect component
   const JobCardSkeleton = () => (
     <div className="bg-white/80 rounded-xl shadow-lg overflow-hidden animate-pulse">
-      <div className="h-40 bg-[#d5d1ca]/50"></div> 
+      <div className="h-40 bg-[#d5d1ca]/50"></div>
       <div className="p-4">
-        <div className="h-6 bg-[#d5d1]/50 rounded w-3/4 mb-2"></div> 
-        <div className="h-4 bg-[#d5d1ca]/50 rounded w-1/2 mb-2"></div> 
-        <div className="h-4 bg-[#d5d1ca]/50 rounded w-full mb-4"></div> 
+        <div className="h-6 bg-[#d5d1]/50 rounded w-3/4 mb-2"></div>
+        <div className="h-4 bg-[#d5d1ca]/50 rounded w-1/2 mb-2"></div>
+        <div className="h-4 bg-[#d5d1ca]/50 rounded w-full mb-4"></div>
         <div className="flex justify-center">
           <div className="h-8 bg-[#d5d1ca]/50 rounded w-1/2"></div>
         </div>
@@ -81,55 +62,56 @@ const UserJobview = () => {
     </div>
   );
 
-  // Render component
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#01bc] to-[#0066] via-[#008eab]">
-      
+    <div className="min-h-screen bg-[#E6EFF2]">
       <Navbar isAuthenticated={isAuthenticated} isAdmin={isAdmin} />
-      <main className="pt-28 px-4 sm px sm:px-6 lg px lg lg:lg px-8 py-12 relative">
-       
+      <main className="pt-28 px-4 sm:px-6 lg:px-8 py-12 relative">
+        {/* Search Bar */}
         <div className="max-w-4xl mx-auto mb-6">
-          <div className="relative bg-white/30 backdrop-blur-md rounded-full p-0.5 shadow-lg border rounded-full">
-            <div class="relative w-full p-2 pl-10 text-lg">
+          <div className="relative bg-white/30 backdrop-blur-md rounded-full shadow-lg border border-[#005b7c] focus-within:ring-2 focus-within:ring-[#01bcc6] transition-colors">
+            <div className="relative w-full">
               <input
                 type="text"
                 placeholder="Search Jobs..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="input w-full border p-2 rounded-full bg-transparent text-[#005b7c] focus:outline-none focus:ring-2 focus:ring-[#01bcc6] transition-all duration-300] placeholder:text-[#efefef]/70"
+                className="w-full rounded-full bg-transparent text-[#333] placeholder:text-[#999] focus:outline-none px-12 py-2"
               />
-              <FaSearch className="absolute left-3 top-1 right/2 top-1/2 transform -translate-y-1/2 text-[#FAFAFA] text-lg" />
+              <FaSearch
+                className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#005b7c] text-lg"
+              />
             </div>
           </div>
         </div>
 
-      
+        {/* Error */}
         {error && (
-          <p className="text-red-600 text-center font-semibold mb-6 bg-red-100/80 p-3 rounded-lg">{error}</p>
+          <p className="text-red-600 text-center font-semibold mb-6 bg-red-100/80 p-3 rounded-lg">
+            {error}
+          </p>
         )}
 
-      
+        {/* Jobs */}
         <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {jobs.length === 0 && !error ? (
-            // Display skeleton loaders while fetching
             Array(6)
               .fill()
               .map((_, index) => <JobCardSkeleton key={index} />)
           ) : filteredJobs.length > 0 ? (
-            // Display filtered job cards
             filteredJobs.map((job) => (
               <div
                 key={job.Id}
                 className="bg-white/90 rounded-xl shadow-xl overflow-hidden hover:shadow-2xl hover:scale-105 transition-all duration-300 transform-gpu bg-gradient-to-br from-[#efefef]/70 to-white/80 backdrop-blur-sm border border-[#d5d1ca]/20 animate-fadeIn"
-                style={{ animationDelay: `${filteredJobs.indexOf(job) * 0.1}s` }}
+                style={{
+                  animationDelay: `${filteredJobs.indexOf(job) * 0.1}s`,
+                }}
               >
                 <div className="p-5 min-h-[400px] flex flex-col justify-between relative">
                   <div>
-               
                     <h3 className="text-xl font-bold text-[#005b7c] mb-3 bg-gradient-to-r from-[#005b7c]/80 to-[#008eab]/80 bg-clip-text text-transparent">
                       {job.Title || "Untitled"}
                     </h3>
-                  
+
                     <div className="flex flex-wrap gap-2 mb-4">
                       <span className="bg-[#d5d1ca]/50 text-[#005b7c] px-3 py-1 rounded-full text-sm font-medium">
                         {job.JobType || "N/A"}
@@ -138,10 +120,13 @@ const UserJobview = () => {
                         {job.WorkMode || "N/A"}
                       </span>
                       <span className="bg-[#d5d1ca]/50 text-[#005b7c] px-3 py-1 rounded-full text-sm font-medium">
-                        Expires: {job.ExpiringDate ? new Date(job.ExpiringDate).toLocaleDateString() : "N/A"}
+                        Expires:{" "}
+                        {job.ExpiringDate
+                          ? new Date(job.ExpiringDate).toLocaleDateString()
+                          : "N/A"}
                       </span>
                     </div>
-                  
+
                     <div className="relative">
                       <img
                         src={job.ImageUrl || "/img/placeholder.jpg"}
@@ -154,14 +139,18 @@ const UserJobview = () => {
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-[#005b7c]/50 to-transparent rounded-lg"></div>
                     </div>
-                  
-                    <p className="text-gray-700 text-sm mt-3 line-clamp-3">{job.Description || "No description"}</p>
+
+                    <p className="text-gray-700 text-sm mt-3 line-clamp-3">
+                      {job.Description || "No description"}
+                    </p>
                   </div>
-                 
+
                   <div className="flex justify-center mt-4">
                     <button
                       className="bg-gradient-to-r from-[#008eab] to-[#01bcc6] text-white px-6 py-2 rounded-full hover:from-[#005b7c] hover:to-[#008eab] focus:outline-none focus:ring-4 focus:ring-[#01bcc6]/50 transition-all duration-300"
-                      onClick={() => navigate(`/User/Jobquizdetails/${job.Id}`)} // Navigate to JobQuizDetails page
+                      onClick={() =>
+                        navigate(`/User/Jobquizdetails/${job.Id}`)
+                      }
                     >
                       Apply Now
                     </button>
@@ -170,7 +159,6 @@ const UserJobview = () => {
               </div>
             ))
           ) : (
-            // Display no jobs found message
             <p className="text-[#005b7c] text-center col-span-full text-lg font-semibold bg-[#d5d1ca]/50 p-4 rounded-lg">
               No jobs found.
             </p>
@@ -181,7 +169,7 @@ const UserJobview = () => {
   );
 };
 
-// CSS animations for fade-in, spin, and pulse effects
+// CSS animations
 const styles = `
   @keyframes fadeIn {
     from { opacity: 0; transform: translateY(20px); }
@@ -205,7 +193,6 @@ const styles = `
   }
 `;
 
-// Inject styles into document head
 const styleSheet = document.createElement("style");
 styleSheet.textContent = styles;
 document.head.appendChild(styleSheet);

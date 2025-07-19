@@ -29,7 +29,7 @@ import AdminJobview from "./pages/Admin/AdminJobview";
 import EditJob from "./pages/Admin/EditJob";
 import UserJobview from "./pages/User/UserJobView";
 import JobQuizDetails from "./pages/User/JobQuizDetails";
-
+import AttemptQuiz from "./pages/User/AttemptQuiz";
 
 
 
@@ -47,6 +47,7 @@ import AuthInterceptor from "@components/AuthInterceptor.jsx";
 import PermissionManager from "./pages/Admin/PermissionManager.jsx";
 import ProtectedRoute from "@components/ProtectedRoute.jsx";
 import AdminSearchBar from "@components/AdminSearchBar.jsx";
+import AdminDashboardquiz from "./pages/Admin/AdminDashboardquiz.jsx";
 
 function App() {
   const user = JSON.parse(localStorage.getItem("user"));
@@ -68,7 +69,7 @@ function App() {
         <Route path="/support" element={<Support />} />
         <Route path="/invite" element={<Invite />} />
         <Route path="/chat" element={<Chat />} />
-       
+
         <Route path="/contact" element={<Contact />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/profile" element={<UserProfile />} />
@@ -78,12 +79,16 @@ function App() {
         <Route path="/admin/jobview" element={<AdminJobview />} />
         <Route path="/admin/jobupload" element={<PostJob />} />
         <Route path="/admin/edit-job/:id" element={<EditJob />} />
+        <Route path="/admin/dashboard" element={<AdminDashboardquiz />} />
+        <Route path="/attemptquiz/:id" element={<AttemptQuiz />} />
 
+        <Route path="/admindashboard" element={<AdminDashboard />} />
         <Route path="/admindashboard" element={<AdminDashboard />} />
         <Route path="/admin" element={<AdminDashboard />}>
           <Route path="/admin/quizzes" element={<QuizDash />} />
           <Route path="/admin/addNewQuiz" element={<AddQuiz />} />
           <Route path="/admin/tryout/:id" element={<TryOutQuiz />} />
+
           {/* Add more nested routes if needed */}
         </Route>
         <Route

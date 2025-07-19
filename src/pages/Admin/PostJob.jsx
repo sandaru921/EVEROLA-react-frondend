@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { FaTimes, FaUpload } from 'react-icons/fa';
+import { FaTimes, FaUpload, FaPlus, FaChevronDown } from 'react-icons/fa';
 import Autosuggest from 'react-autosuggest';
-import AdminNavbar from '../../components/AdminNavbar'; 
+import AdminNavbar from '../../components/AdminNavbar';
 import AdminSidebar from '../../components/AdminSidebar';
 
 const jobTypeSuggestions = ['Full-time', 'Part-time', 'Contract'];
@@ -11,7 +11,32 @@ const workModeSuggestions = ['On-site', 'Remote', 'Hybrid'];
 const titleSuggestions = ['Software Engineer', 'Data Analyst', 'Project Manager', 'UI/UX Designer', 'DevOps Engineer', 'Product Manager', 'Web Developer', 'Mobile Developer'];
 const technicalSkillsSuggestions = ['JavaScript', 'Python', 'Java', 'C#', 'React', 'Node.js', 'SQL', 'AWS', 'Docker', 'Kubernetes', 'TypeScript', 'GraphQL'];
 const softSkillsSuggestions = ['Communication', 'Teamwork', 'Problem-solving', 'Leadership', 'Adaptability', 'Time Management', 'Creativity', 'Empathy'];
-const educationalBackgroundSuggestions = ['Bachelor\'s in Computer Science', 'Master\'s in Business Administration', 'Bachelor\'s in Engineering', 'Master\'s in Data Science', 'PhD in AI', 'Bachelor\'s in Design'];
+const educationalBackgroundSuggestions = [
+  'Bachelor\'s in Computer Science',
+  'Master\'s in Business Administration',
+  'Bachelor\'s in Engineering',
+  'Master\'s in Data Science',
+  'PhD in AI',
+  'Bachelor\'s in Design',
+  'Bachelor\'s in Information Technology',
+  'Bachelor\'s in Software Engineering',
+  'Bachelor\'s in Cybersecurity',
+  'Bachelor\'s in Information Systems',
+  'Master\'s in Computer Science',
+  'Master\'s in Information Technology',
+  'Associate\'s Degree in IT',
+  'Diploma in Software Development',
+  'Computer Science',
+  'Information Technology',
+  'Software Engineering',
+  'Data Science',
+  'Cybersecurity',
+  'Network Engineering',
+  'Cloud Computing',
+  'Artificial Intelligence',
+  'Machine Learning',
+];
+const keyResponsibilitiesSuggestions = ['Manage projects', 'Lead team', 'Develop software', 'Design UI/UX', 'Analyze data', 'Deploy applications', 'Coordinate with stakeholders'];
 
 const PostJob = () => {
   const navigate = useNavigate();
@@ -23,11 +48,12 @@ const PostJob = () => {
     expiringDate: '',
     createdBy: 'admin1',
     workMode: 'remote',
-    keyResponsibilities: '',
-    educationalBackground: '',
-    technicalSkills: '',
+    keyResponsibilities: [], // Array for multiple selections
+    educationalBackground: [], // Array for multiple selections
+    technicalSkills: [], // Array for multiple selections
     experience: '',
-    softSkills: '',
+    softSkills: [], // Array for multiple selections
+    quizIds: [], // Array to store selected quiz IDs for display only
   });
   const [errors, setErrors] = useState({});
   const [suggestions, setSuggestions] = useState({
@@ -35,9 +61,32 @@ const PostJob = () => {
     technicalSkills: [],
     softSkills: [],
     educationalBackground: [],
+    keyResponsibilities: [],
   });
+  const [quizzes, setQuizzes] = useState([]); // State to hold fetched quizzes
 
-  // Handle input changes (same as before)
+  // States to manage input values for Autosuggest that are not yet added to the main job state
+  const [currentKeyResponsibilityInput, setCurrentKeyResponsibilityInput] = useState('');
+  const [currentEducationalBackgroundInput, setCurrentEducationalBackgroundInput] = useState('');
+  const [currentTechnicalSkillsInput, setCurrentTechnicalSkillsInput] = useState('');
+  const [currentSoftSkillsInput, setCurrentSoftSkillsInput] = useState('');
+  const [isQuizzesOpen, setIsQuizzesOpen] = useState(false); // State to toggle quiz list visibility
+
+  // Fetch quizzes from the database
+  useEffect(() => {
+    const fetchQuizzes = async () => {
+      try {
+        const response = await axios.get('https://localhost:5031/api/Quiz');
+        const quizData = response.data?.['$values'] || response.data || [];
+        setQuizzes(quizData);
+      } catch (error) {
+        console.error('Error fetching quizzes:', error);
+        setQuizzes([]); // Default to empty array on error
+      }
+    };
+    fetchQuizzes();
+  }, []);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setJob({ ...job, [name]: value });
@@ -56,7 +105,6 @@ const PostJob = () => {
     setErrors(newErrors);
   };
 
-  // Handle file input (same as before)
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -65,13 +113,11 @@ const PostJob = () => {
     }
   };
 
-  // Remove selected image (same as before)
   const removeImage = () => {
     setJob({ ...job, imageFile: null });
     setErrors({ ...errors, imageFile: 'Image is required' });
   };
 
-  // Autosuggest handlers (same as before)
   const getSuggestions = (value, suggestionList) => {
     const inputValue = value.trim().toLowerCase();
     return inputValue.length === 0
@@ -80,12 +126,16 @@ const PostJob = () => {
   };
 
   const onSuggestionsFetchRequested = ({ value }, field) => {
+    let currentSuggestionList;
+    if (field === 'title') currentSuggestionList = titleSuggestions;
+    else if (field === 'technicalSkills') currentSuggestionList = technicalSkillsSuggestions;
+    else if (field === 'softSkills') currentSuggestionList = softSkillsSuggestions;
+    else if (field === 'educationalBackground') currentSuggestionList = educationalBackgroundSuggestions;
+    else if (field === 'keyResponsibilities') currentSuggestionList = keyResponsibilitiesSuggestions;
+
     setSuggestions({
       ...suggestions,
-      [field]: getSuggestions(value, field === 'title' ? titleSuggestions :
-        field === 'technicalSkills' ? technicalSkillsSuggestions :
-        field === 'softSkills' ? softSkillsSuggestions :
-        educationalBackgroundSuggestions)
+      [field]: getSuggestions(value, currentSuggestionList)
     });
   };
 
@@ -94,13 +144,59 @@ const PostJob = () => {
   };
 
   const onSuggestionSelected = (field, { suggestionValue }) => {
-    setJob({ ...job, [field]: suggestionValue });
-    setErrors({ ...errors, [field]: '' });
+    // For single-select (like title)
+    if (field === 'title') {
+      setJob({ ...job, [field]: suggestionValue });
+      setErrors({ ...errors, [field]: '' });
+    } else { // For multi-select fields
+      addMultiSelectItem(field, suggestionValue);
+    }
   };
 
-  const renderSuggestion = (suggestion) => <div>{suggestion}</div>;
+  // New function to handle adding items to multi-select arrays
+  const addMultiSelectItem = (field, value) => {
+    if (value && !job[field].includes(value)) {
+      setJob({ ...job, [field]: [...job[field], value] });
+    }
+    // Clear the specific input field after adding
+    if (field === 'keyResponsibilities') setCurrentKeyResponsibilityInput('');
+    else if (field === 'educationalBackground') setCurrentEducationalBackgroundInput('');
+    else if (field === 'technicalSkills') setCurrentTechnicalSkillsInput('');
+    else if (field === 'softSkills') setCurrentSoftSkillsInput('');
+  };
 
-  // Validate form (same as before)
+  // Function to remove items from multi-select arrays
+  const removeMultiSelectItem = (field, valueToRemove) => {
+    setJob({
+      ...job,
+      [field]: job[field].filter(item => item !== valueToRemove)
+    });
+  };
+
+  const renderSuggestion = (suggestion, { isHighlighted }) => (
+    <div
+      style={{
+        backgroundColor: isHighlighted ? '#008eab' : 'transparent',
+        color: isHighlighted ? 'white' : '#005b7c',
+        padding: '5px 10px',
+        cursor: 'pointer',
+      }}
+    >
+      {suggestion}
+    </div>
+  );
+
+  const handleQuizToggle = (quizId) => {
+    const currentQuizIds = [...job.quizIds];
+    const quizIndex = currentQuizIds.indexOf(quizId.toString());
+    if (quizIndex === -1) {
+      currentQuizIds.push(quizId.toString());
+    } else {
+      currentQuizIds.splice(quizIndex, 1);
+    }
+    setJob({ ...job, quizIds: currentQuizIds });
+  };
+
   const validateForm = () => {
     const newErrors = {};
     if (!job.title) newErrors.title = 'Title is required';
@@ -119,7 +215,6 @@ const PostJob = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  // Handle form submission (same as before)
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) {
@@ -128,21 +223,21 @@ const PostJob = () => {
     }
 
     const formData = new FormData();
-    formData.append('Title', job.title);
-    formData.append('Description', job.description);
-    formData.append('ImageFile', job.imageFile);
-    formData.append('JobType', job.jobType);
-    formData.append('ExpiringDate', job.expiringDate);
-    formData.append('CreatedBy', job.createdBy);
-    formData.append('WorkMode', job.workMode);
-    formData.append('KeyResponsibilities', job.keyResponsibilities);
-    formData.append('EducationalBackground', job.educationalBackground);
-    formData.append('TechnicalSkills', job.technicalSkills);
-    formData.append('Experience', job.experience);
-    formData.append('SoftSkills', job.softSkills);
-
+    for (const [key, value] of Object.entries(job)) {
+      if (value !== null && key !== 'imageFile' && key !== 'quizIds') {
+        if (Array.isArray(value)) {
+          // Append each item in the array with a bracket notation for backend to parse
+          value.forEach((item) => formData.append(`${key.charAt(0).toUpperCase() + key.slice(1)}`, item));
+        } else {
+          formData.append(key.charAt(0).toUpperCase() + key.slice(1), value);
+        }
+      }
+      if (key === 'imageFile' && value) formData.append('ImageFile', value);
+      // quizIds is intentionally omitted from formData
+    }
+    console.log('FormData entries:', Array.from(formData.entries())); // Debug log
     try {
-      const response = await axios.post('https://localhost:5031/api/jobs', formData, {
+      await axios.post('https://localhost:5031/api/jobs', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       alert('Job uploaded successfully!');
@@ -154,18 +249,23 @@ const PostJob = () => {
         expiringDate: '',
         createdBy: 'admin1',
         workMode: 'remote',
-        keyResponsibilities: '',
-        educationalBackground: '',
-        technicalSkills: '',
+        keyResponsibilities: [],
+        educationalBackground: [],
+        technicalSkills: [],
         experience: '',
-        softSkills: '',
+        softSkills: [],
+        quizIds: [],
       });
       setErrors({});
+      // Clear autosuggest input states
+      setCurrentKeyResponsibilityInput('');
+      setCurrentEducationalBackgroundInput('');
+      setCurrentTechnicalSkillsInput('');
+      setCurrentSoftSkillsInput('');
       navigate('/admin/jobview');
     } catch (error) {
-      console.error('Error uploading job:', error);
-      const errorMessage = error.response?.data?.message || error.message || 'Unknown error';
-      alert(`Failed to upload job: ${errorMessage}`);
+      console.error('Error uploading job:', error.response?.data || error.message);
+      alert(`Failed to upload job: ${error.response?.data?.message || error.message}`);
     }
   };
 
@@ -176,7 +276,7 @@ const PostJob = () => {
   const getInputProps = (field) => ({
     id: field,
     name: field,
-    value: job[field],
+    value: job[field], // For single-value fields like title
     onChange: (event, { newValue }) => {
       setJob({ ...job, [field]: newValue });
       const newErrors = { ...errors };
@@ -191,6 +291,29 @@ const PostJob = () => {
     placeholder: `Enter ${field.replace(/([A-Z])/g, ' $1').toLowerCase()}`
   });
 
+  // getInputProps for multi-select Autosuggest fields
+  const getMultiSelectInputProps = (field, currentValue, setCurrentValue) => ({
+    id: field,
+    name: field,
+    value: currentValue, // Use the separate state for input value
+    onChange: (event, { newValue }) => {
+      setCurrentValue(newValue);
+    },
+    onBlur: () => { // When focus leaves the input, add the current value if it's not empty
+      if (currentValue.trim()) {
+        addMultiSelectItem(field, currentValue.trim());
+      }
+    },
+    onKeyDown: (e) => { // Add item on Enter key press
+      if (e.key === 'Enter' && currentValue.trim()) {
+        e.preventDefault(); // Prevent form submission if in a form
+        addMultiSelectItem(field, currentValue.trim());
+      }
+    },
+    className: `w-full p-3 rounded-lg border border-[#d5d1ca] focus:outline-none focus:ring-2 focus:ring-[#01bcc6] transition-all duration-300 bg-white/70 text-[#005b7c] placeholder-[#008eab]/50`,
+    placeholder: `Add ${field.replace(/([A-Z])/g, ' $1').toLowerCase()}`
+  });
+
   return (
     <div className="min-h-screen flex flex-col">
       {/* Navbar */}
@@ -201,9 +324,9 @@ const PostJob = () => {
         {/* Sidebar */}
         <AdminSidebar />
 
-        {/* PostJob form content */}
-        <div className="flex-1 ml-64 pt-20 p-4 sm:p-6 lg:p-8 bg-gradient-to-br from-[#D9EAE8] via-[#008eab] to-[#D9EAE8] flex items-center justify-center">
-          <div className="bg-white/30 backdrop-blur-lg rounded-2xl shadow-2xl p-8 max-w-lg w-full border border-[#d5d1ca]/20 animate-fadeIn">
+        {/* Form container */}
+        <div className="flex-1 ml-64 pt-20 p-4 sm:p-6 lg:p-8 bg-[#E6EFF2] flex items-center justify-center h-screen overflow-hidden">
+          <div className="bg-white/30 backdrop-blur-lg rounded-2xl shadow-2xl p-6 max-w-lg w-full border border-[#d5d1ca]/20 animate-fadeIn max-h-[90vh] overflow-auto">
             <h2 className="text-3xl font-bold text-[#005b7c] mb-8 text-center bg-gradient-to-r from-[#005b7c] to-[#008eab] bg-clip-text text-transparent">
               Upload a Job
             </h2>
@@ -217,6 +340,7 @@ const PostJob = () => {
                   onSuggestionsClearRequested={() => onSuggestionsClearRequested('title')}
                   getSuggestionValue={suggestion => suggestion}
                   renderSuggestion={renderSuggestion}
+                  onSuggestionSelected={(event, { suggestionValue }) => onSuggestionSelected('title', { suggestionValue })}
                   inputProps={getInputProps('title')}
                 />
                 {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title}</p>}
@@ -231,7 +355,7 @@ const PostJob = () => {
                   value={job.description}
                   onChange={handleChange}
                   className={`w-full p-3 rounded-lg border ${errors.description ? 'border-red-500' : 'border-[#d5d1ca]'} focus:outline-none focus:ring-2 focus:ring-[#01bcc6] transition-all duration-300 bg-white/70 text-[#005b7c] placeholder-[#008eab]/50 resize-y`}
-                  rows="4"
+                  rows="3"
                   placeholder="Enter job description"
                 />
                 {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description}</p>}
@@ -240,18 +364,40 @@ const PostJob = () => {
               {/* Key Responsibilities */}
               <div>
                 <label className="block text-[#005b7c] font-medium mb-2" htmlFor="keyResponsibilities">Key Responsibilities</label>
-                <textarea
-                  id="keyResponsibilities"
-                  name="keyResponsibilities"
-                  value={job.keyResponsibilities}
-                  onChange={handleChange}
-                  className="w-full p-3 rounded-lg border border-[#d5d1ca] focus:outline-none focus:ring-2 focus:ring-[#01bcc6] transition-all duration-300 bg-white/70 text-[#005b7c] placeholder-[#008eab]/50 resize-y"
-                  rows="4"
-                  placeholder="Enter key responsibilities (e.g., - Manage projects\n- Lead team)"
+                <Autosuggest
+                  suggestions={suggestions.keyResponsibilities}
+                  onSuggestionsFetchRequested={({ value }) => onSuggestionsFetchRequested({ value }, 'keyResponsibilities')}
+                  onSuggestionsClearRequested={() => onSuggestionsClearRequested('keyResponsibilities')}
+                  getSuggestionValue={suggestion => suggestion}
+                  renderSuggestion={renderSuggestion}
+                  onSuggestionSelected={(event, { suggestionValue }) => onSuggestionSelected('keyResponsibilities', { suggestionValue })}
+                  inputProps={getMultiSelectInputProps('keyResponsibilities', currentKeyResponsibilityInput, setCurrentKeyResponsibilityInput)}
                 />
+                {job.keyResponsibilities.length > 0 && (
+                  <div className="mt-2 p-2 bg-[#e6eff2] rounded-lg">
+                    <p className="text-[#005b7c] font-medium mb-2">Selected Responsibilities:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {job.keyResponsibilities.map((resp, index) => (
+                        <span
+                          key={index}
+                          className="flex items-center bg-[#008eab] text-white px-3 py-1 rounded-full text-sm font-medium"
+                        >
+                          {resp}
+                          <button
+                            type="button"
+                            onClick={() => removeMultiSelectItem('keyResponsibilities', resp)}
+                            className="ml-2 text-white hover:text-red-300"
+                          >
+                            <FaTimes size={12} />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
-              {/* Educational Background with Autosuggest */}
+              {/* Educational Background */}
               <div>
                 <label className="block text-[#005b7c] font-medium mb-2" htmlFor="educationalBackground">Educational Background</label>
                 <Autosuggest
@@ -260,11 +406,34 @@ const PostJob = () => {
                   onSuggestionsClearRequested={() => onSuggestionsClearRequested('educationalBackground')}
                   getSuggestionValue={suggestion => suggestion}
                   renderSuggestion={renderSuggestion}
-                  inputProps={getInputProps('educationalBackground')}
+                  onSuggestionSelected={(event, { suggestionValue }) => onSuggestionSelected('educationalBackground', { suggestionValue })}
+                  inputProps={getMultiSelectInputProps('educationalBackground', currentEducationalBackgroundInput, setCurrentEducationalBackgroundInput)}
                 />
+                {job.educationalBackground.length > 0 && (
+                  <div className="mt-2 p-2 bg-[#e6eff2] rounded-lg">
+                    <p className="text-[#005b7c] font-medium mb-2">Selected Backgrounds:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {job.educationalBackground.map((edu, index) => (
+                        <span
+                          key={index}
+                          className="flex items-center bg-[#008eab] text-white px-3 py-1 rounded-full text-sm font-medium"
+                        >
+                          {edu}
+                          <button
+                            type="button"
+                            onClick={() => removeMultiSelectItem('educationalBackground', edu)}
+                            className="ml-2 text-white hover:text-red-300"
+                          >
+                            <FaTimes size={12} />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
-              {/* Technical Skills with Autosuggest */}
+              {/* Technical Skills */}
               <div>
                 <label className="block text-[#005b7c] font-medium mb-2" htmlFor="technicalSkills">Technical Skills</label>
                 <Autosuggest
@@ -273,11 +442,34 @@ const PostJob = () => {
                   onSuggestionsClearRequested={() => onSuggestionsClearRequested('technicalSkills')}
                   getSuggestionValue={suggestion => suggestion}
                   renderSuggestion={renderSuggestion}
-                  inputProps={getInputProps('technicalSkills')}
+                  onSuggestionSelected={(event, { suggestionValue }) => onSuggestionSelected('technicalSkills', { suggestionValue })}
+                  inputProps={getMultiSelectInputProps('technicalSkills', currentTechnicalSkillsInput, setCurrentTechnicalSkillsInput)}
                 />
+                {job.technicalSkills.length > 0 && (
+                  <div className="mt-2 p-2 bg-[#e6eff2] rounded-lg">
+                    <p className="text-[#005b7c] font-medium mb-2">Selected Skills:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {job.technicalSkills.map((skill, index) => (
+                        <span
+                          key={index}
+                          className="flex items-center bg-[#008eab] text-white px-3 py-1 rounded-full text-sm font-medium"
+                        >
+                          {skill}
+                          <button
+                            type="button"
+                            onClick={() => removeMultiSelectItem('technicalSkills', skill)}
+                            className="ml-2 text-white hover:text-red-300"
+                          >
+                            <FaTimes size={12} />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
-              {/* Soft Skills with Autosuggest */}
+              {/* Soft Skills */}
               <div>
                 <label className="block text-[#005b7c] font-medium mb-2" htmlFor="softSkills">Soft Skills</label>
                 <Autosuggest
@@ -286,8 +478,31 @@ const PostJob = () => {
                   onSuggestionsClearRequested={() => onSuggestionsClearRequested('softSkills')}
                   getSuggestionValue={suggestion => suggestion}
                   renderSuggestion={renderSuggestion}
-                  inputProps={getInputProps('softSkills')}
+                  onSuggestionSelected={(event, { suggestionValue }) => onSuggestionSelected('softSkills', { suggestionValue })}
+                  inputProps={getMultiSelectInputProps('softSkills', currentSoftSkillsInput, setCurrentSoftSkillsInput)}
                 />
+                {job.softSkills.length > 0 && (
+                  <div className="mt-2 p-2 bg-[#e6eff2] rounded-lg">
+                    <p className="text-[#005b7c] font-medium mb-2">Selected Skills:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {job.softSkills.map((skill, index) => (
+                        <span
+                          key={index}
+                          className="flex items-center bg-[#008eab] text-white px-3 py-1 rounded-full text-sm font-medium"
+                        >
+                          {skill}
+                          <button
+                            type="button"
+                            onClick={() => removeMultiSelectItem('softSkills', skill)}
+                            className="ml-2 text-white hover:text-red-300"
+                          >
+                            <FaTimes size={12} />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Experience */}
@@ -299,7 +514,7 @@ const PostJob = () => {
                   value={job.experience}
                   onChange={handleChange}
                   className="w-full p-3 rounded-lg border border-[#d5d1ca] focus:outline-none focus:ring-2 focus:ring-[#01bcc6] transition-all duration-300 bg-white/70 text-[#005b7c] placeholder-[#008eab]/50 resize-y"
-                  rows="4"
+                  rows="3"
                   placeholder="Enter experience requirements (e.g., 5+ years in software development)"
                 />
               </div>
@@ -388,20 +603,62 @@ const PostJob = () => {
                 {errors.expiringDate && <p className="text-red-500 text-sm mt-1">{errors.expiringDate}</p>}
               </div>
 
-              {/* Form Buttons */}
-              <div className="flex justify-between gap-4">
+              {/* Assign Quizzes */}
+              <div>
                 <button
                   type="button"
-                  className="w-1/2 bg-gradient-to-r from-gray-500 to-gray-600 text-white p-3 rounded-lg hover:from-gray-600 hover:to-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-500/50 transition-all duration-300"
+                  onClick={() => setIsQuizzesOpen(!isQuizzesOpen)}
+                  className="w-full flex items-center justify-between p-3 rounded-lg border border-[#d5d1ca] bg-white/70 text-[#005b7c] hover:bg-[#005b7c] hover:text-white transition-all duration-300"
+                >
+                  <span>Assign Quizzes</span>
+                  <FaChevronDown className={`transform transition-transform ${isQuizzesOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {isQuizzesOpen && (
+                  <div className="space-y-2 mt-2" style={{ maxHeight: '150px', overflowY: 'auto' }}>
+                    {quizzes.map(quiz => (
+                      <button
+                        key={quiz.Id}
+                        type="button"
+                        onClick={() => handleQuizToggle(quiz.Id)}
+                        className={`w-full flex items-center p-2 rounded-lg border ${job.quizIds.includes(quiz.Id.toString()) ? 'bg-[#008eab] text-white' : 'bg-white/70 text-[#005b7c] border-[#d5d1ca]'} hover:bg-[#005b7c] hover:text-white transition-all duration-300`}
+                      >
+                        <FaPlus className="mr-2" />
+                        {quiz.QuizName}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {job.quizIds.length > 0 && (
+                  <div className="mt-2 p-2 bg-[#e6eff2] rounded-lg">
+                    <p className="text-[#005b7c] font-medium">Selected Quizzes:</p>
+                    <ul className="list-disc pl-5">
+                      {job.quizIds.map(id => {
+                        const selectedQuiz = quizzes.find(quiz => quiz.Id === parseInt(id));
+                        return selectedQuiz ? (
+                          <li key={id} className="text-[#008eab]">
+                            {selectedQuiz.QuizName}
+                          </li>
+                        ) : null;
+                      })}
+                    </ul>
+                  </div>
+                )}
+              </div>
+
+              {/* Buttons */}
+              <div className="flex justify-end gap-4 pt-4">
+                <button
+                  type="button"
                   onClick={handleCancel}
+                  className="px-6 py-3 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="w-1/2 bg-gradient-to-r from-[#005b7c] to-[#008eab] text-white p-3 rounded-lg hover:from-[#008eab] hover:to-[#01bcc6] focus:outline-none focus:ring-4 focus:ring-[#01bcc6]/50 transition-all duration-300"
+                  className="px-6 py-3 bg-[#005b7c] text-white rounded-lg font-semibold hover:bg-[#004a63] transition"
                 >
-                  Upload Job
+                  Upload
                 </button>
               </div>
             </form>

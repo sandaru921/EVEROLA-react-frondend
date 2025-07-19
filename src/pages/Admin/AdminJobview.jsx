@@ -29,21 +29,18 @@ const AdminJobview = () => {
   const [deletingJobId, setDeletingJobId] = useState(null);
 
   // API URL for job endpoints
-  const API_URL = "https://localhost:5031/api/jobs";
+  const API_URL = "https://localhost:5031/api/Jobs";
 
   // Fetch jobs on component mount
   useEffect(() => {
     fetchJobs();
   }, []);
 
-  // Function to fetch jobs from the API
   const fetchJobs = async () => {
     try {
-      // Send GET request to API with 5-second timeout
+      console.log("Fetching jobs from", API_URL);
       const response = await axios.get(API_URL, { timeout: 5000 });
       console.log("API Response:", response.data);
-
-      // Check if response data is an array
       if (Array.isArray(response.data)) {
         setJobs(response.data);
       } else {
@@ -52,15 +49,14 @@ const AdminJobview = () => {
       }
       setError(null);
     } catch (error) {
-      // Log detailed error information
       console.error("Error fetching jobs:", {
         message: error.message,
         code: error.code,
         response: error.response ? error.response.data : "No response",
         status: error.response ? error.response.status : "No status",
       });
-      // Set error message for user
       setError(`Failed to load jobs. Error: ${error.message}. Check console.`);
+      alert(`Fetch failed: ${error.message}`); // Temporary debug
     }
   };
 
@@ -125,7 +121,7 @@ const AdminJobview = () => {
         <AdminSidebar />
 
         {/* Job View content */}
-        <main className="flex-1 ml-64 pt-20 px-4 sm:px-6 lg:px-8 py-12 relative bg-gradient-to-b from-[#d5d1ca] via-[#008eab] to-[#d5d1ca]">
+        <main className="flex-1 ml-64 pt-20 px-4 sm:px-6 lg:px-8 py-12 relative bg-[#E6EFF2]">
           <div className="max-w-4xl mx-auto mb-8">
             <div className="relative bg-white/30 backdrop-blur-md rounded-full p-0.5 shadow-lg border border-[#d0d1cd]/20">
               <input
@@ -133,8 +129,7 @@ const AdminJobview = () => {
                 placeholder="Search Jobs..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full p-2 pl-10 text-lg text-[#005b7c] bg-transparent rounded-full focus:outline-none focus:ring-2 focus:ring-[
-                #898c80ff] transition-all duration-300 placeholder:text-[#87877a]/70"
+                className="w-full p-2 pl-10 text-lg text-[#005b7c] bg-transparent rounded-full focus:outline-none focus:ring-2 focus:ring-[#898c80ff] transition-all duration-300 placeholder:text-[#87877a]/70"
               />
               <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#008eab] text-lg" />
             </div>
