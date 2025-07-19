@@ -5,7 +5,15 @@ import EmojiPicker from 'emoji-picker-react';
 import { IoSend, IoClose, IoHappyOutline } from 'react-icons/io5';
 import { toast } from 'react-toastify';
 
-// Chat component for logged-in user
+const decodeToken = (token) => {
+  try {
+    return JSON.parse(atob(token.split('.')[1]));
+  } catch (e) {
+    console.error('Error decoding token:', e);
+    return null;
+  }
+};
+
 const Chat = () => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
@@ -14,46 +22,53 @@ const Chat = () => {
   const [error, setError] = useState(null);
   const [darkMode, setDarkMode] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
-  const userId = localStorage.getItem('userId') || 'User';
   const messagesEndRef = useRef(null);
+
+  const token = localStorage.getItem('token');
+  const tokenData = decodeToken(token);
+  const userId = tokenData?.nameid;
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      setError('Authentication token not found. Please log in.');
-      return;
-    }
-
-    const axiosInstance = axios.create({
-      baseURL: 'https://localhost:5031',
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    const fetchMessages = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await axiosInstance.get(`/api/messages/${userId}`);
-        setMessages(response.data);
-      } catch (error) {
-        console.error('Error fetching messages:', error);
-        setError('Failed to load messages.');
-        toast.error('Failed to load messages');
-      } finally {
-        setLoading(false);
+  const fetchMessages = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      if (!token || !userId) {
+        throw new Error('Authentication required');
       }
-    };
 
-    fetchMessages();
+      const response = await axios.get(`https://localhost:5031/api/messages/${userId}`, {
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
 
-    // Poll for new messages every 60 seconds
-    const interval = setInterval(fetchMessages, 60000);
+      // Filter messages to only show conversations between this user and Admin
+      const userMessages = response.data.filter(msg => 
+        (msg.sender === userId && msg.recipient === 'Admin') ||
+        (msg.sender === 'Admin' && msg.recipient === userId)
+      );
+      
+      setMessages(userMessages);
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+      setError(error.response?.data?.message || 'Failed to load messages');
+      toast.error('Failed to load messages');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    return () => clearInterval(interval);
+  useEffect(() => {
+    if (userId) {
+      fetchMessages();
+      const interval = setInterval(fetchMessages, 60000);
+      return () => clearInterval(interval);
+    }
   }, [userId]);
 
   useEffect(() => {
@@ -61,36 +76,38 @@ const Chat = () => {
   }, [messages]);
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim()) return;
-
-    const message = {
-      text: newMessage,
-      sender: userId,
-      recipient: 'Admin', // Messages go to admin
-      role: 'User',
-    };
+    if (!newMessage.trim()) {
+      toast.error("Message cannot be empty");
+      return;
+    }
 
     try {
-      const token = localStorage.getItem('token');
-      await axios.post('https://localhost:5031/api/messages', message, {
-        headers: { Authorization: `Bearer ${token}` },
+      const messageData = {
+        text: newMessage.trim(),
+        sender: userId,
+        recipient: 'Admin',
+        role: 'User'
+      };
+
+      await axios.post('https://localhost:5031/api/messages', messageData, {
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
       });
+
       setNewMessage('');
       setShowEmojiPicker(false);
-      // Refetch messages to include the new one
-      const response = await axios.get(`https://localhost:5031/api/messages/${userId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setMessages(response.data);
+      await fetchMessages();
+      toast.success('Message sent successfully');
     } catch (error) {
       console.error('Error sending message:', error);
-      setError('Failed to send message.');
-      toast.error('Failed to send message');
+      toast.error(error.response?.data?.message || 'Failed to send message');
     }
   };
 
   const onEmojiClick = (emojiObject) => {
-    setNewMessage((prev) => prev + emojiObject.emoji);
+    setNewMessage(prev => prev + emojiObject.emoji);
   };
 
   const handleKeyPress = (e) => {
@@ -127,7 +144,7 @@ const Chat = () => {
               >
                 {msg.sender !== userId && (
                   <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-black font-medium">
-                    {msg.sender.charAt(0).toUpperCase()}
+                    A
                   </div>
                 )}
                 <div
@@ -144,7 +161,7 @@ const Chat = () => {
                 </div>
                 {msg.sender === userId && (
                   <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-medium">
-                    {msg.sender.charAt(0).toUpperCase()}
+                    {userId.charAt(0).toUpperCase()}
                   </div>
                 )}
               </div>

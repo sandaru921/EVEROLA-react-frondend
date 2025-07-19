@@ -50,7 +50,7 @@ const Support = () => {
           <button onClick={() => setIsSidebarOpen(true)} className="md:hidden">
             <FiMenu size={24} className="text-gray-800 dark:text-gray-200" />
           </button>
-          <UserSearchBar searchQuery={''} setSearchQuery={() => {}} />
+          {/* <UserSearchBar searchQuery={''} setSearchQuery={() => {}} /> */}
         </header>
 
         {/* Main */}
@@ -68,7 +68,7 @@ const Support = () => {
           </div>
 
           {/* FAQ Section */}
-          <h3 className="text-2xl font-semibold mb-6 text-black dark:text-white">Frequently Asked Questions</h3>
+          <h3 className="text-2xl font-semibold mb-6 text-black dark:white">Frequently Asked Questions</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {faqs.map((faq, index) => (
               <div

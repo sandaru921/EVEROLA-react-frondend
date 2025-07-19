@@ -98,7 +98,7 @@ const UserDashboard = () => {
                   <p className="text-sm opacity-90 mb-2">{job.type}</p>
 
                   <img
-                    src={job.image || 'https://via.placeholder.com/150'}
+                    src={job.imageUrl || 'https://via.placeholder.com/150'}
                     alt={job.title}
                     className="w-full h-32 object-cover rounded-lg mb-3"
                   />

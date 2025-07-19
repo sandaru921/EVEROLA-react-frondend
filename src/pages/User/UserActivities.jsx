@@ -6,7 +6,7 @@ import UserSearchBar from '../../components/UserSearchBar';
 const mockQuizResults = [
   {
     id: 1,
-    quizId: 101,
+    quizId: 21,
     score: 85,
     totalMarks: 100,
     submissionTime: '2025-07-15T10:30:00Z',
@@ -14,7 +14,7 @@ const mockQuizResults = [
   },
   {
     id: 2,
-    quizId: 102,
+    quizId: 22,
     score: 90,
     totalMarks: 100,
     submissionTime: '2025-07-16T14:45:00Z',
@@ -22,7 +22,7 @@ const mockQuizResults = [
   },
   {
     id: 3,
-    quizId: 103,
+    quizId: 23,
     score: 70,
     totalMarks: 100,
     submissionTime: '2025-07-17T09:00:00Z',

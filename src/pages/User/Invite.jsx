@@ -51,7 +51,7 @@ const Invite = () => {
           <button onClick={() => setIsSidebarOpen(true)} className="md:hidden">
             <FiMenu size={24} className="text-black dark:text-white" />
           </button>
-          <UserSearchBar />
+          
         </header>
 
         <main className="p-6 flex flex-col items-center text-center space-y-10">
