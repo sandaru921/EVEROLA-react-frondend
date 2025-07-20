@@ -26,6 +26,7 @@ import AdminChat from "./pages/Admin/AdminChat"; // From incoming
 import ManageBlogs from "./pages/Admin/ManageBlogs"; // From current
 import EditBlog from "./pages/Admin/EditBlog"; // From current
 import AdminDashboard from "./pages/Admin/AdminDashboard";
+import ResultAnalysisDashboard from "./pages/Admin/ResultAnalysisDashboard";
 
 
 
@@ -35,6 +36,7 @@ import AdminDashboard from "./pages/Admin/AdminDashboard";
 import QuizDash from "./pages/Admin/QuizDash.jsx";
 import AddQuiz from "./pages/Admin/NewQuiz.jsx";
 import TryOutQuiz from "./pages/Admin/TryOutQuiz.jsx";
+
 
 
 import ToastWrapper from "./components/ToastWrapper";
@@ -73,6 +75,7 @@ function App() {
         <Route path="/admin/blogs" element={<ManageBlogs />} />
         <Route path="/admin/blogs/add" element={<EditBlog />} />
         <Route path="/admin/blogs/edit/:id" element={<EditBlog />} />
+        <Route path="/admin/results" element={<ResultAnalysisDashboard />} />
 
 
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
