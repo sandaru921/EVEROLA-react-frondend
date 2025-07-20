@@ -1,3 +1,4 @@
+//app.jsx
 
 import "./App.css";
 import "./pages/User/HomePage.css"; // Keep CSS import from incoming
@@ -25,11 +26,8 @@ import AdminDashboard from "./pages/Admin/AdminDashboard.jsx";
 import QuizDash from "./pages/Admin/QuizDash.jsx";
 import AddQuiz from "./pages/Admin/NewQuiz.jsx";
 import TryOutQuiz from "./pages/Admin/TryOutQuiz.jsx";
-import HomePage from "./pages/User/HomePage.jsx";
-import AttemptQuiz from './pages/User/AttemptQuiz.jsx'
-
-
-
+import Home from "./pages/User/Home.jsx";
+import AttemptQuiz from "./pages/User/AttemptQuiz.jsx";
 
 
 
@@ -40,7 +38,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         {/* User Routes */}
-        <Route path="/" element={<HomePage />} />
+        <Route path="/" element={<Home />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/login/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/register" element={<RegisterPage />} />
@@ -53,8 +51,7 @@ function App() {
         <Route path="/contact" element={<Contact />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/profile" element={<UserProfile />} />
-        <Route path="/attemptquiz/:id" element={<AttemptQuiz />} />
-        
+        <Route path="/attemptquiz/:id" element = {<AttemptQuiz/>}/>
         
         
 
