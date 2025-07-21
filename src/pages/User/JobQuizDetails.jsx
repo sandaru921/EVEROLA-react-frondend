@@ -4,35 +4,37 @@ import axios from 'axios';
 import Navbar from '../../components/Navbar';
 
 const JobQuizDetails = () => {
-  const { id } = useParams();
+  const { id } = useParams(); // Job ID
   const navigate = useNavigate();
-
   const [job, setJob] = useState(null);
+  const [quiz, setQuiz] = useState(null);
   const [error, setError] = useState(null);
-  const [isAuthenticated] = useState(false);
-  const [isAdmin] = useState(false);
-
-  const dummyQuiz = {
-    purpose: `To evaluate candidates' technical and problem-solving skills\n- Assess coding abilities\n- Test theoretical knowledge`,
-    testDuration: '60 minutes',
-    difficultyLevel: 'Intermediate',
-    questions: JSON.stringify({ mcqs: 10, coding: 3, trueFalse: 5 }),
-  };
+  const [isAuthenticated] = useState(false); // Adjust based on your auth logic
+  const [isAdmin] = useState(false); // Adjust based on your auth logic
 
   useEffect(() => {
-    const fetchJob = async () => {
+    const fetchJobAndQuiz = async () => {
       try {
-        const res = await axios.get(`https://localhost:5031/api/jobs/${id}`);
-        setJob(res.data);
+        // Fetch job details
+        const jobRes = await axios.get(`https://localhost:5031/api/Jobs/${id}`);
+        setJob(jobRes.data);
+
+        // Fetch quiz details for the job
+        const quizRes = await axios.get(`https://localhost:5031/api/Jobs/${id}/Quiz`);
+        setQuiz(quizRes.data);
       } catch (err) {
-        console.error(err);
-        setError('Failed to load job details. Please try again later.');
+        console.error('Error fetching data:', {
+          message: err.message,
+          response: err.response?.data,
+          status: err.response?.status,
+        });
+        setError('Failed to load job or quiz details. Please try again later.');
       }
     };
-    fetchJob();
+    fetchJobAndQuiz();
   }, [id]);
 
-  // For simple label:value text lines
+  // Render text field
   const renderText = (label, text) => (
     <div className="flex gap-2 text-sm">
       <span className="font-semibold text-[#005b7c] min-w-[140px]">{label}:</span>
@@ -40,24 +42,18 @@ const JobQuizDetails = () => {
     </div>
   );
 
-  // For multiline list with label aligned with text, using bullets
-  const renderList = (label, text) => {
-    if (!text) {
+  // Render multiline list
+  const renderList = (label, items) => {
+    if (!items || !Array.isArray(items) || items.length === 0) {
       return renderText(label, <em className="text-gray-400">N/A</em>);
     }
-
-    const lines = text
-      .split('\n')
-      .map(line => line.trim())
-      .filter(line => line);
-
     return (
       <div className="text-sm">
         <div className="flex gap-2 mb-1">
           <span className="font-semibold text-[#005b7c] min-w-[140px]">{label}:</span>
           <ul className="list-disc pl-5 text-gray-700 flex-1 space-y-1">
-            {lines.map((line, i) => (
-              <li key={i}>{line}</li>
+            {items.map((item, i) => (
+              <li key={i}>{typeof item === 'string' ? item : JSON.stringify(item)}</li>
             ))}
           </ul>
         </div>
@@ -65,22 +61,27 @@ const JobQuizDetails = () => {
     );
   };
 
+  // Render quiz questions
   const renderQuestions = () => {
-    if (!dummyQuiz.questions) return <em className="text-gray-400">N/A</em>;
-    try {
-      const q = JSON.parse(dummyQuiz.questions);
-      return (
-        <ul className="list-disc pl-6 text-sm text-gray-700 space-y-1">
-          {Object.entries(q).map(([type, count], i) => (
-            <li key={i}>
-              {type.charAt(0).toUpperCase() + type.slice(1)}: {count}
-            </li>
-          ))}
-        </ul>
-      );
-    } catch {
-      return <em className="text-gray-400">Invalid</em>;
+    if (!quiz?.Questions || quiz.Questions.length === 0) {
+      return <em className="text-gray-400">No questions available</em>;
     }
+    return (
+      <ul className="list-disc pl-6 text-sm text-gray-700 space-y-1">
+        {quiz.Questions.map((q, i) => (
+          <li key={i}>
+            {q.QuestionText} ({q.Type}, {q.Marks} marks)
+            {q.Options && q.Options.length > 0 && (
+              <ul className="list-circle pl-6 mt-1">
+                {q.Options.map((opt, j) => (
+                  <li key={j}>{opt.Key}: {opt.Value}</li>
+                ))}
+              </ul>
+            )}
+          </li>
+        ))}
+      </ul>
+    );
   };
 
   return (
@@ -90,7 +91,7 @@ const JobQuizDetails = () => {
         <div className="max-w-7xl mx-auto mb-8">
           {error ? (
             <p className="text-red-600 text-center font-semibold mb-4">{error}</p>
-          ) : !job ? (
+          ) : !job || !quiz ? (
             <p className="text-center text-[#005b7c] text-base">Loading...</p>
           ) : (
             <div className="bg-white rounded-2xl shadow-lg p-10 grid gap-10 md:grid-cols-2 text-sm">
@@ -105,14 +106,12 @@ const JobQuizDetails = () => {
                     e.target.src = '/img/placeholder.jpg';
                   }}
                 />
-
                 <div className="space-y-2">
                   {renderText('Job Type', job.JobType)}
                   {renderText('Work Mode', job.WorkMode)}
                   {renderText('Expires', job.ExpiringDate ? new Date(job.ExpiringDate).toLocaleDateString() : 'N/A')}
                 </div>
-
-                {renderList('Description', job.Description)}
+                {renderList('Description', job.Description ? [job.Description] : [])}
                 {renderList('Key Responsibilities', job.KeyResponsibilities)}
               </div>
 
@@ -122,20 +121,10 @@ const JobQuizDetails = () => {
                 {renderList('Technical Skills', job.TechnicalSkills)}
                 {renderList('Experience', job.Experience)}
                 {renderList('Soft Skills', job.SoftSkills)}
-
                 <div className="space-y-2">
-                  <div className="font-semibold text-[#005b7c]">Quiz Purpose:</div>
-                  {dummyQuiz.purpose.split('\n').map((line, i) => (
-                    <p key={i} className="text-sm text-gray-700">
-                      {line}
-                    </p>
-                  ))}
-                </div>
-
-                <div className="space-y-2">
-                  {renderText('Quiz Duration', dummyQuiz.testDuration)}
-                  {renderText('Quiz Level', dummyQuiz.difficultyLevel)}
-
+                  {renderText('Quiz Name', quiz.QuizName)}
+                  {renderText('Quiz Duration', quiz.QuizDuration ? `${quiz.QuizDuration} minutes` : 'N/A')}
+                  {renderText('Quiz Level', quiz.QuizLevel)}
                   <div>
                     <div className="font-semibold text-[#005b7c]">Quiz Questions:</div>
                     {renderQuestions()}
@@ -144,8 +133,6 @@ const JobQuizDetails = () => {
               </div>
             </div>
           )}
-
-          {/* Buttons */}
           <div className="mt-8 flex justify-center gap-6">
             <button
               onClick={() => navigate('/user/jobview')}
@@ -154,8 +141,13 @@ const JobQuizDetails = () => {
               Back to Jobs
             </button>
             <button
-              onClick={() => navigate(`/attemptquiz/${id}`)}
-              className="bg-[#008eab] text-white px-5 py-2 rounded hover:bg-[#005b7c] text-sm"
+              onClick={() => navigate(`/attemptquiz/${quiz?.Id || ''}`)}
+              disabled={!quiz?.Id}
+              className={`px-5 py-2 rounded text-sm text-white ${
+                quiz?.Id
+                  ? 'bg-[#008eab] hover:bg-[#005b7c]'
+                  : 'bg-gray-400 cursor-not-allowed'
+              }`}
             >
               Attempt Quiz
             </button>

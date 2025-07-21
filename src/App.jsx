@@ -80,7 +80,7 @@ function App() {
         <Route path="/admin/jobupload" element={<PostJob />} />
         <Route path="/admin/edit-job/:id" element={<EditJob />} />
         <Route path="/admin/dashboard" element={<AdminDashboardquiz />} />
-        <Route path="/attemptquiz/:id" element={<AttemptQuiz />} />
+        <Route path="/attemptquiz/:jobId/:quizId" element={<AttemptQuiz />} />
 
         <Route path="/admindashboard" element={<AdminDashboard />} />
         <Route path="/admindashboard" element={<AdminDashboard />} />
