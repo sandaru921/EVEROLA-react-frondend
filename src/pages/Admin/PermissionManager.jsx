@@ -93,7 +93,7 @@ const PermissionManager = () => {
                 <UserSidebar/>
             </div>
 
-            <div className="flex-1 p-6 bg-[#4cbad1] overflow-auto">
+            <div className="flex-1 p-6 bg-[#9eb4bf] overflow-auto">
                 <h1 className="text-2xl font-bold mb-6 text-white">User Permissions Manager</h1>
 
                 <div className="overflow-x-auto shadow rounded border border-gray-200 bg-indigo-50 ">

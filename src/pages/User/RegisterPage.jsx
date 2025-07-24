@@ -2,12 +2,13 @@ import React, {useState} from "react";
 import {Link, useNavigate} from "react-router-dom";
 import logo from "../../assets/logo.jpg";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import {faFacebookF, faGoogle, faTwitter,} from "@fortawesome/free-brands-svg-icons";
 import {faEye, faEyeSlash} from "@fortawesome/free-solid-svg-icons";
 import {useRegister} from "../../data/useRegister";
 import {ErrorBanner} from "@components/ErrorBanner.jsx";
 import {toast} from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
+import {jwtDecode} from "jwt-decode";
+import {GoogleLogin} from "@react-oauth/google";
 
 const styles = {
     container: {
@@ -81,19 +82,29 @@ const styles = {
         color: "#555",
         marginBottom: "10px",
     },
-    socialBtn: {
-        padding: "15px",
-        fontSize: "20px",
-        //borderRadius: "10px",
-        margin: "0 5px",
-        cursor: "pointer",
-        border: "none",
+    signinText: {
+        marginTop: '20px',
+        fontSize: '14px',
+        color: '#555',
     },
     link: {
         textDecoration: "none",
         color: "#008cba",
         fontWeight: "bold",
     },
+    socialButton: {
+        marginTop: '20px',
+        backgroundColor: "#fff",
+        color: "#5f6368",
+        border: "1px solid #dadce0",
+        borderRadius: "4px",
+        fontSize: "14px",
+        fontWeight: "500",
+        padding: "10px 24px",
+        cursor: "pointer",
+        fontFamily: "'Roboto', sans-serif",
+        boxShadow: "0px 1px 2px rgba(0,0,0,0.1)",
+    }
 };
 
 const RegisterPage = () => {
@@ -107,8 +118,8 @@ const RegisterPage = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [error, setError] = useState(null);
-    const {registerUser} = useRegister();
     const navigate = useNavigate();
+    const {registerUser, registerWithGoogle} = useRegister();
 
     // Update form inputs on change
     const handleChange = (e) => {
@@ -187,6 +198,30 @@ const RegisterPage = () => {
                 draggable: true,
             });
             setTimeout(() => navigate("/login"), 1500);
+        }
+    };
+
+    const handleGoogleSuccess = async (credentialResponse) => {
+        try {
+            const decoded = jwtDecode(credentialResponse.credential);
+            const {email, name} = decoded;
+
+            const result = await registerWithGoogle({
+                username: name,
+                email,
+                credential: credentialResponse.credential,
+            });
+
+            if (!result.success) {
+                setError(result.message);
+            } else {
+                toast.success("Registered with Google!", {
+                    position: "bottom-right",
+                });
+                setTimeout(() => navigate("/login"), 1500);
+            }
+        } catch {
+            setError("Google sign-in processing failed.");
         }
     };
 
@@ -269,23 +304,22 @@ const RegisterPage = () => {
                 <br/>
                 <div style={styles.alternativeText}>
                     ------------ Or sign up with ------------
-
-                    <br/>
-                    <div>
-                        <button style={styles.socialBtn}
-                                onClick={() => window.location.href = 'https://www.google.com'}>
-                            <FontAwesomeIcon icon={faGoogle}/>
-                        </button>
-                        <button style={styles.socialBtn}
-                                onClick={() => window.location.href = 'https://www.facebook.com'}>
-                            <FontAwesomeIcon icon={faFacebookF}/>
-                        </button>
-                        <button style={styles.socialBtn}
-                                onClick={() => window.location.href = 'https://www.twitter.com'}>
-                            <FontAwesomeIcon icon={faTwitter}/>
-                        </button>
-                    </div>
                 </div>
+                <div>
+                    <GoogleLogin
+                        onSuccess={handleGoogleSuccess}
+                        onError={() => setError("Google sign-in failed.")}
+                        ux_mode="popup"
+                        useOneTap={false}
+                        auto_select={false}
+                        render={({onClick}) => (
+                            <button style={styles.socialBtn} onClick={onClick}>
+                                Sign up with Google
+                            </button>
+                        )}
+                    />
+                </div>
+
                 <p style={styles.signinText}>
                     Already have an account?{' '}
                     <Link to="/login" style={styles.link}>

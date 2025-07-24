@@ -2,12 +2,14 @@ import React, {useState} from "react";
 import {Link, useNavigate} from "react-router-dom";
 import logo from "../../assets/logo.jpg";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import {faFacebookF, faGoogle, faTwitter,} from "@fortawesome/free-brands-svg-icons";
 import {faEye, faEyeSlash} from "@fortawesome/free-solid-svg-icons";
 import {useLogin} from "../../data/useLogin";
 import {toast} from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 import {ErrorBanner} from "@components/ErrorBanner.jsx";
+import {backendBaseURL} from "../../data/environment";
+import axiosInstance from "../../api/axiosInstance.js";
+import {GoogleLogin} from "@react-oauth/google";
 
 const styles = {
     container: {
@@ -89,15 +91,6 @@ const styles = {
         fontSize: '14px',
         color: '#666',
     },
-    socialButton: {
-        marginBottom: '20px',
-        gap: '10px',
-        padding: '2px 15px',
-        fontSize: '20px',
-        borderRadius: '10px',
-        border: 'none',
-        cursor: 'pointer',
-    },
     passwordWrapper: {
         position: "relative",
     },
@@ -110,6 +103,11 @@ const styles = {
         border: "none",
         cursor: "pointer",
         color: "#666",
+    },
+    signupText: {
+        marginTop: '20px',
+        fontSize: '14px',
+        color: '#555',
     },
     signupLink: {
         color: '#008cba',
@@ -248,17 +246,28 @@ const LoginPage = () => {
                     ------------ Or sign in with ------------
                 </div>
                 <div>
-                    <button style={styles.socialButton} onClick={() => window.location.href = "https://www.google.com"}>
-                        <FontAwesomeIcon icon={faGoogle}/>
-                    </button>
-                    <button style={styles.socialButton}
-                            onClick={() => window.location.href = "https://www.facebook.com"}>
-                        <FontAwesomeIcon icon={faFacebookF}/>
-                    </button>
-                    <button style={styles.socialButton}
-                            onClick={() => window.location.href = "https://www.twitter.com"}>
-                        <FontAwesomeIcon icon={faTwitter}/>
-                    </button>
+                    <GoogleLogin
+                        onSuccess={async (credentialResponse) => {
+                            try {
+                                const credential = credentialResponse.credential;
+
+                                const response = await axiosInstance.post(`${backendBaseURL}user/google-login`, {
+                                    credential,
+                                });
+
+                                toast.success("Logged in with Google!");
+                                localStorage.setItem("token", response.data.token);
+                                localStorage.setItem("permissions", JSON.stringify(response.data.permissions));
+                                navigate("/userdashboard");
+                            } catch (error) {
+                                console.error("Google login error:", error.response?.data || error.message);
+                                toast.error("Google login failed.");
+                            }
+                        }}
+                        onError={() => {
+                            toast.error("Google login failed.");
+                        }}
+                    />
                 </div>
                 <p style={styles.signupText}>
                     Don’t have an account? <Link to="/register" style={styles.signupLink}>Sign Up</Link>

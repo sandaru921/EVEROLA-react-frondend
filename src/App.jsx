@@ -13,7 +13,10 @@ import LoginPage from "./pages/User/LoginPage";
 import RegisterPage from "./pages/User/RegisterPage";
 import ForgotPasswordPage from "./pages/User/ForgotPasswordPage";
 import HomePage from "./pages/User/HomePage";
-import AdminChat from "./pages/Admin/AdminChat";
+import SampleQuestions from "./pages/User/SampleQuestion.jsx";
+//import AdminChat from "./pages/Admin/AdminChat";
+//import Blog from "./pages/User/Blogs.jsx";
+//import BlogDetail from "./pages/User/BlogDetail.jsx";
 import ToastWrapper from "./components/ToastWrapper";
 import AuthInterceptor from "@components/AuthInterceptor.jsx";
 import PermissionManager from "./pages/Admin/PermissionManager.jsx";
@@ -35,6 +38,7 @@ function App() {
                 <Route path="/login" element={<LoginPage/>}/>
                 <Route path="/login/forgot-password" element={<ForgotPasswordPage/>}/>
                 <Route path="/register" element={<RegisterPage/>}/>
+                <Route path="/sample-question-01" element={<SampleQuestions/>}/>
                 <Route path="/userdashboard" element={<UserDashboard/>}/>
                 <Route path="/activities" element={<UserActivities/>}/>
                 <Route path="/support" element={<Support/>}/>
@@ -44,7 +48,14 @@ function App() {
                 <Route path="/contact" element={<Contact/>}/>
                 <Route path="/privacy" element={<Privacy/>}/>
                 <Route path="/profile" element={<UserProfile/>}/>
-                <Route path="/adminchat" element={<AdminChat/>}/>
+                {/*<Route path="/adminchat" element={<AdminChat/>}/>*/}
+                {/*<Route path="/admindashboard" element={<AdminDashboard/>}/>*/}
+                {/*<Route path="/admin" element={<AdminDashboard/>}>*/}
+                {/*    <Route path="/admin/quizzes" element={<QuizDash/>}/>*/}
+                {/*    <Route path="/admin/addNewQuiz" element={<AddQuiz/>}/>*/}
+                {/*    <Route path="/admin/tryout/:id" element={<TryOutQuiz/>}/>*/}
+                {/*    /!* Add more nested routes if needed *!/*/}
+                {/*</Route>*/}
                 <Route
                     path="/permission-manager"
                     element={
