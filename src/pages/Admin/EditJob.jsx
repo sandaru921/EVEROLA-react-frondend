@@ -5,15 +5,9 @@ import { FaTimes, FaUpload, FaChevronDown } from 'react-icons/fa';
 import AdminNavbar from '../../components/AdminNavbar';
 import AdminSidebar from '../../components/AdminSidebar';
 
-// EditJob component for updating existing job listings
 const EditJob = () => {
-  // Hook for programmatic navigation
   const navigate = useNavigate();
-
-  // Extract job ID from URL parameters
   const { id } = useParams();
-
-  // State for job form data
   const [job, setJob] = useState({
     title: '',
     description: '',
@@ -28,77 +22,102 @@ const EditJob = () => {
     technicalSkills: '',
     experience: '',
     softSkills: '',
-    quizIds: [],
+    quizId: null,
   });
-
-  // State for loading status
   const [loading, setLoading] = useState(true);
-
-  // State for form validation errors
   const [errors, setErrors] = useState({});
-
-  // State for quizzes dropdown
   const [isQuizzesOpen, setIsQuizzesOpen] = useState(false);
+  const [quizzes, setQuizzes] = useState([]);
+  const [jobQuiz, setJobQuiz] = useState(null); // Single quiz for display
 
-  // Mock data for quizzes
-  const mockQuizzes = [
-    { id: 1, quizName: 'Advanced Frontend Development - Skills Assessment' },
-    { id: 2, quizName: 'Advanced Frontend Developer – Skills Assessment' },
-    { id: 3, quizName: 'Software Development – Technical Assessment 2' },
-    { id: 4, quizName: 'Senior Software Engineer – Expert Technical Assessment' },
-    { id: 5, quizName: 'Data Science Skills Assessment' },
-  ];
-
-  // Fetch job details on component mount
+  // Fetch job and quiz data on component mount
   useEffect(() => {
-    const fetchJob = async () => {
+    const fetchData = async () => {
       try {
-        // Send GET request to fetch job by ID
-        const response = await axios.get(`https://localhost:5031/api/jobs/${id}`);
-        const jobData = response.data;
-        // Set job state with fetched data
+        // Fetch job details
+        console.log(`Fetching job data for ID: ${id}`);
+        const jobResponse = await axios.get(`https://localhost:5031/api/Jobs/${id}`);
+        const jobData = jobResponse.data;
+        console.log('Job data fetched:', jobData);
+
+        // Fetch job-specific quiz
+        console.log(`Fetching job quiz for ID: ${id}`);
+        let jobQuizData = null;
+        try {
+          const jobQuizResponse = await axios.get(`https://localhost:5031/api/Jobs/${id}/Quiz`);
+          jobQuizData = jobQuizResponse.data;
+          console.log('Job quiz fetched:', jobQuizData);
+        } catch (error) {
+          if (error.response?.status === 404) {
+            console.log('No quiz assigned to this job');
+          } else {
+            throw error; // Re-throw unexpected errors
+          }
+        }
+
+        // Set job state
         setJob({
-          title: jobData.Title,
-          description: jobData.Description,
+          title: jobData.Title || '',
+          description: jobData.Description || '',
           imageFile: null,
-          jobType: jobData.JobType,
-          expiringDate: new Date(jobData.ExpiringDate).toISOString().split('T')[0],
-          createdBy: jobData.CreatedBy,
-          workMode: jobData.WorkMode,
-          existingImageUrl: jobData.ImageUrl,
-          keyResponsibilities: jobData.KeyResponsibilities || '',
-          educationalBackground: jobData.EducationalBackground || '',
-          technicalSkills: jobData.TechnicalSkills || '',
-          experience: jobData.Experience || '',
-          softSkills: jobData.SoftSkills || '',
-          quizIds: jobData.QuizIds ? jobData.QuizIds.split(',').map(id => id.trim()) : [],
+          jobType: jobData.JobType || '',
+          expiringDate: jobData.ExpiringDate
+            ? new Date(jobData.ExpiringDate).toISOString().split('T')[0]
+            : '',
+          createdBy: jobData.CreatedBy || 'admin1',
+          workMode: jobData.WorkMode || 'remote',
+          existingImageUrl: jobData.ImageUrl || '',
+          keyResponsibilities: jobData.KeyResponsibilities?.join('\n') || '',
+          educationalBackground: jobData.EducationalBackground?.join('\n') || '',
+          technicalSkills: jobData.TechnicalSkills?.join('\n') || '',
+          experience: jobData.Experience?.join('\n') || '',
+          softSkills: jobData.SoftSkills?.join('\n') || '',
+          quizId: jobQuizData?.Id || null,
         });
+
+        // Fetch all quizzes
+        console.log('Fetching quizzes from https://localhost:5031/api/Quiz');
+        const quizResponse = await axios.get('https://localhost:5031/api/Quiz');
+        const quizData = quizResponse.data?.['$values'] || quizResponse.data || [];
+        console.log('Quizzes fetched:', quizData);
+        setQuizzes(quizData);
+
+        // Set jobQuiz for display
+        setJobQuiz(jobQuizData);
+
         setLoading(false);
       } catch (error) {
-        // Log detailed error information
-        console.error('Error fetching job:', {
+        console.error('Error fetching data:', {
           message: error.message,
           code: error.code,
-          response: error.response ? { status: error.response.status, data: error.response.data } : 'No response',
+          response: error.response
+            ? { status: error.response.status, data: error.response.data }
+            : 'No response',
         });
-        // Display error and navigate back
-        const errorMessage = error.response?.data?.message || error.response?.data || error.message || 'Unknown error';
-        alert('Failed to load job details: ' + errorMessage);
+        const errorMessage =
+          error.response?.data?.message ||
+          error.response?.data ||
+          error.message ||
+          'Unknown error';
+        alert('Failed to load job or quiz details: ' + errorMessage);
         navigate('/admin/jobview');
       }
     };
-    fetchJob();
+    fetchData();
   }, [id, navigate]);
 
   // Handle form input changes
-  const handleChange = (e) => {
+  const handleChange = e => {
     const { name, value } = e.target;
     setJob({ ...job, [name]: value });
 
     // Real-time validation
     const newErrors = { ...errors };
-    if (!value) {
-      newErrors[name] = `${name.charAt(0).toUpperCase() + name.slice(1)} is required`;
+    if (!value && ['title', 'description', 'jobType', 'expiringDate', 'workMode'].includes(name)) {
+      newErrors[name] = `${name
+        .charAt(0)
+        .toUpperCase() + name.slice(1)
+        .replace(/([A-Z])/g, ' $1')} is required`;
     } else {
       delete newErrors[name];
     }
@@ -112,7 +131,7 @@ const EditJob = () => {
   };
 
   // Handle file input for new image
-  const handleFileChange = (e) => {
+  const handleFileChange = e => {
     const file = e.target.files[0];
     if (file) {
       setJob({ ...job, imageFile: file });
@@ -142,20 +161,15 @@ const EditJob = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  // Handle quiz toggle
-  const handleQuizToggle = (quizId) => {
-    const currentQuizIds = [...job.quizIds];
-    const quizIndex = currentQuizIds.indexOf(quizId.toString());
-    if (quizIndex === -1) {
-      currentQuizIds.push(quizId.toString());
-    } else {
-      currentQuizIds.splice(quizIndex, 1);
-    }
-    setJob({ ...job, quizIds: currentQuizIds });
+  // Handle quiz selection (only one quiz allowed)
+  const handleQuizToggle = quizId => {
+    setJob({ ...job, quizId: job.quizId === quizId ? null : quizId });
+    setJobQuiz(job.quizId === quizId ? null : quizzes.find(quiz => quiz.Id === quizId) || null);
+    console.log('Selected quizId:', job.quizId === quizId ? null : quizId);
   };
 
   // Handle form submission
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault();
     if (!validateForm()) {
       alert('Please fill in all required fields correctly.');
@@ -169,40 +183,84 @@ const EditJob = () => {
     if (job.imageFile) {
       formData.append('ImageFile', job.imageFile);
     } else if (job.existingImageUrl) {
-      // Retain existing image by appending a flag or URL if backend supports it
       formData.append('KeepExistingImage', 'true');
     }
     formData.append('JobType', job.jobType);
     formData.append('ExpiringDate', job.expiringDate);
     formData.append('CreatedBy', job.createdBy);
     formData.append('WorkMode', job.workMode);
-    formData.append('KeyResponsibilities', job.keyResponsibilities);
-    formData.append('EducationalBackground', job.educationalBackground);
-    formData.append('TechnicalSkills', job.technicalSkills);
-    formData.append('Experience', job.experience);
-    formData.append('SoftSkills', job.softSkills);
-    formData.append('QuizIds', job.quizIds.join(','));
+    if (job.keyResponsibilities) {
+      job.keyResponsibilities
+        .split('\n')
+        .filter(item => item.trim())
+        .forEach(item => {
+          formData.append('KeyResponsibilities', item.trim());
+        });
+    }
+    if (job.educationalBackground) {
+      job.educationalBackground
+        .split('\n')
+        .filter(item => item.trim())
+        .forEach(item => {
+          formData.append('EducationalBackground', item.trim());
+        });
+    }
+    if (job.technicalSkills) {
+      job.technicalSkills
+        .split('\n')
+        .filter(item => item.trim())
+        .forEach(item => {
+          formData.append('TechnicalSkills', item.trim());
+        });
+    }
+    if (job.experience) {
+      job.experience
+        .split('\n')
+        .filter(item => item.trim())
+        .forEach(item => {
+          formData.append('Experience', item.trim());
+        });
+    }
+    if (job.softSkills) {
+      job.softSkills
+        .split('\n')
+        .filter(item => item.trim())
+        .forEach(item => {
+          formData.append('SoftSkills', item.trim());
+        });
+    }
+    if (job.quizId) {
+      formData.append('QuizId', job.quizId.toString());
+    }
+
+    console.log('FormData entries:', Array.from(formData.entries()));
 
     try {
-      // Send PUT request to update job
-      const response = await axios.put(`https://localhost:5031/api/jobs/${id}`, formData, {
+      const response = await axios.put(`https://localhost:5031/api/Jobs/${id}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
+      console.log('Job update response:', response.data);
       alert('Job updated successfully!');
       navigate('/admin/jobview');
     } catch (error) {
-      // Log detailed error information
       console.error('Error updating job:', {
         message: error.message,
         code: error.code,
         config: error.config,
-        request: error.request ? { status: error.request.status, statusText: error.request.statusText } : 'No request',
-        response: error.response ? { status: error.response.status, data: error.response.data } : 'No response',
+        request: error.request
+          ? { status: error.request.status, statusText: error.request.statusText }
+          : 'No request',
+        response: error.response
+          ? { status: error.response.status, data: error.response.data }
+          : 'No response',
       });
-      // Display error message
-      const errorMessage = error.response?.data?.message || error.response?.data || error.message || 'Unknown error';
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.data ||
+        error.message ||
+        'Unknown error';
       alert('Failed to update job: ' + errorMessage);
     }
   };
@@ -270,7 +328,9 @@ const EditJob = () => {
                     rows="4"
                     placeholder="Enter job description"
                   />
-                  {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description}</p>}
+                  {errors.description && (
+                    <p className="text-red-500 text-sm mt-1">{errors.description}</p>
+                  )}
                 </div>
 
                 <div>
@@ -281,7 +341,7 @@ const EditJob = () => {
                         src={job.existingImageUrl}
                         alt="Current Job Image"
                         className="w-32 h-32 object-cover rounded-lg shadow-md"
-                        onError={(e) => {
+                        onError={e => {
                           e.target.src = '/img/placeholder.jpg';
                         }}
                       />
@@ -298,7 +358,9 @@ const EditJob = () => {
                       </p>
                     </div>
                   )}
-                  <label className="block text-[#005b7c] font-medium mb-2 mt-4">Upload New Image (Optional)</label>
+                  <label className="block text-[#005b7c] font-medium mb-2 mt-4">
+                    Upload New Image (Optional)
+                  </label>
                   <div className="relative">
                     <input
                       type="file"
@@ -324,13 +386,18 @@ const EditJob = () => {
                       >
                         <FaTimes size={16} />
                       </button>
-                      <p className="text-gray-600 text-sm mt-2">New image selected (will replace current image)</p>
+                      <p className="text-gray-600 text-sm mt-2">
+                        New image selected (will replace current image)
+                      </p>
                     </div>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-[#005b7c] font-medium mb-2" htmlFor="keyResponsibilities">
+                  <label
+                    className="block text-[#005b7c] font-medium mb-2"
+                    htmlFor="keyResponsibilities"
+                  >
                     Key Responsibilities
                   </label>
                   <textarea
@@ -345,7 +412,10 @@ const EditJob = () => {
                 </div>
 
                 <div>
-                  <label className="block text-[#005b7c] font-medium mb-2" htmlFor="educationalBackground">
+                  <label
+                    className="block text-[#005b7c] font-medium mb-2"
+                    htmlFor="educationalBackground"
+                  >
                     Educational Background
                   </label>
                   <textarea
@@ -360,7 +430,10 @@ const EditJob = () => {
                 </div>
 
                 <div>
-                  <label className="block text-[#005b7c] font-medium mb-2" htmlFor="technicalSkills">
+                  <label
+                    className="block text-[#005b7c] font-medium mb-2"
+                    htmlFor="technicalSkills"
+                  >
                     Technical Skills
                   </label>
                   <textarea
@@ -460,7 +533,9 @@ const EditJob = () => {
                       errors.expiringDate ? 'border-red-500' : 'border-[#d5d1ca]'
                     } focus:outline-none focus:ring-2 focus:ring-[#01bcc6] transition-all duration-300 bg-white/70 text-[#005b7c]`}
                   />
-                  {errors.expiringDate && <p className="text-red-500 text-sm mt-1">{errors.expiringDate}</p>}
+                  {errors.expiringDate && (
+                    <p className="text-red-500 text-sm mt-1">{errors.expiringDate}</p>
+                  )}
                 </div>
 
                 <div>
@@ -469,37 +544,76 @@ const EditJob = () => {
                     onClick={() => setIsQuizzesOpen(!isQuizzesOpen)}
                     className="w-full flex items-center justify-between p-3 rounded-lg border border-[#d5d1ca] bg-white/70 text-[#005b7c] hover:bg-[#005b7c] hover:text-white transition-all duration-300"
                   >
-                    <span>Assign Quizzes</span>
-                    <FaChevronDown className={`transform transition-transform ${isQuizzesOpen ? 'rotate-180' : ''}`} />
+                    <span>Assign Quiz</span>
+                    <FaChevronDown
+                      className={`transform transition-transform ${isQuizzesOpen ? 'rotate-180' : ''}`}
+                    />
                   </button>
                   {isQuizzesOpen && (
                     <div className="space-y-2 mt-2" style={{ maxHeight: '150px', overflowY: 'auto' }}>
-                      {mockQuizzes.map(quiz => (
-                        <button
-                          key={quiz.id}
-                          type="button"
-                          onClick={() => handleQuizToggle(quiz.id)}
-                          className={`w-full flex items-center p-2 rounded-lg border ${job.quizIds.includes(quiz.id.toString()) ? 'bg-[#008eab] text-white' : 'bg-white/70 text-[#005b7c] border-[#d5d1ca]'} hover:bg-[#005b7c] hover:text-white transition-all duration-300`}
-                        >
-                          <FaChevronDown className="mr-2" />
-                          {quiz.quizName}
-                        </button>
-                      ))}
+                      {quizzes.length === 0 ? (
+                        <p className="text-gray-600 text-sm">No quizzes available</p>
+                      ) : (
+                        quizzes.map(quiz => (
+                          <button
+                            key={quiz.Id}
+                            type="button"
+                            onClick={() => handleQuizToggle(quiz.Id)}
+                            className={`w-full flex items-center p-2 rounded-lg border ${
+                              job.quizId === quiz.Id
+                                ? 'bg-[#008eab] text-white'
+                                : 'bg-white/70 text-[#005b7c] border-[#d5d1ca]'
+                            } hover:bg-[#005b7c] hover:text-white transition-all duration-300`}
+                          >
+                            <FaChevronDown className="mr-2" />
+                            {quiz.QuizName || 'Unnamed Quiz'}
+                          </button>
+                        ))
+                      )}
                     </div>
                   )}
-                  {job.quizIds.length > 0 && (
+                  {job.quizId ? (
                     <div className="mt-2 p-2 bg-[#e6eff2] rounded-lg">
-                      <p className="text-[#005b7c] font-medium">Selected Quizzes:</p>
-                      <ul className="list-disc pl-5">
-                        {job.quizIds.map(id => {
-                          const selectedQuiz = mockQuizzes.find(quiz => quiz.id === parseInt(id));
-                          return selectedQuiz ? (
-                            <li key={id} className="text-[#008eab]">
-                              {selectedQuiz.quizName}
-                            </li>
-                          ) : null;
-                        })}
-                      </ul>
+                      <p className="text-[#005b7c] font-medium">Selected Quiz:</p>
+                      <p className="text-[#008eab]">
+                        {quizzes.find(quiz => quiz.Id === job.quizId)?.QuizName || 'Invalid Quiz ID'}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="mt-2 p-2 bg-[#e6eff2] rounded-lg">
+                      <p className="text-[#005b7c] font-medium">No quiz assigned</p>
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-semibold text-[#005b7c] mb-2">Quiz Details</h3>
+                  {jobQuiz ? (
+                    <div className="p-3 bg-[#e6eff2] rounded-lg">
+                      <p>
+                        <span className="font-medium text-[#005b7c]">Quiz Name:</span>{' '}
+                        {jobQuiz.QuizName || 'N/A'}
+                      </p>
+                      <p>
+                        <span className="font-medium text-[#005b7c]">Quiz Duration:</span>{' '}
+                        {jobQuiz.QuizDuration ? `${jobQuiz.QuizDuration} minutes` : 'N/A'}
+                      </p>
+                      <p>
+                        <span className="font-medium text-[#005b7c]">Quiz Level:</span>{' '}
+                        {jobQuiz.QuizLevel || 'N/A'}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="p-3 bg-[#e6eff2] rounded-lg">
+                      <p>
+                        <span className="font-medium text-[#005b7c]">Quiz Name:</span> N/A
+                      </p>
+                      <p>
+                        <span className="font-medium text-[#005b7c]">Quiz Duration:</span> N/A
+                      </p>
+                      <p>
+                        <span className="font-medium text-[#005b7c]">Quiz Level:</span> N/A
+                      </p>
                     </div>
                   )}
                 </div>
@@ -546,7 +660,7 @@ const styles = `
 `;
 
 // Inject styles into document head
-const styleSheet = document.createElement("style");
+const styleSheet = document.createElement('style');
 styleSheet.textContent = styles;
 document.head.appendChild(styleSheet);
 

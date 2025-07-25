@@ -61,29 +61,6 @@ const JobQuizDetails = () => {
     );
   };
 
-  // Render quiz questions
-  const renderQuestions = () => {
-    if (!quiz?.Questions || quiz.Questions.length === 0) {
-      return <em className="text-gray-400">No questions available</em>;
-    }
-    return (
-      <ul className="list-disc pl-6 text-sm text-gray-700 space-y-1">
-        {quiz.Questions.map((q, i) => (
-          <li key={i}>
-            {q.QuestionText} ({q.Type}, {q.Marks} marks)
-            {q.Options && q.Options.length > 0 && (
-              <ul className="list-circle pl-6 mt-1">
-                {q.Options.map((opt, j) => (
-                  <li key={j}>{opt.Key}: {opt.Value}</li>
-                ))}
-              </ul>
-            )}
-          </li>
-        ))}
-      </ul>
-    );
-  };
-
   return (
     <div className="min-h-screen bg-[#E6EFF2] flex flex-col">
       <Navbar isAuthenticated={isAuthenticated} isAdmin={isAdmin} />
@@ -115,20 +92,17 @@ const JobQuizDetails = () => {
                 {renderList('Key Responsibilities', job.KeyResponsibilities)}
               </div>
 
-              {/* Right side: Other job details + quiz */}
+              {/* Right side: Other job details + quiz details */}
               <div className="space-y-6">
                 {renderList('Educational Background', job.EducationalBackground)}
                 {renderList('Technical Skills', job.TechnicalSkills)}
                 {renderList('Experience', job.Experience)}
                 {renderList('Soft Skills', job.SoftSkills)}
                 <div className="space-y-2">
+                  <div className="font-semibold text-[#005b7c] text-base">Quiz Details</div>
                   {renderText('Quiz Name', quiz.QuizName)}
                   {renderText('Quiz Duration', quiz.QuizDuration ? `${quiz.QuizDuration} minutes` : 'N/A')}
                   {renderText('Quiz Level', quiz.QuizLevel)}
-                  <div>
-                    <div className="font-semibold text-[#005b7c]">Quiz Questions:</div>
-                    {renderQuestions()}
-                  </div>
                 </div>
               </div>
             </div>

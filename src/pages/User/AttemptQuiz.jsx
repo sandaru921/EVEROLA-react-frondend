@@ -219,11 +219,11 @@ const AttemptQuiz = () => {
           <XCircle className="w-12 h-12 text-red-600" />
           <p className="text-lg font-medium text-gray-700">{error}</p>
           <button
-            onClick={() => navigate("/admin/quizzes")}
+            onClick={() => navigate("/user/dashboard")}
             className="inline-flex items-center px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition-colors duration-200 shadow-lg hover:shadow-xl"
           >
             <Home className="w-5 h-5 mr-2" />
-            Back to Home
+            Back to DashBoard
           </button>
         </div>
       </div>
@@ -280,11 +280,11 @@ const AttemptQuiz = () => {
 
             <div className="text-center">
               <button
-                onClick={() => navigate("/admin/quizzes")}
+                onClick={() => navigate("/user/dashboard")}
                 className="inline-flex items-center px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition-colors duration-200 shadow-lg hover:shadow-xl"
               >
                 <Home className="w-5 h-5 mr-2" />
-                Back to Home
+                Back to DashBoard
               </button>
             </div>
           </div>
