@@ -15,12 +15,13 @@ const styles = {
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        backgroundColor: "#4cbad1",
+        backgroundColor: "#9eb4bf",
         minHeight: "100vh",
     },
     box: {
+        minHeight: "75vh",
         backgroundColor: "white",
-        padding: "30px",
+        padding: "20px",
         borderRadius: "12px",
         textAlign: "center",
         width: "450px",
@@ -44,7 +45,7 @@ const styles = {
     },
     inputGroup: {
         textAlign: "left",
-        marginBottom: "15px",
+        marginBottom: "10px",
     },
     label: {
         display: "block",
@@ -54,7 +55,7 @@ const styles = {
     },
     input: {
         width: "100%",
-        padding: "10px",
+        padding: "8px",
         border: "1px solid #ccc",
         borderRadius: "6px",
         fontSize: "14px",
@@ -69,10 +70,12 @@ const styles = {
         fontSize: "16px",
         cursor: "pointer",
         marginTop: "10px",
+        marginBottom: "10px",
     },
     alternativeText: {
         fontSize: "14px",
         color: "#555",
+        marginBottom: "10px",
     },
     socialButton: {
         paddingLeft: "15px",
@@ -102,6 +105,8 @@ const ForgotPasswordPage = () => {
     const [showPassword, setShowPassword] = useState(false); // State to toggle password visibility
     const [showConfirmPassword, setShowConfirmPassword] = useState(false); // State to toggle confirm password visibility
     const [error, setError] = useState(null); // Holds error messages for form validation
+    const [otpSent, setOtpSent] = useState(false);
+    const [otp, setOtp] = useState("");
 
     const [formData, setFormData] = useState({
         email: "",
@@ -135,14 +140,25 @@ const ForgotPasswordPage = () => {
 
         try {
             setError(null); // clear previous errors
-            await axiosInstance.post(`${backendBaseURL}user/reset-password`, {
+            await axiosInstance.post(`${backendBaseURL}user/verify-reset-otp`, {
                 email: formData.email,
+                otp,
                 newPassword: formData.newPassword
             });
             toast.success("Password updated successfully!");
         } catch (err) {
             console.error("Password update failed", err);
             toast.error("Failed to update password.");
+        }
+    };
+
+    const sendOtp = async () => {
+        try {
+            await axiosInstance.post(`${backendBaseURL}user/send-reset-otp`, {email: formData.email});
+            toast.success("OTP sent to your email");
+            setOtpSent(true);
+        } catch {
+            toast.error("Failed to send OTP");
         }
     };
 
@@ -174,6 +190,25 @@ const ForgotPasswordPage = () => {
                             style={styles.input}
                         />
                     </div>
+
+                    <button type="button" style={styles.button} onClick={sendOtp}>
+                        Send OTP
+                    </button>
+
+                    {otpSent && (
+                        <div style={styles.inputGroup}>
+                            <label style={styles.label}>Enter OTP</label>
+                            <input
+                                type="text"
+                                name="otp"
+                                value={otp}
+                                onChange={(e) => setOtp(e.target.value)}
+                                required
+                                style={styles.input}
+                            />
+                        </div>
+                    )}
+
                     <div style={styles.inputGroup}>
                         <label style={styles.label}>New Password</label>
                         <div style={styles.passwordWrapper}>
@@ -218,11 +253,9 @@ const ForgotPasswordPage = () => {
                         </button>
                     </div>
                 </form>
-                <br/>
                 <div style={styles.alternativeText}>
                     ------------ Or login with ------------
                 </div>
-                <br/>
                 <div>
                     <button style={styles.socialButton} onClick={() => window.location.href = 'https://www.google.com'}>
                         <FontAwesomeIcon icon={faGoogle}/>

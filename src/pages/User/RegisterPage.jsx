@@ -16,7 +16,7 @@ const styles = {
         justifyContent: "center",
         alignItems: "center",
         minHeight: "100vh",
-        backgroundColor: "#4cbad1",
+        backgroundColor: "#9eb4bf",
     },
     box: {
         backgroundColor: "white",

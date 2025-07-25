@@ -16,7 +16,7 @@ const styles = {
         display: 'flex',
         justifyContent: 'center',
         width: '100%',
-        backgroundColor: '#4cbad1',
+        backgroundColor: '#9eb4bf',
         minHeight: '100vh',
         paddingTop: '5%',
         paddingBottom: '5%',
