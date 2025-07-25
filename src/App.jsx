@@ -1,7 +1,6 @@
-//app.jsx
 
 import "./App.css";
-import "./pages/User/HomePage.css"; // Keep CSS import from incoming
+
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 
 // User-related imports from incoming
@@ -18,11 +17,28 @@ import JobLanding from "./pages/JobLanding.jsx";
 import Contact from "./pages/User/Contact";
 import Privacy from "./pages/User/Privacy";
 import UserProfile from "./pages/User/UserProfile";
+
 import "./pages/User/HomePage.css";
 import AdminChat from "./pages/Admin/AdminChat";
 import Blog from "./pages/User/Blogs.jsx";
 import BlogDetail from "./pages/User/BlogDetail.jsx";
 import AdminDashboard from "./pages/Admin/AdminDashboard.jsx";
+
+import Blog from "./pages/User/Blogs";
+import BlogDetail from "./pages/User/BlogDetail";
+
+// Admin-related imports
+import AdminChat from "./pages/Admin/AdminChat"; // From incoming
+import ManageBlogs from "./pages/Admin/ManageBlogs"; // From current
+import EditBlog from "./pages/Admin/EditBlog"; // From current
+import AdminDashboard from "./pages/Admin/AdminDashboard";
+
+
+
+// import Blog from "./pages/User/Blogs.jsx";
+// import BlogDetail from "./pages/User/BlogDetail.jsx";
+// import AdminDashboard from "./pages/Admin/AdminDashboard.jsx";
+
 import QuizDash from "./pages/Admin/QuizDash.jsx";
 import AddQuiz from "./pages/Admin/NewQuiz.jsx";
 import TryOutQuiz from "./pages/Admin/TryOutQuiz.jsx";
@@ -35,13 +51,17 @@ import EditQuizRoute from "./pages/Admin/EditQuiz.jsx";
 
 
 function App() {
-  console.log("App component is rendering"); // Keep debug log from current
+
+    const user = JSON.parse(localStorage.getItem("user"));
+
 
   return (
     <BrowserRouter>
       <Routes>
         {/* User Routes */}
+
         <Route path="/" element={<Home />} />
+
         <Route path="/login" element={<LoginPage />} />
         <Route path="/login/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/register" element={<RegisterPage />} />
@@ -54,16 +74,19 @@ function App() {
         <Route path="/contact" element={<Contact />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/profile" element={<UserProfile />} />
+
         <Route path="/attemptquiz/:id" element = {<AttemptQuiz/>}/>
          <Route path="/results/:quizResultId" element = {<QuizSummary/>}/>
         
         
+
 
         {/* Blog Routes */}
         <Route path="/blogs" element={<Blog />} />
         <Route path="/blogs/:slug" element={<BlogDetail />} />
 
         {/* Admin Routes */}
+
         <Route path="/admindashboard" element={<AdminDashboard />} />
         <Route path="/adminchat" element={<AdminChat />} />
         <Route path="/admin" element={<AdminDashboard />}>
@@ -71,6 +94,24 @@ function App() {
           <Route path="/admin/addNewQuiz" element={<AddQuiz />} />
           <Route path="/admin/tryout/:id" element={<TryOutQuiz />} />
           <Route path="/admin/editQuiz/:id" element={<EditQuiz />} />
+
+        <Route path="/adminchat" element={<AdminChat />} />
+        <Route path="/admin/blogs" element={<ManageBlogs />} />
+        <Route path="/admin/blogs/add" element={<EditBlog />} />
+        <Route path="/admin/blogs/edit/:id" element={<EditBlog />} />
+
+
+        <Route path="/admin/dashboard" element={<AdminDashboard />} />
+      </Routes>
+    </BrowserRouter>
+  );
+    return (
+        <BrowserRouter>
+            <AuthInterceptor /> {/* Interceptor safely inside router context */}
+
+            {/* Admin Search Bar (only show for logged-in admins) */}
+            {user?.permissions?.includes("admin") && <AdminSearchBar />}
+
 
           {/* Add more nested routes if needed */}
         </Route> 

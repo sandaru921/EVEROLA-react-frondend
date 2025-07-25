@@ -3,6 +3,9 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import AdminNavbar from "../../components/AdminNavbar"
+import RichTextEditor from "../../components/RichTextEditor"
+
+import { API_URLS } from "../../config/api"
 
 const AddBlog = () => {
   const navigate = useNavigate()
@@ -24,6 +27,13 @@ const AddBlog = () => {
     setFormData({
       ...formData,
       [name]: value,
+    })
+  }
+
+  const handleContentChange = (content) => {
+    setFormData({
+      ...formData,
+      content: content,
     })
   }
 
@@ -53,7 +63,7 @@ const AddBlog = () => {
         formDataToSend.append("image", formData.image)
       }
 
-      const response = await fetch("https://your-api-url/api/blogs", {
+      const response = await fetch(API_URLS.blogs, {
         method: "POST",
         body: formDataToSend,
       })
@@ -64,8 +74,6 @@ const AddBlog = () => {
 
       const data = await response.json()
       setSuccess("Blog post added successfully!")
-
-      // Reset form after successful submission
       setFormData({
         title: "",
         content: "",
@@ -74,7 +82,6 @@ const AddBlog = () => {
         imagePreview: null,
       })
 
-      // Redirect to blog management page after 2 seconds
       setTimeout(() => {
         navigate("/admin/blogs")
       }, 2000)
@@ -136,19 +143,18 @@ const AddBlog = () => {
             </div>
 
             <div>
-              <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-1">
-                Blog Content
-              </label>
-              <textarea
-                id="content"
-                name="content"
+              <label className="block text-sm font-medium text-gray-700 mb-1">Blog Content</label>
+              <RichTextEditor
                 value={formData.content}
-                onChange={handleChange}
-                required
-                rows={10}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#005B7C]"
+                onChange={handleContentChange}
                 placeholder="Write your blog content here..."
               />
+              {/* Alternative: Use MarkdownEditor instead */}
+              {/* <MarkdownEditor
+                value={formData.content}
+                onChange={handleContentChange}
+                placeholder="Write your blog content here..."
+              /> */}
             </div>
 
             <div>
@@ -198,3 +204,4 @@ const AddBlog = () => {
 }
 
 export default AddBlog
+

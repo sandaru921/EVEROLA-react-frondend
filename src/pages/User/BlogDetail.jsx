@@ -1,18 +1,31 @@
-
-
 "use client"
 
 import { useState, useEffect } from "react"
 import { useParams, Link } from "react-router-dom"
-import API_BASE_URL, { API_URLS } from "../../config/api"
+import { API_URLS } from "../../config/api"
+import DOMPurify from "dompurify"
+
+
+
+// ✅ Allow specific inline styles
+DOMPurify.addHook("uponSanitizeAttribute", (node, data) => {
+  if (data.attrName === "style") {
+    const allowedStyles = ["color", "background-color", "font-size", "text-align", "text-decoration"]
+    const filteredStyles = data.attrValue
+      .split(";")
+      .map((s) => s.trim())
+      .filter((s) => allowedStyles.some((allowed) => s.startsWith(allowed)))
+      .join("; ")
+    data.attrValue = filteredStyles
+    return data
+  }
+})
 
 const BlogDetail = () => {
   const { slug } = useParams()
   const [blog, setBlog] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-
-  // Get the current URL for sharing
   const currentUrl = window.location.href
 
   useEffect(() => {
@@ -20,12 +33,22 @@ const BlogDetail = () => {
       setLoading(true)
       try {
         const response = await fetch(API_URLS.blogBySlug(slug))
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch blog")
-        }
-
+        if (!response.ok) throw new Error("Failed to fetch blog")
         const data = await response.json()
+
+        // ✅ Sanitize content safely
+        data.content = DOMPurify.sanitize(data.content, {
+          ALLOWED_TAGS: [
+            "p", "br", "b", "ul", "ol", "li", "h1", "h2", "h3", "h4", "h5", "h6",
+            "strong", "em", "i", "u", "span", "div", "a", "img", "blockquote"
+          ],
+          ALLOWED_ATTR: ["style", "href", "src", "alt", "class"],
+          ALLOWED_STYLES: {
+    "*": ["color", "background-color", "font-size", "text-align", "text-decoration"]
+  }
+ 
+        })
+
         setBlog(data)
         setError(null)
       } catch (err) {
@@ -39,13 +62,11 @@ const BlogDetail = () => {
     fetchBlogBySlug()
   }, [slug])
 
-  // Function to share on Facebook
   const shareOnFacebook = () => {
     const shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(currentUrl)}`
     window.open(shareUrl, "_blank", "width=600,height=400")
   }
 
-  // Function to share on LinkedIn
   const shareOnLinkedIn = () => {
     const shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(currentUrl)}`
     window.open(shareUrl, "_blank", "width=600,height=400")
@@ -73,32 +94,8 @@ const BlogDetail = () => {
     )
   }
 
-  // Format the content sections
-  const formatContent = (content) => {
-    // Split content by h2 tags for section rendering
-    const sections = []
-
-    
-
-    // Extract other sections
-    const regex = /<h2>(.*?)<\/h2>([\s\S]*?)(?=<h2>|$)/g
-    let match
-
-    while ((match = regex.exec(content)) !== null) {
-      sections.push({
-        title: match[1],
-        content: match[2],
-      })
-    }
-
-    return sections
-  }
-
-  const contentSections = formatContent(blog.content)
-
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Blue header with back button and title */}
       <div className="bg-[#005B7C] text-white py-6">
         <div className="container mx-auto px-6">
           <Link to="/blogs" className="inline-flex items-center text-white hover:underline mb-4">
@@ -108,28 +105,15 @@ const BlogDetail = () => {
         </div>
       </div>
 
-
-
-      
-
-      {/* Main content */}
       <div className="container mx-auto px-6 py-8">
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           <div className="grid md:grid-cols-2 gap-8 p-8">
-            {/* Left column - Text content */}
-            <div className="prose max-w-none">
-              {contentSections.map((section, index) => (
-                <div key={index} className="mb-4">
-                  <h2 className="text-xl font-bold mb-3">{section.title}</h2>
-                  <div dangerouslySetInnerHTML={{ __html: section.content }} />
-                </div>
-              ))}
+            <div className="max-w-none text-gray-700 leading-relaxed blog-content">
+              <div dangerouslySetInnerHTML={{ __html: blog.content }} />
             </div>
-
-            {/* Right column - Image */}
             <div>
               <img
-                src={blog.imageUrl ? `${API_BASE_URL}${blog.imageUrl}` : "/placeholder.svg?height=400&width=600"}
+                src={blog.imageUrl || "/placeholder.svg?height=400&width=600"}
                 alt={blog.title}
                 className="w-full h-auto rounded-lg object-cover"
                 onError={(e) => {
@@ -140,7 +124,6 @@ const BlogDetail = () => {
             </div>
           </div>
 
-          {/* Author and share section */}
           <div className="border-t p-6 flex flex-wrap justify-between items-center">
             <div className="mb-4 md:mb-0">
               <p className="text-gray-600">
@@ -149,12 +132,14 @@ const BlogDetail = () => {
                   {new Date(blog.createdAt).toLocaleDateString("en-US", {
                     year: "numeric",
                     month: "long",
-                    day: "numeric",
+                    day: "numeric"
                   })}
                 </span>
               </p>
               {blog.updatedAt && (
-                <p className="text-sm text-gray-500">Last updated: {new Date(blog.updatedAt).toLocaleDateString()}</p>
+                <p className="text-sm text-gray-500">
+                  Last updated: {new Date(blog.updatedAt).toLocaleDateString()}
+                </p>
               )}
             </div>
 
@@ -163,7 +148,7 @@ const BlogDetail = () => {
                 onClick={shareOnLinkedIn}
                 className="flex items-center space-x-2 bg-[#0077B5] text-white px-4 py-2 rounded-md hover:bg-[#005582] transition-colors"
               >
-                <svg
+               <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="16"
                   height="16"
@@ -178,7 +163,7 @@ const BlogDetail = () => {
 
               <button
                 onClick={shareOnFacebook}
-                className="flex items-center space-x-2 bg-[#008CBA] text-white px-4 py-2 rounded-md hover:bg-[#0d65d9] transition-colors"
+                className="flex items-center space-x-2 bg-[#1877F2] text-white px-4 py-2 rounded-md hover:bg-[#166fe5] transition-colors"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -197,25 +182,41 @@ const BlogDetail = () => {
         </div>
       </div>
 
+      {/* Add CSS for typography and inline styles */}
+      <style>{`
+        .blog-content ul {
+          list-style-type: disc;
+          margin: 1rem 0 1rem 2rem;
+        }
+        .blog-content ol {
+          list-style-type: decimal;
+          margin: 1rem 0 1rem 2rem;
+        }
+        .blog-content li {
+          margin: 0.5rem 0;
+        }
+        .blog-content h1,
+        .blog-content h2,
+        .blog-content h3 {
+          font-weight: bold;
+          margin-top: 1.5rem;
+          margin-bottom: 1rem;
+          line-height: 1.2;
+        }
+        .blog-content h1 { font-size: 2rem; }
+        .blog-content h2 { font-size: 1.5rem; }
+        .blog-content h3 { font-size: 1.25rem; }
 
-
-
+      
+        .blog-content span[style*="background-color"] {
+          background-color: inherit;
+        }
+       
+      
+}
+      `}</style>
     </div>
   )
 }
 
 export default BlogDetail
-
-
-
-
-
-
-
-
-
-
-
-
-
-
