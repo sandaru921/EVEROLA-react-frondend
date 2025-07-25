@@ -20,7 +20,7 @@
 }
 
 .content {
-  /* color: white; Make text readable */
+  /* color: white; /*Make text readable */
   font-size: 24px;
   /* background: rgba(0, 0, 0, 0.5); Add a semi-transparent background */
   padding: 25%;
