@@ -28,6 +28,9 @@ import AddQuiz from "./pages/Admin/NewQuiz.jsx";
 import TryOutQuiz from "./pages/Admin/TryOutQuiz.jsx";
 import Home from "./pages/User/Home.jsx";
 import AttemptQuiz from "./pages/User/AttemptQuiz.jsx";
+import QuizSummary from "./pages/Admin/QuizResultUser.jsx";
+import EditQuiz from "./pages/Admin/EditQuiz.jsx";
+import EditQuizRoute from "./pages/Admin/EditQuiz.jsx";
 
 
 
@@ -52,6 +55,7 @@ function App() {
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/profile" element={<UserProfile />} />
         <Route path="/attemptquiz/:id" element = {<AttemptQuiz/>}/>
+         <Route path="/results/:quizResultId" element = {<QuizSummary/>}/>
         
         
 
@@ -66,9 +70,10 @@ function App() {
           <Route path="/admin/quizzes" element={<QuizDash />} />
           <Route path="/admin/addNewQuiz" element={<AddQuiz />} />
           <Route path="/admin/tryout/:id" element={<TryOutQuiz />} />
-          {/* Add more nested routes if needed */}
-        </Route>
+          <Route path="/admin/editQuiz/:id" element={<EditQuiz />} />
 
+          {/* Add more nested routes if needed */}
+        </Route> 
 
       </Routes>
     </BrowserRouter>

@@ -13,6 +13,20 @@ const QuizTable = () => {
       .catch((err) => console.error(err));
   }, []);
 
+  // Delete quiz by id
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this quiz?")) return;
+
+    try {
+      await axios.delete(`https://localhost:5031/api/Quiz/${id}`);
+      // Remove deleted quiz from state to update UI
+      setQuizzes((prev) => prev.filter((quiz) => quiz.id !== id));
+    } catch (error) {
+      console.error("Failed to delete quiz:", error);
+      alert("Failed to delete quiz. Please try again.");
+    }
+  };
+
   return (
     <div className="p-6 bg-white rounded-xl shadow-md">
       <div className="py-5 flex justify-between item-center">
@@ -29,6 +43,7 @@ const QuizTable = () => {
             <th className="py-2 px-4">Quiz Name</th>
             <th className="py-2 px-4">Date</th>
             <th className="py-2 px-4">No Of Questions</th>
+            <th className="py-2 px-4"></th>
             <th className="py-2 px-4"></th>
             <th className="py-2 px-4"></th>
           </tr>
@@ -52,12 +67,19 @@ const QuizTable = () => {
                 </button>
               </td>
               <td className="py-3 px-4">
-                <button className="bg-blue-200 hover:bg-blue-300 text-blue-800 font-semibold py-1 px-4 rounded-full shadow-sm">
-                  Edit
-                </button>
-              </td>
+      <button
+        onClick={() => navigate(`/admin/editQuiz/${quiz.id}`)}
+        className="bg-blue-200 hover:bg-blue-300 text-blue-800 font-semibold py-1 px-4 rounded-full shadow-sm"
+      >
+        Edit
+      </button>
+    </td>
+
               <td className="py-3 px-4">
-                <button className="bg-red-500 hover:bg-red-600 text-white font-semibold py-1 px-4 rounded-full shadow-sm">
+                <button
+                  onClick={() => handleDelete(quiz.id)}
+                  className="bg-red-500 hover:bg-red-600 text-white font-semibold py-1 px-4 rounded-full shadow-sm"
+                >
                   Delete
                 </button>
               </td>

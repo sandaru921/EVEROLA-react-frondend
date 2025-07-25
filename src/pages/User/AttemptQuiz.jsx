@@ -120,7 +120,7 @@ const AttemptQuiz = () => {
     setShowResult(true);
 
     // Hardcode userId for testing (no JWT token)
-    let userId = 8; // Hardcoded for testing
+    let userId = 5; // Hardcoded for testing
     const token = localStorage.getItem("token");
     if (token) {
       try {
