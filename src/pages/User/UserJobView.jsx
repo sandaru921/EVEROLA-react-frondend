@@ -10,13 +10,20 @@ const UserJobview = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [jobs, setJobs] = useState([]);
   const [error, setError] = useState(null);
-  const [isAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(
+    !!localStorage.getItem("authToken")
+  );
   const [isAdmin] = useState(false);
 
-  const API_URL = "https://localhost:5031/api/jobs";
+  const API_URL = "https://localhost:5031/api/jobs/active"; // Updated endpoint
 
   useEffect(() => {
     fetchJobs();
+    const checkAuth = () => {
+      setIsAuthenticated(!!localStorage.getItem("authToken"));
+    };
+    window.addEventListener("storage", checkAuth);
+    return () => window.removeEventListener("storage", checkAuth);
   }, []);
 
   const fetchJobs = async () => {
@@ -48,11 +55,20 @@ const UserJobview = () => {
       job.Title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const handleApplyClick = (jobId) => {
+    if (!isAuthenticated) {
+      alert("You need to log in to apply for this job.");
+      navigate("/login", { state: { from: `/User/Jobquizdetails/${jobId}` } });
+    } else {
+      navigate(`/User/Jobquizdetails/${jobId}`);
+    }
+  };
+
   const JobCardSkeleton = () => (
     <div className="bg-white/80 rounded-xl shadow-lg overflow-hidden animate-pulse">
       <div className="h-40 bg-[#d5d1ca]/50"></div>
       <div className="p-4">
-        <div className="h-6 bg-[#d5d1]/50 rounded w-3/4 mb-2"></div>
+        <div className="h-6 bg-[#d5d1ca]/50 rounded w-3/4 mb-2"></div>
         <div className="h-4 bg-[#d5d1ca]/50 rounded w-1/2 mb-2"></div>
         <div className="h-4 bg-[#d5d1ca]/50 rounded w-full mb-4"></div>
         <div className="flex justify-center">
@@ -148,9 +164,7 @@ const UserJobview = () => {
                   <div className="flex justify-center mt-4">
                     <button
                       className="bg-gradient-to-r from-[#008eab] to-[#01bcc6] text-white px-6 py-2 rounded-full hover:from-[#005b7c] hover:to-[#008eab] focus:outline-none focus:ring-4 focus:ring-[#01bcc6]/50 transition-all duration-300"
-                      onClick={() =>
-                        navigate(`/User/Jobquizdetails/${job.Id}`)
-                      }
+                      onClick={() => handleApplyClick(job.Id)}
                     >
                       Apply Now
                     </button>
