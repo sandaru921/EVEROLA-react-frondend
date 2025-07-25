@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import UserSidebar from '../../components/UserSidebar.jsx';
-import { FiEdit, FiUpload, FiX, FiCheck } from 'react-icons/fi';
+import { FiUpload, FiEdit2 } from 'react-icons/fi';
+import { FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://localhost:5031';
 
@@ -9,10 +10,10 @@ const UserProfile = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [user, setUser] = useState({
-    profilePicture: 'https://via.placeholder.com/150.png?text=User',
-    education: '',
-    workExperience: '',
-    skills: '',
+    profilePicture: '',
+    education: { text: '', evidence: [], status: 'pending' },
+    workExperience: { text: '', evidence: [], status: 'pending' },
+    skills: { text: '', evidence: [], status: 'pending' },
     name: '',
     role: 'User',
     age: null,
@@ -20,112 +21,112 @@ const UserProfile = () => {
     linkedIn: '',
     title: '',
   });
-  const [editSection, setEditSection] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [confirmEdit, setConfirmEdit] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentField, setCurrentField] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchUserProfile = async () => {
-      const token = localStorage.getItem('token');
-      if (!token) return navigate('/login');
+    fetchProfile();
+  }, []);
 
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        const response = await fetch(`${API_BASE}/api/UserProfile`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (response.status === 401) {
-          localStorage.clear();
-          return navigate('/login');
-        }
-
-        if (!response.ok) throw new Error('Failed to fetch profile.');
-
-        const data = await response.json();
-        setUser(prev => ({
-          ...prev,
-          ...data,
-          role: localStorage.getItem('role') || 'User',
-        }));
-      } catch (err) {
-        setError('Failed to load profile. Please log in again.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchUserProfile();
-  }, [navigate]);
-
-  const handleProfilePictureChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = async () => {
-        const base64Image = reader.result;
-        const updatedUser = { ...user, profilePicture: base64Image };
-        setUser(updatedUser);
-        await saveProfilePicture(updatedUser);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const saveProfilePicture = async (updatedUser) => {
+  const fetchProfile = async () => {
     const token = localStorage.getItem('token');
-    if (!token) return navigate('/login');
-
-    try {
-      const response = await fetch(`${API_BASE}/api/UserProfile/update`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(updatedUser),
-      });
-
-      if (!response.ok) throw new Error('Failed to update profile picture');
-
-      const savedData = await response.json();
-      setUser(prev => ({ ...prev, ...savedData }));
-    } catch (err) {
-      alert('Profile picture upload failed.');
-      console.error(err);
-    }
-  };
-
-  const handleSave = async (section) => {
-    const token = localStorage.getItem('token');
-    if (!token) return navigate('/login');
-
-    if (
-      section === 'basic' &&
-      user.linkedIn &&
-      !user.linkedIn.startsWith('https://www.linkedin.com/')
-    ) {
-      alert('Please enter a valid LinkedIn URL starting with https://www.linkedin.com/');
-      return;
-    }
-
-    if (section === 'title' && user.title.trim() === '') {
-      alert('Please enter a valid job title.');
+    if (!token) {
+      setError('Please log in.');
+      navigate('/login');
       return;
     }
 
     setIsLoading(true);
-    setError(null);
-
     try {
-      const response = await fetch(`${API_BASE}/api/UserProfile/update`, {
+      const response = await fetch(`${API_BASE}/api/userprofile`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (response.status === 401) {
+        localStorage.clear();
+        setError('Session expired. Please log in again.');
+        navigate('/login');
+        return;
+      }
+
+      if (!response.ok) throw new Error('Failed to load profile');
+      const data = await response.json();
+      setUser(prev => ({
+        ...prev,
+        ...data,
+        education: { ...prev.education, ...data.education },
+        workExperience: { ...prev.workExperience, ...data.workExperience },
+        skills: { ...prev.skills, ...data.skills },
+      }));
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleProfilePictureChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setUser(prev => ({ ...prev, profilePicture: reader.result }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleEvidenceUpload = async (field, e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const token = localStorage.getItem('token');
+    if (!token) return alert('Please log in.');
+
+    const formData = new FormData();
+    formData.append('evidence', file);
+    formData.append('field', field);
+
+    setIsLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/api/userprofile/evidence/upload`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(`Upload failed: ${errorText}`);
+      }
+
+      const data = await res.json();
+      setUser(prev => ({
+        ...prev,
+        [field]: { ...prev[field], evidence: [...prev[field].evidence, data.filename], status: 'pending' },
+      }));
+      alert('Evidence uploaded for review!');
+    } catch (err) {
+      alert(`Upload failed: ${err.message}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSave = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setError('Please log in.');
+      navigate('/login');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await fetch(`${API_BASE}/api/userprofile/update`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -134,33 +135,68 @@ const UserProfile = () => {
         body: JSON.stringify(user),
       });
 
-      if (response.status === 401) {
-        localStorage.clear();
-        return navigate('/login');
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Update failed: ${errorText}`);
       }
 
-      if (!response.ok) throw new Error('Failed to update profile.');
-
-      const data = await response.json();
-      setUser(prev => ({ ...prev, ...data }));
-      alert(`${section.charAt(0).toUpperCase() + section.slice(1)} updated successfully!`);
-      setEditSection(null);
-      setConfirmEdit(false);
+      const updated = await response.json();
+      setUser(prev => ({ ...prev, ...updated }));
+      alert('Profile updated successfully!');
     } catch (err) {
-      setError('Failed to save profile. Please log in again.');
+      setError(err.message);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleEditRequest = (section) => {
-    setEditSection(section);
-    setConfirmEdit(true);
+  const openModal = (field) => {
+    setCurrentField(field);
+    setIsModalOpen(true);
   };
 
-  const cancelEdit = () => {
-    setConfirmEdit(false);
-    setEditSection(null);
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setCurrentField(null);
+  };
+
+  const handleDeleteFile = async (field, fileName) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('Please log in.');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await fetch(`${API_BASE}/api/userprofile/evidence/delete`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ Field: field, FileName: fileName }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Deletion failed: ${errorText}`);
+      }
+
+      // Update local state after successful deletion
+      setUser(prev => ({
+        ...prev,
+        [field]: {
+          ...prev[field],
+          evidence: prev[field].evidence.filter(f => f !== fileName),
+        },
+      }));
+      alert('Evidence deleted successfully!');
+    } catch (err) {
+      alert(`Failed to delete evidence: ${err.message}`);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const inputClass =
@@ -176,160 +212,246 @@ const UserProfile = () => {
         user={user}
       />
       <div className="md:ml-64 p-6">
-        <h2 className={`text-2xl font-bold mb-6 ${darkMode ? 'text-white' : 'text-black'}`}>User Profile</h2>
+        <h2 className="text-2xl font-bold mb-6">User Profile</h2>
+
         {isLoading && <p className="text-[#005b7c]">Loading...</p>}
-        {error && <p className="text-red-500 mb-4">{error}</p>}
+        {error && <p className="text-red-500">{error}</p>}
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Profile Picture Box */}
-          <div className={`${darkMode ? 'bg-[#1a1a1a] text-white' : 'bg-[#dedcd9] text-black'} rounded-xl p-6 shadow-md`}>
+          {/* Profile Picture */}
+          <div className={`${darkMode ? 'bg-[#1a1a1a]' : 'bg-[#dedcd9]'} p-6 rounded-xl shadow-md`}>
             <div className="text-center">
               <img
-                src={user.profilePicture}
+                src={user.profilePicture || ''}
                 alt="Profile"
-                className="w-32 h-32 rounded-full mx-auto border-4 border-[#008eab] mb-4"
+                className="w-32 h-32 rounded-full mx-auto border-4 border-[#008eab] mb-4 object-cover"
+                onError={(e) => { e.target.style.display = 'none'; }}
               />
-              <label className="block w-full cursor-pointer">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleProfilePictureChange}
-                  className="hidden"
-                />
-                <div className="bg-[#005b7c] hover:bg-[#008eab] text-white py-1 px-4 rounded-full inline-flex items-center">
-                  <FiUpload className="mr-2" /> Upload New Photo
+              <label className="block cursor-pointer">
+                <input type="file" accept="image/*" onChange={handleProfilePictureChange} className="hidden" />
+                <div className="bg-[#005b7c] hover:bg-[#008eab] text-white py-1 px-4 rounded-full inline-flex items-center justify-center">
+                  <FiUpload className="mr-2" /> Upload Photo
                 </div>
               </label>
-              <h3 className="text-xl font-semibold text-[#005b7c] mt-4">
-                {user.name || 'Guest'}
-              </h3>
-              {editSection === 'title' && confirmEdit ? (
-                <div className="flex gap-2 items-center justify-center mt-3">
-                  <input
-                    value={user.title || ''}
-                    onChange={(e) => setUser({ ...user, title: e.target.value })}
-                    placeholder="Your Role (e.g., Software Engineer)"
-                    className="w-full mt-2 p-2 rounded border border-gray-300 text-black dark:text-white"
-                  />
-                  <button onClick={() => handleSave('title')} className="text-green-600 hover:text-green-800">
-                    <FiCheck size={20} />
-                  </button>
-                  <button onClick={cancelEdit} className="text-red-500 hover:text-red-700">
-                    <FiX size={20} />
-                  </button>
-                </div>
-              ) : (
-                <div className="text-lg font-semibold mt-4 text-center flex justify-center items-center">
-                  {user.title || 'No title specified'}
-                  <button
-                    onClick={() => handleEditRequest('title')}
-                    className="ml-2 hover:text-[#01bcc6]"
-                  >
-                    <FiEdit size={18} />
-                  </button>
-                </div>
-              )}
+              <h3 className="text-xl font-semibold mt-4">{user.name || 'Guest'}</h3>
+              <p className="text-sm text-[#005b7c]">{user.title || 'No title set'}</p>
             </div>
           </div>
 
-          {/* Detail Sections */}
+          {/* Details */}
           <div className="md:col-span-2 space-y-6">
-            {['basic', 'skills', 'workExperience', 'education'].map((section) => (
-              <div
-                key={section}
-                className={`${darkMode ? 'bg-[#1a1a1a] text-white' : 'bg-[#dedcd9] text-black'} p-6 rounded-lg shadow-md`}
-              >
-                <div className="flex justify-between items-center mb-2">
-                  <h3 className="text-lg font-semibold capitalize">
-                    {section === 'workExperience' ? 'Experience' : section}
-                  </h3>
-                  {editSection === section && confirmEdit ? (
-                    <div className="flex gap-2">
-                      <button onClick={() => handleSave(section)} className="text-green-600 hover:text-green-800">
-                        <FiCheck size={20} />
-                      </button>
-                      <button onClick={cancelEdit} className="text-red-500 hover:text-red-700">
-                        <FiX size={20} />
-                      </button>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => handleEditRequest(section)}
-                      className="hover:text-[#01bcc6]"
-                    >
-                      <FiEdit size={18} /> Edit
-                    </button>
-                  )}
-                </div>
-
-                {editSection === section && confirmEdit ? (
-                  <>
-                    {section === 'basic' ? (
-                      <div className="space-y-2">
-                        <input
-                          value={user.name || ''}
-                          onChange={(e) => setUser({ ...user, name: e.target.value })}
-                          placeholder="Name"
-                          className={inputClass}
-                        />
-                        <input
-                          type="number"
-                          value={user.age || ''}
-                          onChange={(e) => setUser({ ...user, age: parseInt(e.target.value) || null })}
-                          placeholder="Age"
-                          className={inputClass}
-                        />
-                        <input
-                          value={user.gender || ''}
-                          onChange={(e) => setUser({ ...user, gender: e.target.value })}
-                          placeholder="Gender"
-                          className={inputClass}
-                        />
-                        <input
-                          value={user.linkedIn || ''}
-                          onChange={(e) => setUser({ ...user, linkedIn: e.target.value })}
-                          placeholder="LinkedIn URL"
-                          className={inputClass}
-                        />
-                      </div>
-                    ) : (
-                      <textarea
-                        rows="4"
-                        value={user[section] || ''}
-                        onChange={(e) => setUser({ ...user, [section]: e.target.value })}
-                        className={inputClass}
-                        placeholder={`Enter your ${section === 'workExperience' ? 'experience' : section} here...`}
-                      />
-                    )}
-                  </>
-                ) : section === 'basic' ? (
-                  <div className="space-y-1">
-                    <div><strong>Name:</strong> {user.name || 'Not set'}</div>
-                    <div><strong>Age:</strong> {user.age !== null ? user.age : 'Not set'}</div>
-                    <div><strong>Gender:</strong> {user.gender || 'Not set'}</div>
-                    <div>
-                      <strong>LinkedIn:</strong>{' '}
-                      {user.linkedIn ? (
-                        <a
-                          href={user.linkedIn}
-                          className="underline"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          {user.linkedIn}
-                        </a>
-                      ) : (
-                        'Not set'
-                      )}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="whitespace-pre-line">{user[section] || 'Not set'}</div>
-                )}
+            <div className={`${darkMode ? 'bg-[#1a1a1a]' : 'bg-white'} p-6 rounded-lg shadow`}>
+              <h3 className="text-lg font-semibold mb-2">Basic Information</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input
+                  className={inputClass}
+                  placeholder="Name (optional)"
+                  value={user.name || ''}
+                  onChange={(e) => setUser({ ...user, name: e.target.value })}
+                />
+                <input
+                  className={inputClass}
+                  type="number"
+                  placeholder="Age (optional)"
+                  value={user.age || ''}
+                  onChange={(e) => setUser({ ...user, age: parseInt(e.target.value) || null })}
+                />
+                <input
+                  className={inputClass}
+                  placeholder="Gender (optional)"
+                  value={user.gender || ''}
+                  onChange={(e) => setUser({ ...user, gender: e.target.value })}
+                />
+                <input
+                  className={inputClass}
+                  placeholder="Title (optional)"
+                  value={user.title || ''}
+                  onChange={(e) => setUser({ ...user, title: e.target.value })}
+                />
+                <input
+                  className={inputClass}
+                  placeholder="LinkedIn URL (optional)"
+                  value={user.linkedIn || ''}
+                  onChange={(e) => setUser({ ...user, linkedIn: e.target.value })}
+                />
               </div>
-            ))}
+            </div>
+
+            {/* Education */}
+            <div className={`${darkMode ? 'bg-[#1a1a1a]' : 'bg-white'} p-6 rounded-lg shadow`}>
+              <h3 className="text-lg font-semibold mb-2">Education</h3>
+              <textarea
+                className={inputClass}
+                rows="3"
+                placeholder="Your education (optional)..."
+                value={user.education.text || ''}
+                onChange={(e) => setUser({ ...user, education: { ...user.education, text: e.target.value } })}
+              />
+              <label className="block mt-2 cursor-pointer">
+                <input
+                  type="file"
+                  accept="image/*,application/pdf"
+                  onChange={(e) => handleEvidenceUpload('education', e)}
+                  className="hidden"
+                />
+                <div className="bg-[#005b7c] hover:bg-[#008eab] text-white py-1 px-4 rounded-full inline-flex items-center justify-center">
+                  <FiUpload className="mr-2" /> Upload Evidences
+                </div>
+              </label>
+              {user.education.evidence.length > 0 && (
+                <p className="text-sm mt-2">
+                  {user.education.evidence.length} file(s) uploaded, waiting for admin approval.{' '}
+                  <a
+                    href="#"
+                    onClick={(e) => { e.preventDefault(); openModal('education'); }}
+                    className="text-blue-600 underline ml-2"
+                  >
+                    <FiEdit2 className="inline mr-1" /> Edit
+                  </a>
+                  {user.education.status === 'approved' && (
+                    <span className="text-green-600 ml-2">Approved <FaCheckCircle /></span>
+                  )}
+                  {user.education.status === 'declined' && (
+                    <span className="text-red-600 ml-2">Declined <FaTimesCircle /> - <button
+                      onClick={() => setUser({ ...user, education: { ...user.education, evidence: [], status: 'pending' } })}
+                      className="text-blue-600 underline"
+                    >Upload Again</button></span>
+                  )}
+                </p>
+              )}
+            </div>
+
+            {/* Experience */}
+            <div className={`${darkMode ? 'bg-[#1a1a1a]' : 'bg-white'} p-6 rounded-lg shadow`}>
+              <h3 className="text-lg font-semibold mb-2">Experience</h3>
+              <textarea
+                className={inputClass}
+                rows="3"
+                placeholder="Your experience (optional)..."
+                value={user.workExperience.text || ''}
+                onChange={(e) => setUser({ ...user, workExperience: { ...user.workExperience, text: e.target.value } })}
+              />
+              <label className="block mt-2 cursor-pointer">
+                <input
+                  type="file"
+                  accept="image/*,application/pdf"
+                  onChange={(e) => handleEvidenceUpload('workExperience', e)}
+                  className="hidden"
+                />
+                <div className="bg-[#005b7c] hover:bg-[#008eab] text-white py-1 px-4 rounded-full inline-flex items-center justify-center">
+                  <FiUpload className="mr-2" /> Upload Evidences
+                </div>
+              </label>
+              {user.workExperience.evidence.length > 0 && (
+                <p className="text-sm mt-2">
+                  {user.workExperience.evidence.length} file(s) uploaded, waiting for admin approval.{' '}
+                  <a
+                    href="#"
+                    onClick={(e) => { e.preventDefault(); openModal('workExperience'); }}
+                    className="text-blue-600 underline ml-2"
+                  >
+                    <FiEdit2 className="inline mr-1" /> Edit
+                  </a>
+                  {user.workExperience.status === 'approved' && (
+                    <span className="text-green-600 ml-2">Approved <FaCheckCircle /></span>
+                  )}
+                  {user.workExperience.status === 'declined' && (
+                    <span className="text-red-600 ml-2">Declined <FaTimesCircle /> - <button
+                      onClick={() => setUser({ ...user, workExperience: { ...user.workExperience, evidence: [], status: 'pending' } })}
+                      className="text-blue-600 underline"
+                    >Upload Again</button></span>
+                  )}
+                </p>
+              )}
+            </div>
+
+            {/* Skills */}
+            <div className={`${darkMode ? 'bg-[#1a1a1a]' : 'bg-white'} p-6 rounded-lg shadow`}>
+              <h3 className="text-lg font-semibold mb-2">Skills</h3>
+              <textarea
+                className={inputClass}
+                rows="3"
+                placeholder="Your skills (optional)..."
+                value={user.skills.text || ''}
+                onChange={(e) => setUser({ ...user, skills: { ...user.skills, text: e.target.value } })}
+              />
+              <label className="block mt-2 cursor-pointer">
+                <input
+                  type="file"
+                  accept="image/*,application/pdf"
+                  onChange={(e) => handleEvidenceUpload('skills', e)}
+                  className="hidden"
+                />
+                <div className="bg-[#005b7c] hover:bg-[#008eab] text-white py-1 px-4 rounded-full inline-flex items-center justify-center">
+                  <FiUpload className="mr-2" /> Upload Evidences
+                </div>
+              </label>
+              {user.skills.evidence.length > 0 && (
+                <p className="text-sm mt-2">
+                  {user.skills.evidence.length} file(s) uploaded, waiting for admin approval.{' '}
+                  <a
+                    href="#"
+                    onClick={(e) => { e.preventDefault(); openModal('skills'); }}
+                    className="text-blue-600 underline ml-2"
+                  >
+                    <FiEdit2 className="inline mr-1" /> Edit
+                  </a>
+                  {user.skills.status === 'approved' && (
+                    <span className="text-green-600 ml-2">Approved <FaCheckCircle /></span>
+                  )}
+                  {user.skills.status === 'declined' && (
+                    <span className="text-red-600 ml-2">Declined <FaTimesCircle /> - <button
+                      onClick={() => setUser({ ...user, skills: { ...user.skills, evidence: [], status: 'pending' } })}
+                      className="text-blue-600 underline"
+                    >Upload Again</button></span>
+                  )}
+                </p>
+              )}
+            </div>
+
+            <div className="flex gap-4">
+              <button
+                onClick={handleSave}
+                className="bg-[#005b7c] text-white px-4 py-2 rounded hover:bg-[#008eab]"
+                disabled={isLoading}
+              >
+                {isLoading ? 'Saving...' : 'Update Profile'}
+              </button>
+            </div>
           </div>
         </div>
+
+        {/* Modal for Editing Evidence */}
+        {isModalOpen && currentField && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className={`${darkMode ? 'bg-[#1a1a1a]' : 'bg-white'} p-6 rounded-lg shadow-lg w-96`}>
+              <h3 className="text-lg font-semibold mb-4">Edit Uploaded Files - {currentField.charAt(0).toUpperCase() + currentField.slice(1)}</h3>
+              {user[currentField].evidence.length === 0 ? (
+                <p>No files uploaded.</p>
+              ) : (
+                <ul className="list-disc pl-5">
+                  {user[currentField].evidence.map((file, index) => (
+                    <li key={index} className="flex justify-between items-center py-2">
+                      <span>{file}</span>
+                      <button
+                        onClick={() => handleDeleteFile(currentField, file)}
+                        className="text-red-600 hover:text-red-800 ml-4"
+                      >
+                        Delete
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <button
+                onClick={closeModal}
+                className="mt-4 bg-[#005b7c] text-white px-4 py-2 rounded hover:bg-[#008eab]"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

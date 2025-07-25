@@ -25,6 +25,9 @@ import AuthInterceptor from "@components/AuthInterceptor.jsx";
 import PermissionManager from "./pages/Admin/PermissionManager.jsx";
 import ProtectedRoute from "@components/ProtectedRoute.jsx";
 import AdminSearchBar from "@components/AdminSearchBar.jsx";
+//import LinkedInCallback from "@components/LinkedInCallback.jsx";
+import LinkedInCallback from "./components/LinkedInCallback.jsx";
+import AdminReview from "./pages/Admin/AdminReview.jsx"; // Ensure this is the correct path for your AdminReview component
 
 function App() {
     const user = JSON.parse(localStorage.getItem("user"));
@@ -59,6 +62,8 @@ function App() {
         <Route path="/users/:id" element={<UserDetails />} />
         <Route path="/sample-questions" element={<SampleQuestions />} />
          <Route path="/questions/:role" element={<QuestionsByRole />} />
+         
+        <Route path="/adminreview" element={<AdminReview />} />
 
                 <Route
                     path="/permission-manager"
