@@ -2,12 +2,110 @@ import React, {useState} from "react";
 import {Link, useNavigate} from "react-router-dom";
 import logo from "../../assets/logo.jpg";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import {faFacebookF, faGoogle, faTwitter,} from "@fortawesome/free-brands-svg-icons";
-import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
+import {faEye, faEyeSlash} from "@fortawesome/free-solid-svg-icons";
 import {useRegister} from "../../data/useRegister";
 import {ErrorBanner} from "@components/ErrorBanner.jsx";
 import {toast} from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
+import {jwtDecode} from "jwt-decode";
+import {GoogleLogin} from "@react-oauth/google";
+
+const styles = {
+    container: {
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        minHeight: "100vh",
+        backgroundColor: "#9eb4bf",
+    },
+    box: {
+        backgroundColor: "white",
+        padding: "30px",
+        borderRadius: "12px",
+        textAlign: "center",
+        width: "450px",
+    },
+    logo: {
+        width: "50px",
+        marginBottom: "15px",
+    },
+    heading: {
+        fontSize: "24px",
+        fontWeight: "bold",
+        color: "#008cba",
+    },
+    inputGroup: {
+        textAlign: "left",
+        marginBottom: "10px",
+    },
+    label: {
+        display: "block",
+        fontSize: "14px",
+        color: "#555",
+    },
+    input: {
+        width: "100%",
+        padding: "10px",
+        border: "1px solid #ccc",
+        borderRadius: "6px",
+        fontSize: "14px",
+    },
+    passwordWrapper: {
+        position: "relative",
+    },
+    togglePassword: {
+        position: "absolute",
+        right: "10px",
+        top: "50%",
+        transform: "translateY(-50%)",
+        background: "transparent",
+        border: "none",
+        cursor: "pointer",
+        color: "#666",
+    },
+    submitButton: {
+        width: "100%",
+        padding: "10px",
+        backgroundColor: "#005b7c",
+        color: "white",
+        border: "none",
+        borderRadius: "6px",
+        fontSize: "16px",
+        cursor: "pointer",
+        marginTop: "10px",
+    },
+    submitButtonHover: {
+        backgroundColor: "#5e92a8",
+    },
+    alternativeText: {
+        fontSize: "14px",
+        color: "#555",
+        marginBottom: "10px",
+    },
+    signinText: {
+        marginTop: '20px',
+        fontSize: '14px',
+        color: '#555',
+    },
+    link: {
+        textDecoration: "none",
+        color: "#008cba",
+        fontWeight: "bold",
+    },
+    socialButton: {
+        marginTop: '20px',
+        backgroundColor: "#fff",
+        color: "#5f6368",
+        border: "1px solid #dadce0",
+        borderRadius: "4px",
+        fontSize: "14px",
+        fontWeight: "500",
+        padding: "10px 24px",
+        cursor: "pointer",
+        fontFamily: "'Roboto', sans-serif",
+        boxShadow: "0px 1px 2px rgba(0,0,0,0.1)",
+    }
+};
 
 const RegisterPage = () => {
     const [formData, setFormData] = useState({
@@ -20,8 +118,8 @@ const RegisterPage = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [error, setError] = useState(null);
-    const {registerUser} = useRegister();
     const navigate = useNavigate();
+    const {registerUser, registerWithGoogle} = useRegister();
 
     // Update form inputs on change
     const handleChange = (e) => {
@@ -103,97 +201,128 @@ const RegisterPage = () => {
         }
     };
 
+    const handleGoogleSuccess = async (credentialResponse) => {
+        try {
+            const decoded = jwtDecode(credentialResponse.credential);
+            const {email, name} = decoded;
+
+            const result = await registerWithGoogle({
+                username: name,
+                email,
+                credential: credentialResponse.credential,
+            });
+
+            if (!result.success) {
+                setError(result.message);
+            } else {
+                toast.success("Registered with Google!", {
+                    position: "bottom-right",
+                });
+                setTimeout(() => navigate("/login"), 1500);
+            }
+        } catch {
+            setError("Google sign-in processing failed.");
+        }
+    };
+
     return (
-        <div className="register-container">
-            <div className="register-box">
-                <div className="logo">
-                    <img src={logo} alt="logo"/>
+        <div style={styles.container}>
+            <div style={styles.box}>
+                <div>
+                    <img src={logo} alt="logo" style={styles.logo}/>
                 </div>
-                <h2 className="heading">GET STARTED</h2>
+                <h2 style={styles.heading}>GET STARTED</h2>
                 {error && <ErrorBanner message={error} onClose={() => setError(null)}/>}
                 <form onSubmit={handleSubmit}>
-                    <div className="input-group">
-                        <label>Username</label>
+                    <div style={styles.inputGroup}>
+                        <label style={styles.label}>Username</label>
                         <input
                             type="text"
                             name="username"
                             value={formData.username}
                             onChange={handleChange}
                             required
+                            style={styles.input}
                         />
                     </div>
-                    <div className="input-group">
-                        <label>E-mail</label>
+                    <div style={styles.inputGroup}>
+                        <label style={styles.label}>E-mail</label>
                         <input
                             type="email"
                             name="email"
                             value={formData.email}
                             onChange={handleChange}
                             required
+                            style={styles.input}
                         />
                     </div>
 
-                    <div className="input-group password-group">
-                        <label>Password</label>
-                        <div className="password-input-wrapper">
-                        <input
-                            type={showPassword ? "text" : "password"}
-                            name="password"
-                            value={formData.password}
-                            onChange={handleChange}
-                            required
-                        />
+                    <div style={styles.inputGroup}>
+                        <label style={styles.label}>Password</label>
+                        <div style={styles.passwordWrapper}>
+                            <input
+                                type={showPassword ? "text" : "password"}
+                                name="password"
+                                value={formData.password}
+                                onChange={handleChange}
+                                required
+                                style={styles.input}
+                            />
                             <button
                                 type="button"
-                                className="toggle-password"
+                                style={styles.togglePassword}
                                 onClick={() => setShowPassword((prev) => !prev)}
                             >
-                                <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
+                                <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye}/>
                             </button>
                         </div>
                     </div>
-                    <div className="input-group password-group">
-                        <label>Confirm Password</label>
-                        <div className="password-input-wrapper">
-                        <input
-                            type={showConfirmPassword ? "text" : "password"}
-                            name="confirmPassword"
-                            value={formData.confirmPassword}
-                            onChange={handleChange}
-                            required
-                        />
-                        <button
-                            type="button"
-                            className="toggle-password"
-                            onClick={() => setShowConfirmPassword((prev) => !prev)}
-                        >
-                            <FontAwesomeIcon icon={showConfirmPassword ? faEyeSlash : faEye} />
-                        </button>
+                    <div style={styles.inputGroup}>
+                        <label style={styles.label}>Confirm Password</label>
+                        <div style={styles.passwordWrapper}>
+                            <input
+                                type={showConfirmPassword ? "text" : "password"}
+                                name="confirmPassword"
+                                value={formData.confirmPassword}
+                                onChange={handleChange}
+                                required
+                                style={styles.input}
+                            />
+                            <button
+                                type="button"
+                                style={styles.togglePassword}
+                                onClick={() => setShowConfirmPassword((prev) => !prev)}
+                            >
+                                <FontAwesomeIcon icon={showConfirmPassword ? faEyeSlash : faEye}/>
+                            </button>
+                        </div>
                     </div>
-                    </div>
-                    <button type="submit" className="btn-signup">
+                    <button type="submit" style={styles.submitButton}>
                         Sign Up
                     </button>
                 </form>
                 <br/>
-                <div className="alternative-signup">
+                <div style={styles.alternativeText}>
                     ------------ Or sign up with ------------
                 </div>
-                <br/>
-                <div className="social-btns">
-                    <button className="social-btn" onClick={() => window.location.href = 'https://www.google.com'}>
-                        <FontAwesomeIcon icon={faGoogle}/>
-                    </button>
-                    <button className="social-btn" onClick={() => window.location.href = 'https://www.facebook.com'}>
-                        <FontAwesomeIcon icon={faFacebookF}/>
-                    </button>
-                    <button className="social-btn" onClick={() => window.location.href = 'https://www.twitter.com'}>
-                        <FontAwesomeIcon icon={faTwitter}/>
-                    </button>
+                <div>
+                    <GoogleLogin
+                        onSuccess={handleGoogleSuccess}
+                        onError={() => setError("Google sign-in failed.")}
+                        ux_mode="popup"
+                        useOneTap={false}
+                        auto_select={false}
+                        render={({onClick}) => (
+                            <button style={styles.socialBtn} onClick={onClick}>
+                                Sign up with Google
+                            </button>
+                        )}
+                    />
                 </div>
-                <p className="signin-text">
+
+                <p style={styles.signinText}>
                     Already have an account?{' '}
-                    <Link to="/login">
+                    <Link to="/login" style={styles.link}>
                         Sign In
                     </Link>
                 </p>

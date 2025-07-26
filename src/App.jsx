@@ -1,12 +1,5 @@
 import "./App.css";
-
-import { BrowserRouter, Route, Routes } from "react-router-dom";
-
-// User-related imports from incoming
-import HomePage from "./pages/User/HomePage";
-import LoginPage from "./pages/User/LoginPage";
-import RegisterPage from "./pages/User/RegisterPage";
-import ForgotPasswordPage from "./pages/User/ForgotPasswordPage";
+import {BrowserRouter, Route, Routes} from "react-router-dom";
 import UserDashboard from "./pages/User/UserDashboard";
 import UserActivities from "./pages/User/UserActivities";
 import Invite from "./pages/User/Invite";
@@ -37,6 +30,14 @@ import AddQuiz from "./pages/Admin/NewQuiz.jsx";
 import TryOutQuiz from "./pages/Admin/TryOutQuiz.jsx";
 
 
+import LoginPage from "./pages/User/LoginPage";
+import RegisterPage from "./pages/User/RegisterPage";
+import ForgotPasswordPage from "./pages/User/ForgotPasswordPage";
+import HomePage from "./pages/User/HomePage";
+import SampleQuestions from "./pages/User/SampleQuestion.jsx";
+//import AdminChat from "./pages/Admin/AdminChat";
+//import Blog from "./pages/User/Blogs.jsx";
+//import BlogDetail from "./pages/User/BlogDetail.jsx";
 import ToastWrapper from "./components/ToastWrapper";
 import AuthInterceptor from "@components/AuthInterceptor.jsx";
 import PermissionManager from "./pages/Admin/PermissionManager.jsx";
@@ -46,51 +47,19 @@ import AdminSearchBar from "@components/AdminSearchBar.jsx";
 function App() {
     const user = JSON.parse(localStorage.getItem("user"));
 
-  return (
-    <BrowserRouter>
-      <Routes>
-        {/* User Routes */}
-        <Route path="/" element={<HomePage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/login/forgot-password" element={<ForgotPasswordPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/dashboard" element={<UserDashboard />} />
-        <Route path="/activities" element={<UserActivities />} />
-        <Route path="/support" element={<Support />} />
-        <Route path="/invite" element={<Invite />} />
-        <Route path="/chat" element={<Chat />} />
-        <Route path="/joblanding" element={<JobLanding />} /> {/* Normalized to lowercase */}
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/privacy" element={<Privacy />} />
-        <Route path="/profile" element={<UserProfile />} />
-
-        {/* Blog Routes */}
-        <Route path="/blogs" element={<Blog />} />
-        <Route path="/blogs/:slug" element={<BlogDetail />} />
-
-        {/* Admin Routes */}
-        <Route path="/adminchat" element={<AdminChat />} />
-        <Route path="/admin/blogs" element={<ManageBlogs />} />
-        <Route path="/admin/blogs/add" element={<EditBlog />} />
-        <Route path="/admin/blogs/edit/:id" element={<EditBlog />} />
-
-
-        <Route path="/admin/dashboard" element={<AdminDashboard />} />
-      </Routes>
-    </BrowserRouter>
-  );
     return (
         <BrowserRouter>
-            <AuthInterceptor /> {/* Interceptor safely inside router context */}
+            <AuthInterceptor/> {/* Interceptor safely inside router context */}
 
             {/* Admin Search Bar (only show for logged-in admins) */}
-            {user?.permissions?.includes("admin") && <AdminSearchBar />}
+            {user?.permissions?.includes("admin") && <AdminSearchBar/>}
 
             <Routes>
                 <Route path="/" element={<HomePage/>}/>
                 <Route path="/login" element={<LoginPage/>}/>
                 <Route path="/login/forgot-password" element={<ForgotPasswordPage/>}/>
                 <Route path="/register" element={<RegisterPage/>}/>
+                <Route path="/sample-question-01" element={<SampleQuestions/>}/>
                 <Route path="/userdashboard" element={<UserDashboard/>}/>
                 <Route path="/activities" element={<UserActivities/>}/>
                 <Route path="/support" element={<Support/>}/>
@@ -111,14 +80,13 @@ function App() {
                 <Route
                     path="/permission-manager"
                     element={
-                    <ProtectedRoute allowedRole="Admin">
-                        <PermissionManager/>
-                    </ProtectedRoute>}/>
+                        <ProtectedRoute allowedRole="Admin">
+                            <PermissionManager/>
+                        </ProtectedRoute>}/>
             </Routes>
-            <ToastWrapper />
+            <ToastWrapper/>
         </BrowserRouter>
     );
-
 }
 
 export default App;
