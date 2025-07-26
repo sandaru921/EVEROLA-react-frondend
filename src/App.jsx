@@ -17,6 +17,8 @@ import UserProfile from "./pages/User/UserProfile";
 import UserJobview from "./pages/User/UserJobView";
 import JobQuizDetails from "./pages/User/JobQuizDetails";
 import AttemptQuiz from "./pages/User/AttemptQuiz";
+import SampleQuestions from "./pages/User/SampleQuestion";
+import JobLanding from "./pages/User/JobLanding";
 
 // Blog-related imports
 import Blog from "./pages/User/Blogs";
@@ -40,6 +42,7 @@ import ToastWrapper from "./components/ToastWrapper";
 import AuthInterceptor from "./components/AuthInterceptor";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminSearchBar from "./components/AdminSearchBar";
+import PermissionManager from "./components/PermissionManager";
 
 import "./pages/User/HomePage.css";
 
@@ -59,6 +62,7 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/login/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/sample-question-01" element={<SampleQuestions />} />
         <Route path="/dashboard" element={<UserDashboard />} />
         <Route path="/activities" element={<UserActivities />} />
         <Route path="/support" element={<Support />} />
