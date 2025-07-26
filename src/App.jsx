@@ -18,7 +18,7 @@ import UserJobview from "./pages/User/UserJobView";
 import JobQuizDetails from "./pages/User/JobQuizDetails";
 import AttemptQuiz from "./pages/User/AttemptQuiz";
 import SampleQuestions from "./pages/User/SampleQuestion";
-import JobLanding from "./pages/User/JobLanding";
+
 
 // Blog-related imports
 import Blog from "./pages/User/Blogs";
@@ -36,15 +36,16 @@ import QuizDash from "./pages/Admin/QuizDash";
 import AddQuiz from "./pages/Admin/NewQuiz";
 import TryOutQuiz from "./pages/Admin/TryOutQuiz";
 import AdminDashboardquiz from "./pages/Admin/AdminDashboardquiz";
+import PermissionManager from "./pages/Admin/PermissionManager";
 
 // Component imports
 import ToastWrapper from "./components/ToastWrapper";
 import AuthInterceptor from "./components/AuthInterceptor";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminSearchBar from "./components/AdminSearchBar";
-import PermissionManager from "./components/PermissionManager";
 
-import "./pages/User/HomePage.css";
+
+
 
 function App() {
   const user = JSON.parse(localStorage.getItem("user"));
@@ -71,7 +72,7 @@ function App() {
         <Route path="/contact" element={<Contact />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/profile" element={<UserProfile />} />
-        <Route path="/joblanding" element={<JobLanding />} />
+       
         <Route path="/user/jobview" element={<UserJobview />} />
         <Route path="/user/jobquizdetails/:id" element={<JobQuizDetails />} />
         <Route path="/attemptquiz/:id" element={<AttemptQuiz />} />
