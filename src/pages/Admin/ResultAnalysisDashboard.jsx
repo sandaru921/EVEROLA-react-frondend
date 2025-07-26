@@ -82,7 +82,7 @@ const ResultAnalysisDashboard = () => {
       const userName = ranking.name;
       const marks = ranking.marks;
       const percentage = ranking.percentage;
-      const totalMarks = calculateTotalMarks(marks, percentage);
+      const totalMarks = ranking.totalMarks || calculateTotalMarks(marks, percentage); // Use totalMarks if available, otherwise calculate
       
       // Skip entries where we can't determine total marks
       if (totalMarks === 0) {
@@ -148,7 +148,7 @@ const ResultAnalysisDashboard = () => {
 
     // Calculate performance percentages for each result
     const performances = rankingsData.map(ranking => {
-      const totalMarks = calculateTotalMarks(ranking.marks, ranking.percentage);
+      const totalMarks = ranking.totalMarks || calculateTotalMarks(ranking.marks, ranking.percentage); // Use totalMarks if available, otherwise calculate
       return totalMarks > 0 ? (ranking.marks / totalMarks) * 100 : 0;
     });
 
@@ -218,7 +218,7 @@ const ResultAnalysisDashboard = () => {
     
     rankingsData.forEach(ranking => {
       const category = ranking.category;
-      const totalMarks = calculateTotalMarks(ranking.marks, ranking.percentage);
+      const totalMarks = ranking.totalMarks || calculateTotalMarks(ranking.marks, ranking.percentage); // Use totalMarks if available, otherwise calculate
       const performance = totalMarks > 0 ? (ranking.marks / totalMarks) * 100 : 0;
       
       if (!categoryData[category]) {
@@ -651,7 +651,7 @@ const ResultAnalysisDashboard = () => {
                         <td className="p-2">{r.rank}</td>
                         <td className="p-2">{r.name}</td>
                         <td className="p-2">
-                          {r.marks}/{calculateTotalMarks(r.marks, r.percentage)}
+                          {r.marks}/{r.totalMarks}
                         </td>
                         <td className="p-2">
                           {r.percentage.toFixed(2)}%
