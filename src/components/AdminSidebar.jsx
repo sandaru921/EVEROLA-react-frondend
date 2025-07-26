@@ -9,7 +9,7 @@ const AdminSidebar = () => {
   const [collapsed, setCollapsed] = useState(false)
 
   const navItems = [
-    { name: "Jobs", icon: FaBriefcase, path: "/admin/jobs" },
+    { name: "Jobs", icon: FaBriefcase, path: "/admin/jobview" },
     { name: "Quizzes", icon: FaQuestionCircle, path: "/admin/quizzes" },
     { name: "Blogs", icon: FaNewspaper, path: "/admin/blogs" },
     { name: "Results", icon: FaChartBar, path: "/admin/results" },

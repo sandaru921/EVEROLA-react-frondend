@@ -2,8 +2,9 @@ import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import { Clock, CheckCircle, XCircle, ArrowLeft, ArrowRight, Home } from "lucide-react";
+import { jwtDecode } from "jwt-decode";
 
-const TryOutQuiz = () => {
+const AttemptQuiz = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   
@@ -15,21 +16,57 @@ const TryOutQuiz = () => {
   const [showResult, setShowResult] = useState(false);
   const [finalScore, setFinalScore] = useState(0);
   const [timeTaken, setTimeTaken] = useState(0);
+  const [error, setError] = useState(null);
   const startTimeRef = useRef(null);
 
   // Fetch quiz data
   useEffect(() => {
+    if (!id || isNaN(parseInt(id))) {
+      setError("Invalid quiz ID. Please provide a valid quiz ID in the URL.");
+      return;
+    }
+
     axios
       .get(`https://localhost:5031/api/Quiz/${id}`)
       .then((res) => {
         const data = res.data;
-        const questions = data.Questions.sort(() => Math.random() - 0.5); // Sort questions randomly
-        setQuiz({ ...data, Questions: questions }); // Update quiz with shuffled questions
-        setTimeLeft(data.QuizDuration * 60);
+        console.log("Quiz data received:", JSON.stringify(data, null, 2)); // Debug response
+
+        // Handle case-sensitive Questions property and normalize to questions
+        const questions = (data.Questions || data.questions || []).$values || data.Questions || data.questions || [];
+        if (!questions.length) {
+          setError("No questions found for this quiz.");
+          return;
+        }
+
+        // Ensure questions have correctAnswers and options
+        const validQuestions = questions.map(q => ({
+          ...q,
+          options: (q.Options || q.options || []).$values || q.Options || q.options || [],
+          correctAnswers: (q.CorrectAnswers || q.correctAnswers || []).$values || q.CorrectAnswers || q.correctAnswers || []
+        }));
+
+        // Shuffle questions
+        const shuffledQuestions = validQuestions.sort(() => Math.random() - 0.5);
+        const normalizedData = {
+          ...data,
+          questions: { $values: shuffledQuestions } // Normalize to expected structure
+        };
+
+        setQuiz(normalizedData);
+        setTimeLeft((data.QuizDuration || data.quizDuration || 10) * 60);
         setQuizLoaded(true);
-        startTimeRef.current = Date.now(); // ⏱️ start time recorded here
+        startTimeRef.current = Date.now();
       })
-      .catch((err) => console.error(err));
+      .catch((err) => {
+        console.error("Error fetching quiz:", err);
+        if (err.response) {
+          console.error("Backend error response:", err.response.data);
+          setError(`Failed to load quiz: ${err.response.data.message || err.response.data.title || "Invalid quiz ID or server error."}`);
+        } else {
+          setError("Failed to load quiz: Network error or server is unreachable.");
+        }
+      });
   }, [id]);
 
   // Countdown Timer
@@ -67,47 +104,100 @@ const TryOutQuiz = () => {
   };
 
   // Submit Handler
-  const handleSubmit = () => {
-    if (!quiz || !quiz.Questions) return;
+  const handleSubmit = async () => {
+    if (!quiz || !quiz.questions?.$values) return;
 
     let score = 0;
     const totalTime = Math.floor((Date.now() - startTimeRef.current) / 1000);
+    const answersList = [];
 
-    quiz.Questions.forEach((q) => {
-      const correct = q.CorrectAnswers;
+    // Calculate score and prepare answers list
+    quiz.questions.$values.forEach((q) => {
+      const correct = q.correctAnswers;
       const userAnswer = answers[q.Id] || (q.Type === "Multiple Choice" ? [] : "");
+      let questionScore = 0;
+      let isCorrect = false;
 
       if (q.Type === "Multiple Choice") {
-        // For multiple selection, calculate partial marks
         const totalCorrect = correct.length;
-        const userCorrect = userAnswer.filter(ans => correct.includes(ans)).length;
-        const userIncorrect = userAnswer.filter(ans => !correct.includes(ans)).length;
+        const userCorrect = userAnswer.filter((ans) => correct.includes(ans)).length;
+        const userIncorrect = userAnswer.filter((ans) => !correct.includes(ans)).length;
         
-        // Check if all answers are correct (regardless of order)
         const sortedCorrect = [...correct].sort();
         const sortedUserAnswer = [...userAnswer].sort();
-        const isCompletelyCorrect = JSON.stringify(sortedCorrect) === JSON.stringify(sortedUserAnswer);
+        isCorrect = JSON.stringify(sortedCorrect) === JSON.stringify(sortedUserAnswer);
         
-        if (isCompletelyCorrect) {
-          // Give full marks if all answers are correct
+        if (isCorrect) {
+          questionScore = q.Marks;
           score += q.Marks;
         } else if (totalCorrect > 0) {
-          // Give partial credit: (correct selections / total correct) * total marks
           const partialScore = (userCorrect / totalCorrect) * q.Marks;
-          // Optional: subtract penalty for wrong selections
-          const penalty = (userIncorrect / totalCorrect) * q.Marks * 0.5; // 50% penalty for wrong selections
-          score += Math.max(0, partialScore - penalty); // Don't allow negative scores
+          const penalty = (userIncorrect / totalCorrect) * q.Marks * 0.5;
+          questionScore = Math.max(0, partialScore - penalty);
+          score += questionScore;
         }
       } else {
-        // For single selection (Radio), all or nothing
-        const isCorrect = userAnswer === correct[0];
-        if (isCorrect) score += q.Marks;
+        isCorrect = userAnswer === correct[0];
+        if (isCorrect) {
+          questionScore = q.Marks;
+          score += q.Marks;
+        }
       }
+
+      answersList.push({
+        questionId: q.Id,
+        selectedOptions: Array.isArray(userAnswer) ? userAnswer : [userAnswer]
+      });
     });
 
     setFinalScore(score);
     setTimeTaken(totalTime);
     setShowResult(true);
+
+    // Hardcode userId for testing (no JWT token)
+    let userId = 8;
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const decoded = jwtDecode(token);
+        console.log("Decoded token:", decoded);
+        userId = decoded.sub || decoded.userId || decoded.id || decoded.nameid || userId;
+      } catch (error) {
+        console.warn("No valid token, using hardcoded userId:", userId);
+      }
+    } else {
+      console.warn("No token found in localStorage, using hardcoded userId:", userId);
+    }
+
+    // Prepare payload for backend
+    const payload = {
+      userId: userId.toString(),
+      quizId: parseInt(id),
+      jobId: null,
+      timeTaken: totalTime,
+      answers: answersList
+    };
+
+    console.log("Payload:", JSON.stringify(payload, null, 2));
+
+    // Send results to backend
+    try {
+      const headers = { "Content-Type": "application/json" };
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+      const response = await axios.post("https://localhost:5031/api/Quiz/save", payload, { headers });
+      console.log("Quiz results submitted successfully:", response.data);
+      alert("Quiz submitted successfully!");
+    } catch (error) {
+      console.error("Error submitting quiz results:", error);
+      if (error.response) {
+        console.error("Backend error response:", error.response.data);
+        alert(`Failed to submit quiz: ${error.response.data.message || JSON.stringify(error.response.data) || "Invalid request. Please check your input and try again."}`);
+      } else {
+        alert("Failed to submit quiz: Network error or server is unreachable.");
+      }
+    }
   };
 
   const formatTime = (seconds) => {
@@ -117,10 +207,28 @@ const TryOutQuiz = () => {
   };
 
   const getTimeColor = () => {
-    if (timeLeft > 300) return "text-green-600"; // > 5 mins
-    if (timeLeft > 60) return "text-yellow-600"; // > 1 min
-    return "text-red-600"; // < 1 min
+    if (timeLeft > 300) return "text-green-600";
+    if (timeLeft > 60) return "text-yellow-600";
+    return "text-red-600";
   };
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="bg-white rounded-2xl shadow-xl p-8 flex flex-col items-center space-y-4">
+          <XCircle className="w-12 h-12 text-red-600" />
+          <p className="text-lg font-medium text-gray-700">{error}</p>
+          <button
+            onClick={() => navigate("/user/dashboard")}
+            className="inline-flex items-center px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition-colors duration-200 shadow-lg hover:shadow-xl"
+          >
+            <Home className="w-5 h-5 mr-2" />
+            Back to DashBoard
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (!quizLoaded || !quiz) {
     return (
@@ -133,10 +241,10 @@ const TryOutQuiz = () => {
     );
   }
 
-  const question = quiz.Questions[currentIndex];
+  const question = quiz.questions.$values[currentIndex];
   const selected = answers[question.Id] || (question.Type === "Multiple Choice" ? [] : "");
-  const totalMarks = quiz.Questions.reduce((sum, q) => sum + q.Marks, 0);
-  const progressPercentage = ((currentIndex + 1) / quiz.Questions.length) * 100;
+  const totalMarks = quiz.questions.$values.reduce((sum, q) => sum + q.Marks, 0);
+  const progressPercentage = ((currentIndex + 1) / quiz.questions.$values.length) * 100;
 
   if (showResult) {
     const scorePercentage = Math.round((finalScore / totalMarks) * 100);
@@ -149,7 +257,6 @@ const TryOutQuiz = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
         <div className="max-w-6xl mx-auto px-4">
-          {/* Results Header */}
           <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
             <div className="text-center mb-8">
               <h1 className="text-4xl font-bold text-gray-900 mb-2">Quiz Completed!</h1>
@@ -173,19 +280,18 @@ const TryOutQuiz = () => {
 
             <div className="text-center">
               <button
-                onClick={() => navigate("/admin/quizzes")}
+                onClick={() => navigate("/user/dashboard")}
                 className="inline-flex items-center px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition-colors duration-200 shadow-lg hover:shadow-xl"
               >
                 <Home className="w-5 h-5 mr-2" />
-                Back to Home
+                Back to DashBoard
               </button>
             </div>
           </div>
 
-          {/* Detailed Results */}
           <div className="space-y-6">
-            {quiz.Questions.map((q, index) => {
-              const correct = q.CorrectAnswers;
+            {quiz.questions.$values.map((q, index) => {
+              const correct = q.correctAnswers;
               const userAnswer = answers[q.Id] || (q.Type === "Multiple Choice" ? [] : "");
               
               let isCorrect = false;
@@ -193,14 +299,13 @@ const TryOutQuiz = () => {
               
               if (q.Type === "Multiple Choice") {
                 const totalCorrect = correct.length;
-                const userCorrect = userAnswer.filter(ans => correct.includes(ans)).length;
-                const userIncorrect = userAnswer.filter(ans => !correct.includes(ans)).length;
+                const userCorrect = userAnswer.filter((ans) => correct.includes(ans)).length;
+                const userIncorrect = userAnswer.filter((ans) => !correct.includes(ans)).length;
                 
                 if (totalCorrect > 0) {
                   const partialScoreCalc = (userCorrect / totalCorrect) * q.Marks;
                   const penalty = (userIncorrect / totalCorrect) * q.Marks * 0.5;
                   partialScore = Math.max(0, partialScoreCalc - penalty);
-                  // Fix: Properly sort arrays for comparison
                   const sortedCorrect = [...correct].sort();
                   const sortedUserAnswer = [...userAnswer].sort();
                   isCorrect = JSON.stringify(sortedCorrect) === JSON.stringify(sortedUserAnswer);
@@ -283,7 +388,6 @@ const TryOutQuiz = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      {/* Header */}
       <div className="bg-white shadow-lg">
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex justify-between items-center">
@@ -299,10 +403,9 @@ const TryOutQuiz = () => {
             </div>
           </div>
           
-          {/* Progress Bar */}
           <div className="mt-6">
             <div className="flex justify-between text-sm text-gray-600 mb-2">
-              <span>Question {currentIndex + 1} of {quiz.Questions.length}</span>
+              <span>Question {currentIndex + 1} of {quiz.questions.$values.length}</span>
               <span>{Math.round(progressPercentage)}% Complete</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
@@ -317,7 +420,6 @@ const TryOutQuiz = () => {
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* Main Question Area */}
           <div className="flex-1">
             <div className="bg-white rounded-2xl shadow-xl p-8">
               <div className="mb-6">
@@ -342,7 +444,7 @@ const TryOutQuiz = () => {
               </div>
 
               <div className="space-y-3">
-                {question.Options.map((opt) => (
+                {question.options.map((opt) => (
                   <label 
                     key={opt.Id} 
                     className="flex items-start p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 hover:bg-gray-50"
@@ -377,7 +479,6 @@ const TryOutQuiz = () => {
                 ))}
               </div>
 
-              {/* Navigation Buttons */}
               <div className="flex justify-between mt-8 pt-6 border-t">
                 <button
                   disabled={currentIndex === 0}
@@ -388,7 +489,7 @@ const TryOutQuiz = () => {
                   Previous
                 </button>
                 
-                {currentIndex < quiz.Questions.length - 1 ? (
+                {currentIndex < quiz.questions.$values.length - 1 ? (
                   <button
                     onClick={() => setCurrentIndex((prev) => prev + 1)}
                     className="inline-flex items-center px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition-colors duration-200 shadow-lg hover:shadow-xl"
@@ -409,12 +510,11 @@ const TryOutQuiz = () => {
             </div>
           </div>
 
-          {/* Question Navigator Sidebar */}
           <div className="lg:w-80">
             <div className="bg-white rounded-2xl shadow-xl p-6 sticky top-8">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Question Navigator</h3>
               <div className="grid grid-cols-5 gap-3">
-                {quiz.Questions.map((q, index) => {
+                {quiz.questions.$values.map((q, index) => {
                   const isCurrent = index === currentIndex;
                   const hasAnswered =
                     answers[q.Id] &&
@@ -464,4 +564,4 @@ const TryOutQuiz = () => {
   );
 };
 
-export default TryOutQuiz;
+export default AttemptQuiz;
