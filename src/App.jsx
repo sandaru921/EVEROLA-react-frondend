@@ -18,7 +18,7 @@ import UserJobview from "./pages/User/UserJobView";
 import JobQuizDetails from "./pages/User/JobQuizDetails";
 import AttemptQuiz from "./pages/User/AttemptQuiz";
 import SampleQuestions from "./pages/User/SampleQuestion";
-import JobLanding from "./pages/JobLanding";
+
 
 // Blog-related imports
 import Blog from "./pages/User/Blogs";
@@ -73,7 +73,6 @@ function App() {
         <Route path="/contact" element={<Contact />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/profile" element={<UserProfile />} />
-        <Route path="/joblanding" element={<JobLanding />} />
         <Route path="/user/jobview" element={<UserJobview />} />
         <Route path="/user/jobquizdetails/:id" element={<JobQuizDetails />} />
         <Route path="/attemptquiz/:id" element={<AttemptQuiz />} />
