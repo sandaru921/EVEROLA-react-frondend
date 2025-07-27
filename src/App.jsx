@@ -73,6 +73,7 @@ function App() {
         <Route path="/contact" element={<Contact />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/profile" element={<UserProfile />} />
+        
         <Route path="/user/jobview" element={<UserJobview />} />
         <Route path="/user/jobquizdetails/:id" element={<JobQuizDetails />} />
         <Route path="/attemptquiz/:id" element={<AttemptQuiz />} />
