@@ -172,7 +172,7 @@ const LoginPage = () => {
             localStorage.setItem("token", result.data.token);
             localStorage.setItem("permissions", JSON.stringify(result.data.permissions));
 
-            setTimeout(() => navigate("/userdashboard"), 1500);
+            setTimeout(() => navigate("/dashboard"), 1500);
         } else {
             setError(result.message);
         }
