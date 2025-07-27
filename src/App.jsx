@@ -89,10 +89,10 @@ function App() {
         <Route path="/admin/blogs" element={<ManageBlogs />} />
         <Route path="/admin/blogs/add" element={<EditBlog />} />
         <Route path="/admin/blogs/edit/:id" element={<EditBlog />} />
-        <Route path="/admin/dashboard" element={<AdminDashboard />}>
-          <Route path="quizzes" element={<QuizDash />} />
-          <Route path="addNewQuiz" element={<AddQuiz />} />
-          <Route path="tryout/:id" element={<TryOutQuiz />} />
+        <Route path="/admin" element={<AdminDashboard />}>
+          <Route path="/admin/quizzes" element={<QuizDash />} />
+          <Route path="/admin/addNewQuiz" element={<AddQuiz />} />
+          <Route path="/admin/tryout/:id" element={<TryOutQuiz />} />
         </Route>
         <Route path="/admin/dashboardquiz" element={<AdminDashboardquiz />} />
         <Route
