@@ -10,17 +10,42 @@ import {
   AlignLeft,
   AlignCenter,
   AlignRight,
+  Link,
+  Unlink,
+  RotateCcw,
+  RotateCw,
 } from "lucide-react"
 
 const RichTextEditor = ({ value, onChange, placeholder }) => {
   const editorRef = useRef(null)
+  const historyIndexRef = useRef(-1)
   const [isFocused, setIsFocused] = useState(false)
   const [isInitialized, setIsInitialized] = useState(false)
+  const [wordCount, setWordCount] = useState(0)
+  const [charCount, setCharCount] = useState(0)
+  const [showLinkDialog, setShowLinkDialog] = useState(false)
+  const [linkUrl, setLinkUrl] = useState("")
+  const [linkText, setLinkText] = useState("")
+  const [history, setHistory] = useState([])
+  const [historyIndex, setHistoryIndex] = useState(-1)
 
   useEffect(() => {
     if (editorRef.current && !isInitialized) {
       editorRef.current.innerHTML = value || ""
       setIsInitialized(true)
+      // Count words after initialization
+      const tempDiv = document.createElement('div')
+      tempDiv.innerHTML = value || ""
+      const textContent = tempDiv.textContent || tempDiv.innerText || ''
+      const charCount = textContent.length
+      const words = textContent.trim().split(/\s+/).filter(word => word.length > 0)
+      const wordCount = words.length
+      setCharCount(charCount)
+      setWordCount(wordCount)
+      // Initialize history with initial content
+      setHistory([value || ""])
+      setHistoryIndex(0)
+      historyIndexRef.current = 0
     }
   }, [value, isInitialized])
 
@@ -60,6 +85,40 @@ const RichTextEditor = ({ value, onChange, placeholder }) => {
       Array.from(el.childNodes).forEach(removeHighlightStyles)
     }
   }
+
+  const addToHistory = useCallback((content) => {
+    setHistory(prevHistory => {
+      const currentIndex = historyIndexRef.current
+      const newHistory = prevHistory.slice(0, currentIndex + 1)
+      newHistory.push(content)
+      if (newHistory.length > 50) {
+        newHistory.shift()
+      }
+      const newIndex = newHistory.length - 1
+      historyIndexRef.current = newIndex
+      setHistoryIndex(newIndex)
+      return newHistory
+    })
+  }, [])
+
+  const countWordsAndChars = useCallback((htmlContent) => {
+    // Create a temporary div to parse HTML content
+    const tempDiv = document.createElement('div')
+    tempDiv.innerHTML = htmlContent
+    
+    // Get text content without HTML tags
+    const textContent = tempDiv.textContent || tempDiv.innerText || ''
+    
+    // Count characters (including spaces)
+    const charCount = textContent.length
+    
+    // Count words (split by whitespace and filter out empty strings)
+    const words = textContent.trim().split(/\s+/).filter(word => word.length > 0)
+    const wordCount = words.length
+    
+    setCharCount(charCount)
+    setWordCount(wordCount)
+  }, [])
 
   const applyStyleSpan = (styleName, styleValue) => {
     if (!editorRef.current) return
@@ -126,25 +185,35 @@ const RichTextEditor = ({ value, onChange, placeholder }) => {
         selection.removeAllRanges()
         selection.addRange(newRange)
 
-        onChange(editorRef.current.innerHTML)
+        const content = editorRef.current.innerHTML
+        onChange(content)
+        addToHistory(content)
         return
       }
 
       if (command === "foreColor") {
         applyStyleSpan("color", commandValue)
+        const content = editorRef.current.innerHTML
+        onChange(content)
+        addToHistory(content)
         return
       }
 
       if (command === "hiliteColor") {
         applyStyleSpan("backgroundColor", commandValue)
+        const content = editorRef.current.innerHTML
+        onChange(content)
+        addToHistory(content)
         return
       }
 
       const success = document.execCommand(command, false, commandValue)
       if (!success) console.warn(`Command "${command}" failed`)
-      onChange(editorRef.current.innerHTML)
+      const content = editorRef.current.innerHTML
+      onChange(content)
+      addToHistory(content)
     },
-    [onChange]
+    [onChange, addToHistory]
   )
 
   const handleList = useCallback(
@@ -182,14 +251,21 @@ const RichTextEditor = ({ value, onChange, placeholder }) => {
         }
       }
 
-      onChange(editorRef.current.innerHTML)
+      const content = editorRef.current.innerHTML
+      onChange(content)
+      addToHistory(content)
     },
-    [onChange]
+    [onChange, addToHistory]
   )
 
   const handleInput = useCallback(() => {
-    if (editorRef.current) onChange(editorRef.current.innerHTML)
-  }, [onChange])
+    if (editorRef.current) {
+      const content = editorRef.current.innerHTML
+      onChange(content)
+      countWordsAndChars(content)
+      addToHistory(content)
+    }
+  }, [onChange, countWordsAndChars, addToHistory])
 
   const handlePaste = useCallback(
     (e) => {
@@ -216,11 +292,197 @@ const RichTextEditor = ({ value, onChange, placeholder }) => {
             e.preventDefault()
             executeCommand("underline")
             break
+          case "k":
+            e.preventDefault()
+            handleAddLink()
+            break
+          case "z":
+            e.preventDefault()
+            if (e.shiftKey) {
+              // Redo
+              if (historyIndexRef.current < history.length - 1) {
+                const newIndex = historyIndexRef.current + 1
+                historyIndexRef.current = newIndex
+                setHistoryIndex(newIndex)
+                if (editorRef.current) {
+                  editorRef.current.innerHTML = history[newIndex]
+                  onChange(history[newIndex])
+                }
+              }
+            } else {
+              // Undo
+              if (historyIndexRef.current > 0) {
+                const newIndex = historyIndexRef.current - 1
+                historyIndexRef.current = newIndex
+                setHistoryIndex(newIndex)
+                if (editorRef.current) {
+                  editorRef.current.innerHTML = history[newIndex]
+                  onChange(history[newIndex])
+                }
+              }
+            }
+            break
+          case "y":
+            e.preventDefault()
+            // Redo
+            if (historyIndexRef.current < history.length - 1) {
+              const newIndex = historyIndexRef.current + 1
+              historyIndexRef.current = newIndex
+              setHistoryIndex(newIndex)
+              if (editorRef.current) {
+                editorRef.current.innerHTML = history[newIndex]
+                onChange(history[newIndex])
+              }
+            }
+            break
         }
       }
     },
-    [executeCommand]
+    [executeCommand, onChange]
   )
+
+  const handleAddLink = useCallback(() => {
+    if (!editorRef.current) return
+    
+    editorRef.current.focus()
+    const selection = window.getSelection()
+    if (!selection.rangeCount) return
+    
+    const range = selection.getRangeAt(0)
+    const selectedText = range.toString()
+    
+    // If no text is selected, show a message or use placeholder
+    if (!selectedText.trim()) {
+      // You can either show an alert or just proceed with empty text
+      // For now, let's proceed with empty text and let user fill it
+    }
+    
+    // Store the current selection for later use
+    const savedRange = range.cloneRange()
+    
+    setLinkText(selectedText)
+    setLinkUrl("")
+    setShowLinkDialog(true)
+    
+    // Store the range in a ref for later use
+    window.linkRange = savedRange
+  }, [])
+
+  const handleRemoveLink = useCallback(() => {
+    if (!editorRef.current) return
+    
+    editorRef.current.focus()
+    const selection = window.getSelection()
+    if (!selection.rangeCount) return
+    
+    const range = selection.getRangeAt(0)
+    const linkElement = range.commonAncestorContainer.nodeType === 1 
+      ? range.commonAncestorContainer.closest('a')
+      : range.commonAncestorContainer.parentElement?.closest('a')
+    
+    if (linkElement) {
+      const textContent = linkElement.textContent
+      linkElement.replaceWith(textContent)
+      const content = editorRef.current.innerHTML
+      onChange(content)
+      addToHistory(content)
+    }
+  }, [onChange, addToHistory])
+
+  const handleInsertLink = useCallback(() => {
+    if (!editorRef.current || !linkUrl.trim()) return
+    
+    editorRef.current.focus()
+    
+    // Use stored range if available, otherwise get current selection
+    let range
+    if (window.linkRange) {
+      range = window.linkRange
+      window.linkRange = null // Clear the stored range
+    } else {
+      const selection = window.getSelection()
+      if (!selection.rangeCount) return
+      range = selection.getRangeAt(0)
+    }
+    
+    const selectedText = range.toString() || linkText
+    
+    if (selectedText) {
+      const linkElement = document.createElement('a')
+      linkElement.href = linkUrl.trim()
+      linkElement.textContent = selectedText
+      linkElement.target = "_blank"
+      linkElement.rel = "noopener noreferrer"
+      
+      range.deleteContents()
+      range.insertNode(linkElement)
+      
+      const content = editorRef.current.innerHTML
+      onChange(content)
+      addToHistory(content)
+    }
+    
+    setShowLinkDialog(false)
+    setLinkUrl("")
+    setLinkText("")
+  }, [linkUrl, linkText, onChange, addToHistory])
+
+
+
+  const handleUndo = useCallback(() => {
+    if (historyIndexRef.current > 0) {
+      const newIndex = historyIndexRef.current - 1
+      historyIndexRef.current = newIndex
+      setHistoryIndex(newIndex)
+      if (editorRef.current) {
+        editorRef.current.innerHTML = history[newIndex]
+        onChange(history[newIndex])
+      }
+    }
+  }, [history, onChange])
+
+  const handleRedo = useCallback(() => {
+    if (historyIndexRef.current < history.length - 1) {
+      const newIndex = historyIndexRef.current + 1
+      historyIndexRef.current = newIndex
+      setHistoryIndex(newIndex)
+      if (editorRef.current) {
+        editorRef.current.innerHTML = history[newIndex]
+        onChange(history[newIndex])
+      }
+    }
+  }, [history, onChange])
+
+  const handleLinkClick = useCallback((e) => {
+    // Check if the clicked element is a link
+    const linkElement = e.target.closest('a')
+    if (linkElement) {
+      e.preventDefault()
+      e.stopPropagation()
+      
+      // Open link in new tab
+      const url = linkElement.href
+      if (url) {
+        window.open(url, '_blank', 'noopener,noreferrer')
+      }
+    }
+  }, [])
+
+  const handleLinkKeyDown = useCallback((e) => {
+    // Allow Enter key to open links
+    if (e.key === 'Enter') {
+      const linkElement = e.target.closest('a')
+      if (linkElement) {
+        e.preventDefault()
+        const url = linkElement.href
+        if (url) {
+          window.open(url, '_blank', 'noopener,noreferrer')
+        }
+      }
+    }
+  }, [])
+
+
 
   const ToolbarButton = ({ onClick, icon: Icon, title, isActive = false }) => (
     <button
@@ -248,6 +510,21 @@ const RichTextEditor = ({ value, onChange, placeholder }) => {
 
         <div className="w-px h-6 bg-gray-300 mx-1" />
 
+        <ToolbarButton 
+          onClick={handleUndo} 
+          icon={RotateCcw} 
+          title="Undo (Ctrl+Z)"
+          isActive={historyIndex > 0}
+        />
+        <ToolbarButton 
+          onClick={handleRedo} 
+          icon={RotateCw} 
+          title="Redo (Ctrl+Y)"
+          isActive={historyIndex < history.length - 1}
+        />
+
+        <div className="w-px h-6 bg-gray-300 mx-1" />
+
         <ToolbarButton onClick={() => handleList("ul")} icon={List} title="Bullet List" />
         <ToolbarButton onClick={() => handleList("ol")} icon={ListOrdered} title="Numbered List" />
 
@@ -256,6 +533,11 @@ const RichTextEditor = ({ value, onChange, placeholder }) => {
         <ToolbarButton onClick={() => executeCommand("justifyLeft")} icon={AlignLeft} title="Align Left" />
         <ToolbarButton onClick={() => executeCommand("justifyCenter")} icon={AlignCenter} title="Align Center" />
         <ToolbarButton onClick={() => executeCommand("justifyRight")} icon={AlignRight} title="Align Right" />
+
+        <div className="w-px h-6 bg-gray-300 mx-1" />
+
+        <ToolbarButton onClick={handleAddLink} icon={Link} title="Add Link (Ctrl+K)" />
+        <ToolbarButton onClick={handleRemoveLink} icon={Unlink} title="Remove Link" />
 
         {/* Font size */}
         <select
@@ -327,7 +609,11 @@ const RichTextEditor = ({ value, onChange, placeholder }) => {
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
         onPaste={handlePaste}
-        onKeyDown={handleKeyDown}
+        onKeyDown={(e) => {
+          handleKeyDown(e)
+          handleLinkKeyDown(e)
+        }}
+        onClick={handleLinkClick}
         className="min-h-[300px] p-4 focus:outline-none"
         style={{
           wordBreak: "break-word",
@@ -339,6 +625,77 @@ const RichTextEditor = ({ value, onChange, placeholder }) => {
         suppressContentEditableWarning={true}
         spellCheck={true}
       />
+
+      {/* Word Counter */}
+      <div className="flex justify-between items-center px-4 py-2 text-xs text-gray-500 border-t border-gray-200 bg-gray-50">
+        <span>{wordCount} words</span>
+        <span>{charCount} characters</span>
+      </div>
+
+      {/* Link Dialog */}
+      {showLinkDialog && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          onClick={() => {
+            setShowLinkDialog(false)
+            setLinkUrl("")
+            setLinkText("")
+            window.linkRange = null
+          }}
+        >
+          <div 
+            className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full mx-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Add Link</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Link Text
+                </label>
+                <input
+                  type="text"
+                  value={linkText}
+                  onChange={(e) => setLinkText(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#005B7C]"
+                  placeholder="Link text"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  URL
+                </label>
+                <input
+                  type="url"
+                  value={linkUrl}
+                  onChange={(e) => setLinkUrl(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#005B7C]"
+                  placeholder="https://example.com"
+                />
+              </div>
+            </div>
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                onClick={() => {
+                  setShowLinkDialog(false)
+                  setLinkUrl("")
+                  setLinkText("")
+                  window.linkRange = null
+                }}
+                className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleInsertLink}
+                className="px-4 py-2 bg-[#005B7C] text-white rounded-md hover:bg-[#004d66]"
+              >
+                Add Link
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <style>{`
         [contenteditable]:empty:before {
@@ -367,6 +724,15 @@ const RichTextEditor = ({ value, onChange, placeholder }) => {
         }
         [contenteditable] span[style*="font-size"] {
           line-height: 1.5;
+        }
+        [contenteditable] a {
+          color: #005B7C;
+          text-decoration: underline;
+          cursor: pointer;
+        }
+        [contenteditable] a:hover {
+          color: #004d66;
+          text-decoration: underline;
         }
       `}</style>
     </div>
