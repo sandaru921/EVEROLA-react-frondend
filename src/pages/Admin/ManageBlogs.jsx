@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom"
 import AdminNavbar from "../../components/AdminNavbar"
 import { FaEdit, FaTrash, FaPlus } from "react-icons/fa"
 import API_BASE_URL, { API_URLS } from "../../config/api"
+import AdminSidebar from "../../components/AdminSidebar"
 
 const ManageBlogs = () => {
   const navigate = useNavigate()
@@ -83,7 +84,8 @@ const ManageBlogs = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <AdminNavbar />
-      <div className="container mx-auto p-6">
+      <AdminSidebar />
+      <div className="container mx-auto p-6 ml-64 pt-30 transition-all duration-300 ">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-[#005B7C]">Manage Blogs</h1>
           <button

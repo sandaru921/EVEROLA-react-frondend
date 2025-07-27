@@ -32,6 +32,7 @@ import EditJob from "./pages/Admin/EditJob";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
 import ManageBlogs from "./pages/Admin/ManageBlogs";
 import EditBlog from "./pages/Admin/EditBlog";
+import AddBlog from "./pages/Admin/AddBlog";
 import QuizDash from "./pages/Admin/QuizDash";
 import AddQuiz from "./pages/Admin/NewQuiz";
 import TryOutQuiz from "./pages/Admin/TryOutQuiz";
@@ -87,7 +88,7 @@ function App() {
         <Route path="/admin/jobupload" element={<PostJob />} />
         <Route path="/admin/edit-job/:id" element={<EditJob />} />
         <Route path="/admin/blogs" element={<ManageBlogs />} />
-        <Route path="/admin/blogs/add" element={<EditBlog />} />
+        <Route path="/admin/blogs/add" element={<AddBlog />} />
         <Route path="/admin/blogs/edit/:id" element={<EditBlog />} />
         <Route path="/admin" element={<AdminDashboard />}>
           <Route path="/admin/quizzes" element={<QuizDash />} />

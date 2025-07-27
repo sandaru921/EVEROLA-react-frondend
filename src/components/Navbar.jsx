@@ -118,7 +118,7 @@ const Navbar = () => {
             </div>
             <ul style={styles.navLinks}>
                 <li><Link to="/about" style={styles.navLink}>About</Link></li>
-                <li><Link to="/blog" style={styles.navLink}>Blog</Link></li>
+                <li><Link to="/blogs" style={styles.navLink}>Blog</Link></li>
                 <li><Link to="/categories" style={styles.navLink}>Categories</Link></li>
                 <li>
                     <div style={styles.dropdown} ref={dropdownRef}>

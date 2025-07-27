@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import AdminNavbar from "../../components/AdminNavbar"
+import AdminSidebar from "../../components/AdminSidebar"
 import RichTextEditor from "../../components/RichTextEditor"
 import { API_URLS } from "../../config/api"
 
@@ -24,6 +25,7 @@ const EditBlog = () => {
   const [fetchLoading, setFetchLoading] = useState(isEditMode)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
+  const [contentError, setContentError] = useState("")
 
   const categories = ["Software", "Quality Assurance", "IT", "Accounting", "Digital", "Business"]
 
@@ -89,6 +91,10 @@ const EditBlog = () => {
       ...formData,
       content: content,
     })
+    // Clear content error when user starts typing
+    if (contentError) {
+      setContentError("")
+    }
   }
 
   const handleImageChange = (e) => {
@@ -124,6 +130,15 @@ const EditBlog = () => {
     setLoading(true)
     setError("")
     setSuccess("")
+    setContentError("")
+
+    // Validate content
+    const contentText = formData.content.replace(/<[^>]*>/g, '').trim()
+    if (!contentText) {
+      setContentError("Blog content is required")
+      setLoading(false)
+      return
+    }
 
     try {
       const formDataToSend = new FormData()
@@ -235,9 +250,14 @@ const EditBlog = () => {
     return (
       <div className="min-h-screen bg-gray-50">
         <AdminNavbar />
-        <div className="container mx-auto p-6 flex justify-center items-center">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-[#005B7C] border-r-transparent"></div>
-          <p className="ml-2">Loading blog data...</p>
+        <div className="pt-20">
+          <div className="flex">
+            <AdminSidebar />
+            <div className="flex-1 ml-64 p-6 flex justify-center items-center">
+              <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-[#005B7C] border-r-transparent"></div>
+              <p className="ml-2">Loading blog data...</p>
+            </div>
+          </div>
         </div>
       </div>
     )
@@ -247,115 +267,127 @@ const EditBlog = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <AdminNavbar />
-      <div className="container mx-auto p-6 max-w-4xl">
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h1 className="text-2xl font-bold text-[#005B7C] mb-6">
-            {isEditMode ? "Edit Blog Post" : "Add New Blog Post"}
-          </h1>
+      <div className="pt-20">
+        <div className="flex">
+          <AdminSidebar />
+          <div className="flex-1 ml-64 p-6">
+            <div className="max-w-4xl mx-auto">
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <h1 className="text-2xl font-bold text-[#005B7C] mb-6">
+                  {isEditMode ? "Edit Blog Post" : "Add New Blog Post"}
+                </h1>
 
-          {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">{error}</div>}
+                {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">{error}</div>}
 
-          {success && (
-            <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">{success}</div>
-          )}
+                {success && (
+                  <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">{success}</div>
+                )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
-                Blog Title
-              </label>
-              <input
-                type="text"
-                id="title"
-                name="title"
-                value={formData.title}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#005B7C]"
-                placeholder="Enter blog title"
-              />
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div>
+                    <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
+                      Blog Title
+                    </label>
+                    <input
+                      type="text"
+                      id="title"
+                      name="title"
+                      value={formData.title}
+                      onChange={handleChange}
+                      required
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#005B7C]"
+                      placeholder="Enter blog title"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
+                      Category
+                    </label>
+                    <select
+                      id="category"
+                      name="category"
+                      value={formData.category}
+                      onChange={handleChange}
+                      required
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#005B7C]"
+                    >
+                      {categories.map((category) => (
+                        <option key={category} value={category}>
+                          {category}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Blog Content <span className="text-red-500">*</span>
+                    </label>
+                    <RichTextEditor
+                      value={formData.content}
+                      onChange={handleContentChange}
+                      placeholder="Write your blog content here..."
+                    />
+                    {contentError && (
+                      <div className="mt-1 text-sm text-red-600">{contentError}</div>
+                    )}
+                  </div>
+
+                  <div>
+                    <label htmlFor="image" className="block text-sm font-medium text-gray-700 mb-1">
+                      Blog Image
+                    </label>
+                    <input
+                      type="file"
+                      id="image"
+                      name="image"
+                      onChange={handleImageChange}
+                      accept="image/jpeg,image/png,image/gif"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#005B7C]"
+                    />
+                    {formData.imagePreview && (
+                      <div className="mt-2">
+                        <img
+                          src={formData.imagePreview || "/placeholder.svg"}
+                          alt="Preview"
+                          className="h-40 object-cover rounded-md"
+                          onError={(e) => (e.target.src = "/placeholder.svg")} // Fallback for broken images
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex justify-end space-x-2">
+                    <button
+                      type="button"
+                      onClick={() => navigate("/admin/blogs")}
+                      className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
+                    >
+                      Cancel
+                    </button>
+                    {isEditMode && (
+                      <button
+                        type="button"
+                        onClick={handleDelete}
+                        className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+                        disabled={loading}
+                      >
+                        Delete
+                      </button>
+                    )}
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="px-4 py-2 bg-[#005B7C] text-white rounded-md hover:bg-[#004d66] disabled:opacity-50"
+                    >
+                      {loading ? (isEditMode ? "Updating..." : "Adding...") : isEditMode ? "Save" : "Add Blog Post"}
+                    </button>
+                  </div>
+                </form>
+              </div>
             </div>
-
-            <div>
-              <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
-                Category
-              </label>
-              <select
-                id="category"
-                name="category"
-                value={formData.category}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#005B7C]"
-              >
-                {categories.map((category) => (
-                  <option key={category} value={category}>
-                    {category}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Blog Content</label>
-              <RichTextEditor
-                value={formData.content}
-                onChange={handleContentChange}
-                placeholder="Write your blog content here..."
-              />
-            </div>
-
-            <div>
-              <label htmlFor="image" className="block text-sm font-medium text-gray-700 mb-1">
-                Blog Image
-              </label>
-              <input
-                type="file"
-                id="image"
-                name="image"
-                onChange={handleImageChange}
-                accept="image/jpeg,image/png,image/gif"
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#005B7C]"
-              />
-              {formData.imagePreview && (
-                <div className="mt-2">
-                  <img
-                    src={formData.imagePreview || "/placeholder.svg"}
-                    alt="Preview"
-                    className="h-40 object-cover rounded-md"
-                    onError={(e) => (e.target.src = "/placeholder.svg")} // Fallback for broken images
-                  />
-                </div>
-              )}
-            </div>
-
-            <div className="flex justify-end space-x-2">
-              <button
-                type="button"
-                onClick={() => navigate("/admin/blogs")}
-                className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
-              >
-                Cancel
-              </button>
-              {isEditMode && (
-                <button
-                  type="button"
-                  onClick={handleDelete}
-                  className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
-                  disabled={loading}
-                >
-                  Delete
-                </button>
-              )}
-              <button
-                type="submit"
-                disabled={loading}
-                className="px-4 py-2 bg-[#005B7C] text-white rounded-md hover:bg-[#004d66] disabled:opacity-50"
-              >
-                {loading ? (isEditMode ? "Updating..." : "Adding...") : isEditMode ? "Save" : "Add Blog Post"}
-              </button>
-            </div>
-          </form>
+          </div>
         </div>
       </div>
     </div>
