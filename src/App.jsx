@@ -26,7 +26,7 @@ import BlogDetail from "./pages/User/BlogDetail";
 
 // Admin-related imports
 import AdminChat from "./pages/Admin/AdminChat";
-import PostJob from "./pages/Admin/postjob";
+import PostJob from "./pages/Admin/PostJob";
 import AdminJobview from "./pages/Admin/AdminJobview";
 import EditJob from "./pages/Admin/EditJob";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
