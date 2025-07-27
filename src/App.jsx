@@ -40,6 +40,12 @@ import AdminDashboardquiz from "./pages/Admin/AdminDashboardquiz";
 import PermissionManager from "./pages/Admin/PermissionManager";
 
 // Component imports
+import UsersList from "./pages/Admin/UsersList";
+import UserDetails from "./pages/Admin/UserDetails";
+import { useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+//import SampleQuestions from "./pages/User/SampleQuestions";
+import QuestionsByRole from "./pages/User/QuestionsByRole";
 import ToastWrapper from "./components/ToastWrapper";
 import AuthInterceptor from "./components/AuthInterceptor";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -47,6 +53,9 @@ import AdminSearchBar from "./components/AdminSearchBar";
 
 
 
+//import LinkedInCallback from "@components/LinkedInCallback.jsx";
+import LinkedInCallback from "./components/LinkedInCallback.jsx";
+import AdminReview from "./pages/Admin/AdminReview.jsx"; // Ensure this is the correct path for your AdminReview component
 
 function App() {
   const user = JSON.parse(localStorage.getItem("user"));
@@ -95,6 +104,7 @@ function App() {
           <Route path="/admin/addNewQuiz" element={<AddQuiz />} />
           <Route path="/admin/tryout/:id" element={<TryOutQuiz />} />
         </Route>
+        <Route path="/adminreview" element={<AdminReview />} />
         <Route path="/admin/dashboardquiz" element={<AdminDashboardquiz />} />
         <Route
           path="/permission-manager"
