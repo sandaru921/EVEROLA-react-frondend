@@ -5,7 +5,7 @@
 .pnp.js
 node_modules
 /node_modules
-
+.vs
 # testing
 /coverage
 
@@ -22,3 +22,7 @@ node_modules
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+localhost*.pem
+*.pem
+

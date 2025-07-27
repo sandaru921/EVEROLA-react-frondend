@@ -1,5 +1,5 @@
 import axiosInstance from "../api/axiosInstance.js";
-import { backendBaseURL } from "./environment";
+import {backendBaseURL} from "./environment";
 
 export const useRegister = () => {
     const registerUser = async (formData) => {
@@ -7,9 +7,9 @@ export const useRegister = () => {
             const response = await axiosInstance.post(`${backendBaseURL}user/register`, formData);
 
             if (response.status === 200 || response.status === 201) {
-                return { success: true, message: "User Registered Successfully" };
+                return {success: true, message: "User Registered Successfully"};
             }
-            return { success: false, message: "Unexpected response from server." };
+            return {success: false, message: "Unexpected response from server."};
 
         } catch (error) {
             if (error.response) {
@@ -31,5 +31,21 @@ export const useRegister = () => {
         }
     };
 
-    return { registerUser };
+    const registerWithGoogle = async ({username, email, credential}) => {
+        try {
+            const response = await axiosInstance.post(`${backendBaseURL}user/google-signup`, {
+                username,
+                email,
+                credential,
+            });
+
+            return response.data;
+        } catch (error) {
+            return {
+                success: false,
+                message: error.response?.data?.message || "Google signup failed.",
+            };
+        }
+    };
+    return {registerUser, registerWithGoogle};
 };

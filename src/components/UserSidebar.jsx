@@ -52,7 +52,7 @@ const UserSidebar = ({ darkMode = false, setDarkMode = () => {}, isOpen = false,
         <ul>
           <li className="mb-2">
             <NavLink
-              to="/userdashboard"
+              to="/dashboard"
               className={({ isActive }) =>
                 `block p-3 rounded-lg text-gray-700 transition-all duration-200 ${
                   isActive ? 'bg-gray-200 text-gray-900 font-medium' : 'hover:bg-gray-200 hover:text-gray-900'

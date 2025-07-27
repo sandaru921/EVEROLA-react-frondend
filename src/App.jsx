@@ -1,80 +1,121 @@
 import "./App.css";
-import {BrowserRouter, Route, Routes} from "react-router-dom";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+
+// User-related imports
+import HomePage from "./pages/User/HomePage";
+import LoginPage from "./pages/User/LoginPage";
+import RegisterPage from "./pages/User/RegisterPage";
+import ForgotPasswordPage from "./pages/User/ForgotPasswordPage";
 import UserDashboard from "./pages/User/UserDashboard";
 import UserActivities from "./pages/User/UserActivities";
 import Invite from "./pages/User/Invite";
 import Support from "./pages/User/Support";
 import Chat from "./pages/User/Chat";
-import JobLanding from "./pages/JobLanding.jsx";
 import Contact from "./pages/User/Contact";
 import Privacy from "./pages/User/Privacy";
 import UserProfile from "./pages/User/UserProfile";
-import LoginPage from "./pages/User/LoginPage";
-import RegisterPage from "./pages/User/RegisterPage";
-import ForgotPasswordPage from "./pages/User/ForgotPasswordPage";
-import HomePage from "./pages/User/HomePage";
-import "./pages/User/HomePage.css";
+import UserJobview from "./pages/User/UserJobView";
+import JobQuizDetails from "./pages/User/JobQuizDetails";
+import AttemptQuiz from "./pages/User/AttemptQuiz";
+import SampleQuestions from "./pages/User/SampleQuestion";
+
+
+// Blog-related imports
+import Blog from "./pages/User/Blogs";
+import BlogDetail from "./pages/User/BlogDetail";
+
+// Admin-related imports
 import AdminChat from "./pages/Admin/AdminChat";
+import PostJob from "./pages/Admin/postjob";
+import AdminJobview from "./pages/Admin/AdminJobview";
+import EditJob from "./pages/Admin/EditJob";
+import AdminDashboard from "./pages/Admin/AdminDashboard";
+import ManageBlogs from "./pages/Admin/ManageBlogs";
+import EditBlog from "./pages/Admin/EditBlog";
+import QuizDash from "./pages/Admin/QuizDash";
+import AddQuiz from "./pages/Admin/NewQuiz";
+import TryOutQuiz from "./pages/Admin/TryOutQuiz";
+import AdminDashboardquiz from "./pages/Admin/AdminDashboardquiz";
+import PermissionManager from "./pages/Admin/PermissionManager";
+
+// Component imports
 import UsersList from "./pages/Admin/UsersList";
 import UserDetails from "./pages/Admin/UserDetails";
 import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
-import SampleQuestions from "./pages/User/SampleQuestions";
-import QuestionsByRole from "./pages/User/QuestionsByRole";import ToastWrapper from "./components/ToastWrapper";
-import AuthInterceptor from "@components/AuthInterceptor.jsx";
-import PermissionManager from "./pages/Admin/PermissionManager.jsx";
-import ProtectedRoute from "@components/ProtectedRoute.jsx";
-import AdminSearchBar from "@components/AdminSearchBar.jsx";
+//import SampleQuestions from "./pages/User/SampleQuestions";
+import QuestionsByRole from "./pages/User/QuestionsByRole";
+import ToastWrapper from "./components/ToastWrapper";
+import AuthInterceptor from "./components/AuthInterceptor";
+import ProtectedRoute from "./components/ProtectedRoute";
+import AdminSearchBar from "./components/AdminSearchBar";
+
+
+
 //import LinkedInCallback from "@components/LinkedInCallback.jsx";
 import LinkedInCallback from "./components/LinkedInCallback.jsx";
 import AdminReview from "./pages/Admin/AdminReview.jsx"; // Ensure this is the correct path for your AdminReview component
 
 function App() {
-    const user = JSON.parse(localStorage.getItem("user"));
+  const user = JSON.parse(localStorage.getItem("user"));
 
   return (
-    
     <BrowserRouter>
-            <AuthInterceptor /> {/* Interceptor safely inside router context */}
+      <AuthInterceptor /> {/* Interceptor safely inside router context */}
 
-            {/* Admin Search Bar (only show for logged-in admins) */}
-            {user?.permissions?.includes("admin") && <AdminSearchBar />}
+      {/* Admin Search Bar (only show for logged-in admins) */}
+      {user?.permissions?.includes("admin") && <AdminSearchBar />}
 
       <Routes>
-      
-      <Route path="/" element={<HomePage/>}/>
-        <Route path="/login" element={<LoginPage/>}/>
-        <Route path="/login/forgot-password" element={<ForgotPasswordPage/>}/>
-        <Route path="/register" element={<RegisterPage/>}/>
-
-        
-        <Route path="/userdashboard" element={<UserDashboard/>}/>
-        <Route path="/activities" element={<UserActivities/>}/>
+        {/* User Routes */}
+        <Route path="/" element={<HomePage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/login/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/sample-question-01" element={<SampleQuestions />} />
+        <Route path="/dashboard" element={<UserDashboard />} />
+        <Route path="/activities" element={<UserActivities />} />
         <Route path="/support" element={<Support />} />
         <Route path="/invite" element={<Invite />} />
         <Route path="/chat" element={<Chat />} />
-        <Route path="/Joblanding" element={<JobLanding />} />
         <Route path="/contact" element={<Contact />} />
-        <Route path="/privacy" element={<Privacy/>}/>
+        <Route path="/privacy" element={<Privacy />} />
         <Route path="/profile" element={<UserProfile />} />
-        <Route path="/adminchat" element={<AdminChat />} />
-        <Route path="/users" element={<UsersList />} />
-        <Route path="/users/:id" element={<UserDetails />} />
-        <Route path="/sample-questions" element={<SampleQuestions />} />
-         <Route path="/questions/:role" element={<QuestionsByRole />} />
-         
-        <Route path="/adminreview" element={<AdminReview />} />
+       
+        <Route path="/user/jobview" element={<UserJobview />} />
+        <Route path="/user/jobquizdetails/:id" element={<JobQuizDetails />} />
+        <Route path="/attemptquiz/:id" element={<AttemptQuiz />} />
 
-                <Route
-                    path="/permission-manager"
-                    element={
-                    <ProtectedRoute allowedRole="Admin">
-                        <PermissionManager/>
-                    </ProtectedRoute>}/>
+        {/* Blog Routes */}
+        <Route path="/blogs" element={<Blog />} />
+        <Route path="/blogs/:slug" element={<BlogDetail />} />
+
+        {/* Admin Routes */}
+        <Route path="/adminchat" element={<AdminChat />} />
+        <Route path="/admin/jobview" element={<AdminJobview />} />
+        <Route path="/admin/jobupload" element={<PostJob />} />
+        <Route path="/admin/edit-job/:id" element={<EditJob />} />
+        <Route path="/admin/blogs" element={<ManageBlogs />} />
+        <Route path="/admin/blogs/add" element={<EditBlog />} />
+        <Route path="/admin/blogs/edit/:id" element={<EditBlog />} />
+        <Route path="/admin" element={<AdminDashboard />}>
+          <Route path="/admin/quizzes" element={<QuizDash />} />
+          <Route path="/admin/addNewQuiz" element={<AddQuiz />} />
+          <Route path="/admin/tryout/:id" element={<TryOutQuiz />} />
+        </Route>
+        <Route path="/adminreview" element={<AdminReview />} />
+        <Route path="/admin/dashboardquiz" element={<AdminDashboardquiz />} />
+        <Route
+          path="/permission-manager"
+          element={
+            <ProtectedRoute allowedRole="Admin">
+              <PermissionManager />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
-            <ToastWrapper />
+      <ToastWrapper />
     </BrowserRouter>
-    
   );
 }
 
