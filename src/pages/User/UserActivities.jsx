@@ -1,225 +1,149 @@
-import {useEffect, useState} from 'react';
-import {FiMenu, FiRefreshCw, FiSearch} from 'react-icons/fi';
-import UserSidebar from "../../components/UserSidebar.jsx";
+import { useState, useEffect } from 'react';
+import UserSidebar from '../../components/UserSidebar';
+import { FiMenu } from 'react-icons/fi';
+import UserSearchBar from '../../components/UserSearchBar';
 
-
-const ProgressChart = ({ completed, total }) => {
-  const percentage = (completed / total) * 100;
-  return (
-    <div className="w-32 h-32 relative">
-      <svg className="w-full h-full" viewBox="0 0 36 36">
-        <circle
-          cx="18"
-          cy="18"
-          r="15.91549430918954"
-          fill="none"
-          stroke="#e0e0e0"
-          strokeWidth="3"
-        />
-        <circle
-          cx="18"
-          cy="18"
-          r="15.91549430918954"
-          fill="none"
-          stroke={percentage > 50 ? '#4caf50' : '#2196f3'}
-          strokeWidth="3"
-          strokeDasharray={`${percentage * 0.629, 100 - percentage * 0.629}`}
-          strokeDashoffset="25"
-          transform="rotate(-90 18 18)"
-        />
-        <text
-          x="50%"
-          y="50%"
-          textAnchor="middle"
-          dy=".3em"
-          className="text-gray-800 dark:text-gray-200 font-bold"
-        >
-          {completed}
-        </text>
-      </svg>
-    </div>
-  );
-};
+const mockQuizResults = [
+  {
+    id: 1,
+    quizId: 21,
+    score: 85,
+    totalMarks: 100,
+    submissionTime: '2025-07-15T10:30:00Z',
+    timeTaken: 1200,
+  },
+  {
+    id: 2,
+    quizId: 22,
+    score: 90,
+    totalMarks: 100,
+    submissionTime: '2025-07-16T14:45:00Z',
+    timeTaken: 1100,
+  },
+  {
+    id: 3,
+    quizId: 23,
+    score: 70,
+    totalMarks: 100,
+    submissionTime: '2025-07-17T09:00:00Z',
+    timeTaken: 1500,
+  },
+];
 
 const UserActivities = () => {
+  const [quizResults, setQuizResults] = useState([]);
   const [darkMode, setDarkMode] = useState(false);
-  const [activities, setActivities] = useState([]);
-  const [filterStatus, setFilterStatus] = useState('all');
-  const [loading, setLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const user = { username: 'Sandaru71', email: 'rohanasandaru@gmail.com', role: 'Recruiter' };
 
   useEffect(() => {
-    const fetchActivities = async () => {
-      setLoading(true);
-      try {
-        const mockData = [
-          {
-            id: 1,
-            title: 'Software Engineer Quiz',
-            completed: 30,
-            total: 50,
-            remainingTime: '23:15 hours',
-            passed: 27,
-            fastestTime: '30min',
-            totalAttempts: 32,
-            totalTime: '231min',
-            correctAnswers: 200,
-            totalAnswers: 380,
-          },
-          {
-            id: 2,
-            title: 'UI/UX Designer Quiz',
-            completed: 62,
-            total: 80,
-            remainingTime: '21:15 hours',
-            passed: 50,
-            fastestTime: '25min',
-            totalAttempts: 45,
-            totalTime: '300min',
-            correctAnswers: 300,
-            totalAnswers: 400,
-          },
-        ];
-        setActivities(mockData);
-      } catch (error) {
-        console.error('Error fetching activities:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchActivities();
+    setTimeout(() => {
+      setQuizResults(mockQuizResults);
+    }, 500);
   }, []);
 
-  const handleRefresh = () => {
-    setActivities([]);
-    setTimeout(() => {
-      const mockData = [
-        {
-          id: 1,
-          title: 'Software Engineer Quiz',
-          completed: 35,
-          total: 50,
-          remainingTime: '20:10 hours',
-          passed: 28,
-          fastestTime: '29min',
-          totalAttempts: 33,
-          totalTime: '240min',
-          correctAnswers: 210,
-          totalAnswers: 390,
-        },
-        {
-          id: 2,
-          title: 'UI/UX Designer Quiz',
-          completed: 65,
-          total: 80,
-          remainingTime: '18:30 hours',
-          passed: 52,
-          fastestTime: '24min',
-          totalAttempts: 46,
-          totalTime: '310min',
-          correctAnswers: 310,
-          totalAnswers: 410,
-        },
-      ];
-      setActivities(mockData);
-    }, 1000);
-  };
-
-  const filteredActivities = activities.filter(activity => 
-    filterStatus === 'all' || 
-    (filterStatus === 'ongoing' && activity.completed < activity.total) || 
-    (filterStatus === 'completed' && activity.completed === activity.total)
-  );
+  // Calculate stats
+  const totalQuizzes = quizResults.length;
+  const averageScore =
+    totalQuizzes === 0
+      ? 0
+      : (
+          quizResults.reduce((sum, q) => sum + q.score, 0) / totalQuizzes
+        ).toFixed(1);
+  const totalTimeSeconds = quizResults.reduce((sum, q) => sum + q.timeTaken, 0);
+  const totalTimeMinutes = Math.floor(totalTimeSeconds / 60);
+  const totalTimeSecondsLeft = totalTimeSeconds % 60;
 
   return (
-    <div className={`min-h-screen ${darkMode ? 'dark bg-gray-900' : 'bg-gray-100'}`}>
-      <UserSidebar darkMode={darkMode} setDarkMode={setDarkMode} isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} user={user} />
-      <div className="md:ml-64">
-        <header className="bg-white dark:bg-gray-800 shadow-sm p-4 flex justify-between items-center">
-          <button onClick={() => setIsSidebarOpen(true)} className="md:hidden">
-            <FiMenu size={24} className="text-gray-800 dark:text-gray-200" />
-          </button>
-          <div className="flex items-center space-x-4 w-full max-w-md">
-            <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">Hello {user.username}</h2>
-            <div className="relative flex-1">
-              <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" />
-              <input
-                type="text"
-                placeholder="Search activities"
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-200"
-              />
-            </div>
-          </div>
-        </header>
-        <main className="p-6">
-          <h2 className="text-2xl font-medium text-gray-800 dark:text-gray-200 mb-6">Ongoing Process</h2>
-          {loading ? (
-            <p className="text-gray-600 dark:text-gray-400">Loading...</p>
-          ) : filteredActivities.length === 0 ? (
-            <p className="text-gray-600 dark:text-gray-400">No activities found.</p>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {filteredActivities.map((activity) => (
-                <div key={activity.id} className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-base font-medium text-gray-700 dark:text-gray-200">{activity.title}</h3>
-                    <span className="text-sm text-gray-500 dark:text-gray-400">
-                      {activity.completed}/{activity.total} Completed
-                    </span>
-                  </div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">{activity.remainingTime}</p>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <h2 className="text-2xl font-medium text-gray-800 dark:text-gray-200 mt-8 mb-6">Process Tracker</h2>
-          {!loading && filteredActivities.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {filteredActivities.map((activity) => (
-                <div key={activity.id} className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-                  <ProgressChart completed={activity.completed} total={activity.total} />
-                  <div className="mt-4">
-                    <p className="text-sm text-gray-600 dark:text-gray-300">
-                      <span className="text-blue-600 dark:text-blue-400">■</span> {activity.passed} Passed
-                    </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-300">
-                      <span className="text-blue-600 dark:text-blue-400">■</span> {activity.fastestTime} Fastest Time
-                    </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-300">
-                      <span className="text-green-600 dark:text-green-400">■</span> {activity.correctAnswers} Correct Answers
-                    </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-300">
-                      <span className="text-green-600 dark:text-green-400">■</span> {activity.totalAnswers} Total Answers
-                    </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-300">
-                      {activity.totalAttempts} Total Quiz Attempts
-                    </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-300">
-                      {activity.totalTime} Total Time
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <div className="mt-6 flex justify-between items-center">
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-200"
+    
+    <div
+      className={`min-h-screen flex flex-col ${
+        darkMode ? 'dark bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900' : 'bg-gradient-to-br from-blue-100 via-blue-50 to-blue-100'
+      }`}
+    >
+      <UserSidebar
+        darkMode={darkMode}
+        setDarkMode={setDarkMode}
+        isOpen={isSidebarOpen}
+        setIsOpen={setIsSidebarOpen}
+        user={{ username: 'DemoUser' }}
+      />
+      
+      <div className="md:ml-64 flex-1 p-8 max-w-7xl mx-auto w-full">
+        
+        {/* Header */}
+        <header className="mb-8">
+          <div className="flex justify-between items-center">
+            <h1 className="text-4xl font-extrabold text-gray-900 dark:text-black">
+              Your Quiz Activities
+            </h1>
+            <button
+              onClick={() => setIsSidebarOpen(true)}
+              className="md:hidden p-2 rounded-md bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+              aria-label="Open sidebar"
             >
-              <option value="all">All</option>
-              <option value="ongoing">Ongoing</option>
-              <option value="completed">Completed</option>
-            </select>
-            <button onClick={handleRefresh} className="flex items-center text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-gray-100">
-              <FiRefreshCw className="mr-2" /> Refresh
+              <FiMenu size={28} className="text-gray-700 dark:text-gray-300" />
             </button>
           </div>
-        </main>
+          <p className="mt-2 text-gray-600 dark:text-black">
+            Track your progress and stay motivated!
+          </p>
+        </header>
+
+        {/* Summary Panel */}
+        <section className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 text-center transform hover:scale-[1.03] transition-transform cursor-default">
+            <p className="text-gray-500 dark:text-gray-400 uppercase font-semibold mb-2">
+              Total Quizzes Taken
+            </p>
+            <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">{totalQuizzes}</p>
+          </div>
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 text-center transform hover:scale-[1.03] transition-transform cursor-default">
+            <p className="text-gray-500 dark:text-gray-400 uppercase font-semibold mb-2">
+              Average Score
+            </p>
+            <p className="text-3xl font-bold text-green-600 dark:text-green-400">{averageScore} / 100</p>
+          </div>
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 text-center transform hover:scale-[1.03] transition-transform cursor-default">
+            <p className="text-gray-500 dark:text-gray-400 uppercase font-semibold mb-2">
+              Total Time Spent
+            </p>
+            <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">
+              {totalTimeMinutes}m {totalTimeSecondsLeft}s
+            </p>
+          </div>
+        </section>
+
+        {/* Activities List */}
+        {quizResults.length === 0 ? (
+          <p className="text-center text-gray-600 dark:text-gray-400 text-lg mt-20">
+            No activities found. Take some quizzes and your progress will show up here.
+          </p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {quizResults.map((result) => (
+              <div
+                key={result.id}
+                className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg hover:shadow-2xl transition-shadow"
+              >
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-3">
+                  Quiz ID: <span className="text-blue-600 dark:text-blue-400">{result.quizId}</span>
+                </h3>
+                <p className="text-gray-700 dark:text-gray-300 mb-1">
+                  Score:{' '}
+                  <span className="font-bold text-green-600 dark:text-green-400">
+                    {result.score} / {result.totalMarks}
+                  </span>
+                </p>
+                <p className="text-gray-700 dark:text-gray-300 mb-1">
+                  Submitted: {new Date(result.submissionTime).toLocaleString()}
+                </p>
+                <p className="text-gray-700 dark:text-gray-300">
+                  Time Taken: {Math.floor(result.timeTaken / 60)}m {result.timeTaken % 60}s
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

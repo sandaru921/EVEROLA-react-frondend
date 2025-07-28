@@ -1,13 +1,26 @@
-import { Link, NavLink } from 'react-router-dom';
+import { useContext } from 'react';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { FiMoon, FiSun } from 'react-icons/fi';
 import LogOutButton from './LogOutButton';
 import useLogout from "../data/useLogout.js";
+import { UserProfileContext } from '../context/UserProfileContext'; // Import the context
 
-const UserSidebar = ({ darkMode = false, setDarkMode = () => {}, isOpen = false, setIsOpen = () => {}, user = {} }) => {
+const UserSidebar = ({ darkMode = false, setDarkMode = () => {}, isOpen = false, setIsOpen = () => {} }) => {
   const logout = useLogout(); // get logout function
-  // Fallback values for user properties
-  const username = user.username || 'Guest';
-  const role = user.role || 'User';
+  const { userProfile, loading, error } = useContext(UserProfileContext); // Consume context
+  const username = userProfile?.name || 'Guest'; // Use name from userProfile, fallback to 'Guest'
+  const title = userProfile?.title || 'No title set'; // Show user title
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('role');
+    localStorage.removeItem('userId');
+    navigate('/login');
+  };
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
 
   return (
     <div
@@ -15,29 +28,26 @@ const UserSidebar = ({ darkMode = false, setDarkMode = () => {}, isOpen = false,
         isOpen ? 'translate-x-0' : '-translate-x-full'
       } md:translate-x-0 transition-transform duration-300 ease-in-out shadow-sm`}
     >
-      {/* Close button for mobile */}
       <button onClick={() => setIsOpen(false)} className="md:hidden mb-4">
         <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
         </svg>
       </button>
 
-      {/* User Info with Link to Profile */}
       <Link to="/profile" className="flex items-center mb-8 group">
         <img
-          src="https://via.placeholder.com/40.png?text=User"
+          src={userProfile?.profilePicture || 'https://via.placeholder.com/40.png?text=User'}
           alt="User"
           className="w-10 h-10 rounded-full mr-3 border-2 border-gray-300 group-hover:border-gray-400 transition-all duration-200"
         />
-        <div>
+        <div className="flex flex-col justify-center">
           <h3 className="text-lg font-medium text-gray-900 group-hover:text-gray-700 transition-all duration-200">
             {username}
           </h3>
-          <p className="text-sm text-gray-500">{role}</p>
+          <p className="text-sm text-gray-500">{title}</p>
         </div>
       </Link>
 
-      {/* Navigation */}
       <nav>
         <ul>
           <li className="mb-2">
@@ -52,18 +62,8 @@ const UserSidebar = ({ darkMode = false, setDarkMode = () => {}, isOpen = false,
               Dashboard
             </NavLink>
           </li>
-          <li className="mb-2">
-            <NavLink
-                to="/permission-manager"
-                className={({ isActive }) =>
-                    `block p-3 rounded-lg text-gray-700 transition-all duration-200 ${
-                        isActive ? 'bg-gray-200 text-gray-900 font-medium' : 'hover:bg-gray-200 hover:text-gray-900'
-                    }`
-                }
-            >
-              Permissions
-            </NavLink>
-          </li>
+          {/* Permissions tab removed here */}
+
           <li className="mb-2">
             <NavLink
               to="/activities"
@@ -112,10 +112,21 @@ const UserSidebar = ({ darkMode = false, setDarkMode = () => {}, isOpen = false,
               Invite
             </NavLink>
           </li>
+          <li className="mb-2">
+            {/* <NavLink
+              to="/sample-questions"
+              className={({ isActive }) =>
+                `block p-3 rounded-lg text-gray-700 transition-all duration-200 ${
+                  isActive ? 'bg-gray-200 text-gray-900 font-medium' : 'hover:bg-gray-200 hover:text-gray-900'
+                }`
+              }
+            >
+              Sample Questions
+            </NavLink> */}
+          </li>
         </ul>
       </nav>
 
-      {/* Dark Mode Toggle */}
       <div className="mt-8">
         <button
           onClick={() => setDarkMode(!darkMode)}
