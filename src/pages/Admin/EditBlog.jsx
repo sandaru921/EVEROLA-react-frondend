@@ -50,11 +50,11 @@ const EditBlog = () => {
           const blogData = await response.json()
           //Sets the form fields to the values fetched from the blog post
           setFormData({
-            title: blogData.title,
-            content: blogData.content,
-            category: blogData.category,
+            title: blogData.Title,
+            content: blogData.Content,
+            category: blogData.Category,
             image: null,
-            imagePreview: blogData.imageUrl || null, // Use Blob Storage URL directly
+            imagePreview: blogData.ImageUrl || null, // Use Blob Storage URL directly
           })
         } catch (err) {
           setError("Failed to load blog data. Please try again.")
