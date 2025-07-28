@@ -34,11 +34,11 @@ const Blog = () => {
       if (!response.ok) {
         throw new Error(`Failed to fetch blogs for category: ${category}`)
       }
-      const data = await response.json()
-
+      const data = await response.json() || ""
+      console.log("Raw data from DB:", data)
       const blogsWithSlugs = data.map((blog) => ({
         ...blog,
-        slug: createSlug(blog.title),
+        slug: createSlug(blog.Title),
       }))
 
       setBlogs(blogsWithSlugs)
@@ -113,10 +113,10 @@ const Blog = () => {
             </div>
           ) : blogs.length > 0 ? (
             blogs.map((blog) => (
-              <div key={blog.id} className="max-w-[344px] border rounded-lg shadow-md overflow-hidden bg-white mx-auto">
+              <div key={blog.Id} className="max-w-[344px] border rounded-lg shadow-md overflow-hidden bg-white mx-auto">
                 <img
-                  src={blog.imageUrl || "/placeholder.svg?height=180&width=344"}
-                  alt={blog.title}
+                  src={blog.ImageUrl || "/placeholder.svg?height=180&width=344"}
+                  alt={blog.Title}
                   className="w-full h-[180px] object-cover"
                   onError={(e) => {
                     e.target.onerror = null
@@ -124,16 +124,16 @@ const Blog = () => {
                   }}
                 />
                 <div className="p-4">
-                  <h2 className="text-lg font-semibold">{blog.title}</h2>
+                  <h2 className="text-lg font-semibold">{blog.Title}</h2>
                   <p className="text-sm text-gray-500">
-                    {new Date(blog.createdAt).toLocaleDateString("en-US", {
+                    {new Date(blog.CreatedAt).toLocaleDateString("en-US", {
                       year: "numeric",
                       month: "long",
                       day: "numeric",
                     })}
                   </p>
                   <Link
-                    to={`/blogs/${blog.slug}`}
+                    to={`/blogs/${blog.Slug}`}
                     className="text-[#005B7C] font-semibold mt-2 inline-block hover:underline flex items-center"
                   >
                     Read More →

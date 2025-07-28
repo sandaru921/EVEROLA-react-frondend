@@ -5,21 +5,7 @@ import { useParams, Link } from "react-router-dom"
 import { API_URLS } from "../../config/api"
 import DOMPurify from "dompurify"
 
-
-
-// ✅ Allow specific inline styles
-DOMPurify.addHook("uponSanitizeAttribute", (node, data) => {
-  if (data.attrName === "style") {
-    const allowedStyles = ["color", "background-color", "font-size", "text-align", "text-decoration"]
-    const filteredStyles = data.attrValue
-      .split(";")
-      .map((s) => s.trim())
-      .filter((s) => allowedStyles.some((allowed) => s.startsWith(allowed)))
-      .join("; ")
-    data.attrValue = filteredStyles
-    return data
-  }
-})
+// The custom DOMPurify.addHook block has been removed from here.
 
 const BlogDetail = () => {
   const { slug } = useParams()
@@ -36,17 +22,17 @@ const BlogDetail = () => {
         if (!response.ok) throw new Error("Failed to fetch blog")
         const data = await response.json()
 
-        // ✅ Sanitize content safely
+        // ✅ Sanitize content safely using the standard configuration. This is all you need.
         data.content = DOMPurify.sanitize(data.content, {
           ALLOWED_TAGS: [
             "p", "br", "b", "ul", "ol", "li", "h1", "h2", "h3", "h4", "h5", "h6",
             "strong", "em", "i", "u", "span", "div", "a", "img", "blockquote"
           ],
           ALLOWED_ATTR: ["style", "href", "src", "alt", "class"],
+          // This configuration correctly handles which styles are allowed.
           ALLOWED_STYLES: {
-    "*": ["color", "background-color", "font-size", "text-align", "text-decoration"]
-  }
- 
+            "*": ["color", "background-color", "font-size", "text-align", "text-decoration"]
+          }
         })
 
         setBlog(data)
@@ -101,7 +87,7 @@ const BlogDetail = () => {
           <Link to="/blogs" className="inline-flex items-center text-white hover:underline mb-4">
             ← Back to Blog
           </Link>
-          <h1 className="text-3xl md:text-4xl font-bold">{blog.title}</h1>
+          <h1 className="text-3xl md:text-4xl font-bold">{blog.Title}</h1>
         </div>
       </div>
 
@@ -109,12 +95,12 @@ const BlogDetail = () => {
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           <div className="grid md:grid-cols-2 gap-8 p-8">
             <div className="max-w-none text-gray-700 leading-relaxed blog-content">
-              <div dangerouslySetInnerHTML={{ __html: blog.content }} />
+              <div dangerouslySetInnerHTML={{ __html: blog.Content }} />
             </div>
             <div>
               <img
-                src={blog.imageUrl || "/placeholder.svg?height=400&width=600"}
-                alt={blog.title}
+                src={blog.ImageUrl || "/placeholder.svg?height=400&width=600"}
+                alt={blog.Title}
                 className="w-full h-auto rounded-lg object-cover"
                 onError={(e) => {
                   e.target.onerror = null
@@ -129,7 +115,7 @@ const BlogDetail = () => {
               <p className="text-gray-600">
                 Published on{" "}
                 <span className="font-semibold">
-                  {new Date(blog.createdAt).toLocaleDateString("en-US", {
+                  {new Date(blog.CreatedAt).toLocaleDateString("en-US", {
                     year: "numeric",
                     month: "long",
                     day: "numeric"
@@ -138,7 +124,7 @@ const BlogDetail = () => {
               </p>
               {blog.updatedAt && (
                 <p className="text-sm text-gray-500">
-                  Last updated: {new Date(blog.updatedAt).toLocaleDateString()}
+                  Last updated: {new Date(blog.UpdatedAt).toLocaleDateString()}
                 </p>
               )}
             </div>
@@ -206,14 +192,6 @@ const BlogDetail = () => {
         .blog-content h1 { font-size: 2rem; }
         .blog-content h2 { font-size: 1.5rem; }
         .blog-content h3 { font-size: 1.25rem; }
-
-      
-        .blog-content span[style*="background-color"] {
-          background-color: inherit;
-        }
-       
-      
-}
       `}</style>
     </div>
   )
