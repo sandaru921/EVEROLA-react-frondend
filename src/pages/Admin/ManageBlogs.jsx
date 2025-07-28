@@ -28,6 +28,7 @@ const ManageBlogs = () => {
         throw new Error("Failed to fetch blogs")
       }
       const data = await response.json()
+      console.log("Fetched Data: ",data);
       setBlogs(data)
       setError("")
     } catch (err) {
@@ -55,7 +56,7 @@ const ManageBlogs = () => {
         throw new Error("Failed to delete blog")
       }
 
-      setBlogs(blogs.filter((blog) => blog.id !== deleteId))
+      setBlogs(blogs.filter((blog) => blog.Id !== deleteId))
       setShowDeleteModal(false)
       setError("")
     } catch (err) {
@@ -138,11 +139,11 @@ const ManageBlogs = () => {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {blogs.map((blog) => (
-                    <tr key={blog.id}>
+                    <tr key={blog.Id}>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <img
-                          src={blog.imageUrl || "/placeholder.svg?height=50&width=50"}
-                          alt={blog.title}
+                          src={blog.ImageUrl || "/placeholder.svg?height=50&width=50"}
+                          alt={blog.Title}
                           className="h-10 w-10 rounded-full object-cover"
                           onError={(e) => {
                             e.target.onerror = null
@@ -151,29 +152,29 @@ const ManageBlogs = () => {
                         />
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{blog.title}</div>
+                        <div className="text-sm font-medium text-gray-900">{blog.Title}</div>
                         <div className="text-xs text-blue-500">
-                          <a href={`/blogs/${createSlug(blog.title)}`} target="_blank" rel="noopener noreferrer">
+                          <a href={`/blogs/${createSlug(blog.Title)}`} target="_blank" rel="noopener noreferrer">
                             View Live
                           </a>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                          {blog.category}
+                          {blog.Category}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(blog.createdAt).toLocaleDateString()}
+                        {new Date(blog.CreatedAt).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <button
-                          onClick={() => handleEditBlog(blog.id)}
+                          onClick={() => handleEditBlog(blog.Id)}
                           className="text-indigo-600 hover:text-indigo-900 mr-4"
                         >
                           <FaEdit className="inline mr-1" /> Edit
                         </button>
-                        <button onClick={() => handleDeleteClick(blog.id)} className="text-red-600 hover:text-red-900">
+                        <button onClick={() => handleDeleteClick(blog.Id)} className="text-red-600 hover:text-red-900">
                           <FaTrash className="inline mr-1" /> Delete
                         </button>
                       </td>
