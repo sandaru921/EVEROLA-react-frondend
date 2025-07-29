@@ -7,8 +7,8 @@ import {useRegister} from "../../data/useRegister";
 import {ErrorBanner} from "@components/ErrorBanner.jsx";
 import {toast} from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
-import {jwtDecode} from "jwt-decode";
-import {GoogleLogin} from "@react-oauth/google";
+// import {jwtDecode} from "jwt-decode";
+// import {GoogleLogin} from "@react-oauth/google";
 
 const styles = {
     container: {

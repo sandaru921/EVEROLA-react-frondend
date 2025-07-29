@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { FaTimes, FaUpload } from 'react-icons/fa';
-import Autosuggest from 'react-autosuggest';
+// import Autosuggest from 'react-autosuggest';
 import AdminNavbar from '../../components/AdminNavbar';
 import AdminSidebar from '../../components/AdminSidebar';
 

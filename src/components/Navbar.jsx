@@ -1,155 +1,346 @@
-import React, {useEffect, useRef, useState} from "react";
-import {Link} from "react-router-dom";
-import logo from "../assets/logo.jpg";
+import React, { useState, useEffect, useRef } from "react";
+import { FaUserCircle, FaBars, FaTimes } from "react-icons/fa";
 
-const styles = {
-    navbar: {
-        position: "fixed",
-        width: "100%",
-        top: 0,
-        left: 0,
-        background: "white",
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        padding: "5px",
-        boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
-        zIndex: 1000,
-    },
-    logo: {
-        width: "50px",
-    },
-    hamburger: {
-        fontSize: "24px",
-        cursor: "pointer",
-        display: "none",
-    },
-    navLinks: {
-        display: "flex",
-        gap: "20px",
-        listStyle: "none",
-    },
-    navLink: {
-        textDecoration: "none",
-        color: "black",
-        fontWeight: "500",
-    },
-    mobileMenu: {
-        display: "none",
-        flexDirection: "column",
-        gap: "15px",
-        marginTop: "10px",
-    },
-    authButtons: {
-        display: "flex",
-        gap: "10px",
-    },
-    loginButton: {
-        padding: "10px 20px",
-        background: "#005b7c",
-        color: "white",
-        borderRadius: "10px",
-        border: "none",
-        cursor: "pointer",
-    },
-    registerButton: {
-        padding: "9px 18px",
-        background: "#008eab",
-        color: "white",
-        borderRadius: "10px",
-        border: "1px solid #007bff",
-        cursor: "pointer",
-    },
-    dropdown: {
-        position: "relative",
-    },
-    dropbtn: {
-        cursor: "pointer",
-        color: "black",
-        fontWeight: "500",
-        background: "none",
-        border: "none",
-    },
-    dropdownContent: {
-        display: "none",
-        position: "absolute",
-        backgroundColor: "#f9f9f9",
-        minWidth: "160px",
-        boxShadow: "0px 8px 16px rgba(0,0,0,0.2)",
-        zIndex: 1,
-        borderRadius: "5px",
-        marginTop: "10px",
-    },
-    dropdownContentShow: {
-        display: "block",
-    },
-    dropdownItem: {
-        color: "black",
-        padding: "12px 16px",
-        textDecoration: "none",
-        display: "block",
-        textAlign: "left",
-    },
-};
+const Navbar = ({ isAuthenticated, isAdmin }) => {
+  const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
+  const [questionsDropdownOpen, setQuestionsDropdownOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedQuestion, setSelectedQuestion] = useState("");
 
-const Navbar = () => {
-    const [dropdownOpen, setDropdownOpen] = useState(false);
-    const dropdownRef = useRef(null);
+  const categoryDropdownRef = useRef(null);
+  const questionsDropdownRef = useRef(null);
+  const mobileMenuRef = useRef(null);
 
-    const toggleDropdown = () => {
-        setDropdownOpen(!dropdownOpen);
-    };
-
+  // Close dropdowns and mobile menu when clicking outside
+  useEffect(() => {
     const handleClickOutside = (event) => {
-        if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-            setDropdownOpen(false);
-        }
+      if (categoryDropdownRef.current && !categoryDropdownRef.current.contains(event.target)) {
+        setCategoryDropdownOpen(false);
+      }
+      if (questionsDropdownRef.current && !questionsDropdownRef.current.contains(event.target)) {
+        setQuestionsDropdownOpen(false);
+      }
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target)) {
+        setMobileMenuOpen(false);
+      }
     };
 
-    useEffect(() => {
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
-    return (
-        <nav style={styles.navbar}>
-            <div style={styles.logo}>
-                <img src={logo} alt="Logo" style={{width: "100%"}}/>
-            </div>
-            <ul style={styles.navLinks}>
-                <li><Link to="/about" style={styles.navLink}>About</Link></li>
-                <li><Link to="/blogs" style={styles.navLink}>Blog</Link></li>
-                <li><Link to="/categories" style={styles.navLink}>Categories</Link></li>
+  const handleCategorySelect = (category) => {
+    setSelectedCategory(category);
+    setCategoryDropdownOpen(false);
+    setMobileMenuOpen(false);
+  };
+
+  const handleQuestionSelect = (question) => {
+    setSelectedQuestion(question);
+    setQuestionsDropdownOpen(false);
+    setMobileMenuOpen(false);
+  };
+
+  const navigate = (path) => {
+    console.log(`Navigating to: ${path}`);
+  };
+
+  return (
+    <header className="fixed top-0 left-0 w-full bg-white py-4 px-6 md:px-8 flex justify-between items-center z-50 shadow-lg rounded-b-2xl">
+      {/* Logo */}
+      <div className="flex items-center">
+        <img src="/img/logo3.png" alt="Logo" className="h-10 md:h-12" />
+      </div>
+
+      {/* Desktop Navigation */}
+      <nav className="hidden lg:flex items-center space-x-8">
+        <ul className="flex space-x-8 list-none">
+          <li>
+            <a href="/" className="text-gray-800 text-lg font-medium hover:text-[#005B7C] transition-colors duration-300">
+              Home
+            </a>
+          </li>
+          <li>
+            <a href="/blogs" className="text-gray-800 text-lg font-medium hover:text-[#005B7C] transition-colors duration-300">
+              Blog
+            </a>
+          </li>
+          {/* Categories Dropdown */}
+          <li className="relative" ref={categoryDropdownRef}>
+            <a
+              href="#categories"
+              className="text-gray-800 text-lg font-medium hover:text-[#005B7C] transition-colors duration-300 cursor-pointer"
+              onClick={(e) => {
+                e.preventDefault();
+                setCategoryDropdownOpen(!categoryDropdownOpen);
+              }}
+            >
+              Categories
+            </a>
+            {categoryDropdownOpen && (
+              <ul className="absolute top-full left-0 bg-white shadow-xl rounded-lg py-3 w-56 mt-2 border border-gray-200 transform transition-all duration-300 ease-in-out">
                 <li>
-                    <div style={styles.dropdown} ref={dropdownRef}>
-                        <button style={styles.dropbtn} onClick={toggleDropdown}>
-                            Sample Question <i className="fa fa-caret-down"></i>
-                        </button>
-                        <div
-                            style={{
-                                ...styles.dropdownContent,
-                                ...(dropdownOpen ? styles.dropdownContentShow : {}),
-                            }}
-                        >
-                            <Link to="/sample-question-01" style={styles.dropdownItem}>Senior Software Engineer</Link>
-                            <Link to="/sample-question-02" style={styles.dropdownItem}>Intern Software Engineer</Link>
-                            <Link to="/sample-question-03" style={styles.dropdownItem}>Backend Developer</Link>
-                        </div>
-                    </div>
+                  <a
+                    href="#question1"
+                    className="block px-4 py-2 text-gray-700 hover:bg-[#E6EFF2] hover:text-[#005B7C] transition-all duration-200 rounded-md mx-2"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleCategorySelect('Software Engineering');
+                    }}
+                  >
+                    Software Engineering
+                  </a>
                 </li>
-                <li><Link to="/contact" style={styles.navLink}>Contact</Link></li>
-            </ul>
-            <div style={styles.authButtons}>
-                <Link to="/login">
-                    <button style={styles.loginButton}>Login</button>
-                </Link>
-                <Link to="/register">
-                    <button style={styles.registerButton}>Signup</button>
-                </Link>
-            </div>
+                <li>
+                  <a
+                    href="#question2"
+                    className="block px-4 py-2 text-gray-700 hover:bg-[#E6EFF2] hover:text-[#005B7C] transition-all duration-200 rounded-md mx-2"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleCategorySelect('Project Manager');
+                    }}
+                  >
+                    Project Manager
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#question3"
+                    className="block px-4 py-2 text-gray-700 hover:bg-[#E6EFF2] hover:text-[#005B7C] transition-all duration-200 rounded-md mx-2"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleCategorySelect('Business Analytics');
+                    }}
+                  >
+                    Business Analytics
+                  </a>
+                </li>
+              </ul>
+            )}
+          </li>
+          {/* Sample Questions Dropdown */}
+          <li className="relative" ref={questionsDropdownRef}>
+            <a
+              href="#questions"
+              className="text-gray-800 text-lg font-medium hover:text-[#005B7C] transition-colors duration-300 cursor-pointer"
+              onClick={(e) => {
+                e.preventDefault();
+                setQuestionsDropdownOpen(!questionsDropdownOpen);
+              }}
+            >
+              Sample Questions
+            </a>
+            {questionsDropdownOpen && (
+              <ul className="absolute top-full left-0 bg-white shadow-xl rounded-lg py-3 w-56 mt-2 border border-gray-200 transform transition-all duration-300 ease-in-out">
+                <li>
+                  <a
+                    href="#question1"
+                    className="block px-4 py-2 text-gray-700 hover:bg-[#E6EFF2] hover:text-[#005B7C] transition-all duration-200 rounded-md mx-2"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleQuestionSelect('Software Engineering');
+                    }}
+                  >
+                    Software Engineering
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#question2"
+                    className="block px-4 py-2 text-gray-700 hover:bg-[#E6EFF2] hover:text-[#005B7C] transition-all duration-200 rounded-md mx-2"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleQuestionSelect('Project Manager');
+                    }}
+                  >
+                    Project Manager
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#question3"
+                    className="block px-4 py-2 text-gray-700 hover:bg-[#E6EFF2] hover:text-[#005B7C] transition-all duration-200 rounded-md mx-2"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleQuestionSelect('Business Analytics');
+                    }}
+                  >
+                    Business Analytics
+                  </a>
+                </li>
+              </ul>
+            )}
+          </li>
+          <li>
+            <a href="/contact" className="text-gray-800 text-lg font-medium hover:text-[#005B7C] transition-colors duration-300">
+              Contact
+            </a>
+          </li>
+          <li>
+            <a href="/privacy" className="text-gray-800 text-lg font-medium hover:text-[#005B7C] transition-colors duration-300">
+              Policy
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      {/* Mobile Menu Button */}
+      <div className="lg:hidden flex items-center">
+        <button
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className="text-gray-800 hover:text-[#005B7C] focus:outline-none"
+        >
+          {mobileMenuOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
+        </button>
+      </div>
+
+      {/* Mobile Navigation Menu */}
+      {mobileMenuOpen && (
+        <nav
+          ref={mobileMenuRef}
+          className="lg:hidden absolute top-full left-0 w-full bg-white shadow-lg py-4 px-6 flex flex-col space-y-4 border-t border-gray-200"
+        >
+          <a href="/" className="text-gray-800 text-lg font-medium hover:text-[#005B7C] transition-colors duration-300">
+            Home
+          </a>
+          <a href="/blogs" className="text-gray-800 text-lg font-medium hover:text-[#005B7C] transition-colors duration-300">
+            Blog
+          </a>
+          {/* Mobile Categories Dropdown */}
+          <div className="relative">
+            <button
+              className="text-gray-800 text-lg font-medium hover:text-[#005B7C] transition-colors duration-300 w-full text-left"
+              onClick={() => setCategoryDropdownOpen(!categoryDropdownOpen)}
+            >
+              Categories
+            </button>
+            {categoryDropdownOpen && (
+              <ul className="bg-gray-50 rounded-lg py-2 mt-2 border border-gray-200">
+                <li>
+                  <a
+                    href="#question1"
+                    className="block px-4 py-2 text-gray-700 hover:bg-[#E6EFF2] hover:text-[#005B7C] transition-all duration-200"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleCategorySelect('Software Engineering');
+                    }}
+                  >
+                    Software Engineering
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#question2"
+                    className="block px-4 py-2 text-gray-700 hover:bg-[#E6EFF2] hover:text-[#005B7C] transition-all duration-200"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleCategorySelect('Project Manager');
+                    }}
+                  >
+                    Project Manager
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#question3"
+                    className="block px-4 py-2 text-gray-700 hover:bg-[#E6EFF2] hover:text-[#005B7C] transition-all duration-200"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleCategorySelect('Business Analytics');
+                    }}
+                  >
+                    Business Analytics
+                  </a>
+                </li>
+              </ul>
+            )}
+          </div>
+          {/* Mobile Sample Questions Dropdown */}
+          <div className="relative">
+            <button
+              className="text-gray-800 text-lg font-medium hover:text-[#005B7C] transition-colors duration-300 w-full text-left"
+              onClick={() => setQuestionsDropdownOpen(!questionsDropdownOpen)}
+            >
+              Sample Questions
+            </button>
+            {questionsDropdownOpen && (
+              <ul className="bg-gray-50 rounded-lg py-2 mt-2 border border-gray-200">
+                <li>
+                  <a
+                    href="#question1"
+                    className="block px-4 py-2 text-gray-700 hover:bg-[#E6EFF2] hover:text-[#005B7C] transition-all duration-200"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleQuestionSelect('Software Engineering');
+                    }}
+                  >
+                    Software Engineering
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#question2"
+                    className="block px-4 py-2 text-gray-700 hover:bg-[#E6EFF2] hover:text-[#005B7C] transition-all duration-200"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleQuestionSelect('Project Manager');
+                    }}
+                  >
+                    Project Manager
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#question3"
+                    className="block px-4 py-2 text-gray-700 hover:bg-[#E6EFF2] hover:text-[#005B7C] transition-all duration-200"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleQuestionSelect('Business Analytics');
+                    }}
+                  >
+                    Business Analytics
+                  </a>
+                </li>
+              </ul>
+            )}
+          </div>
+          <a href="/contact" className="text-gray-800 text-lg font-medium hover:text-[#005B7C] transition-colors duration-300">
+            Contact
+          </a>
+          <a href="/privacy" className="text-gray-800 text-lg font-medium hover:text-[#005B7C] transition-colors duration-300">
+            Policy
+          </a>
         </nav>
-    );
+      )}
+
+      {/* Authentication Buttons */}
+      <div className="flex items-center space-x-4">
+        {isAuthenticated ? (
+          <FaUserCircle
+            className="text-gray-700 cursor-pointer hover:text-[#005B7C] transition-colors duration-300"
+            size={30}
+            onClick={() => navigate("/profile")}
+          />
+        ) : (
+          <div className="flex space-x-3">
+            <a href="/login">
+              <button className="bg-[#005B7C] text-white px-4 py-2 rounded-full hover:bg-[#004d66] transition-colors duration-300 text-sm md:text-base">
+                Login
+              </button>
+            </a>
+            <a href="/register">
+              <button className="bg-[#008CBA] text-white px-4 py-2 rounded-full hover:bg-[#007399] transition-colors duration-300 text-sm md:text-base">
+                Register
+              </button>
+            </a>
+          </div>
+        )}
+      </div>
+    </header>
+  );
 };
 
 export default Navbar;
-

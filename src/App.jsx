@@ -2,7 +2,7 @@ import "./App.css";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 
 // User-related imports
-import HomePage from "./pages/User/HomePage";
+import HomePage from "./pages/User/Home";
 import LoginPage from "./pages/User/LoginPage";
 import RegisterPage from "./pages/User/RegisterPage";
 import ForgotPasswordPage from "./pages/User/ForgotPasswordPage";

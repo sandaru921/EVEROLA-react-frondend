@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import { Clock, CheckCircle, XCircle, ArrowLeft, ArrowRight, Home } from "lucide-react";
-import { jwtDecode } from "jwt-decode";
+// import { jwtDecode } from "jwt-decode";
 
 const AttemptQuiz = () => {
   const { id } = useParams();
