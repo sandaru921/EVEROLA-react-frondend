@@ -63,20 +63,6 @@ const styles = {
         cursor: "pointer",
         color: "#666",
     },
-    submitButton: {
-        width: "100%",
-        padding: "10px",
-        backgroundColor: "#005b7c",
-        color: "white",
-        border: "none",
-        borderRadius: "6px",
-        fontSize: "16px",
-        cursor: "pointer",
-        marginTop: "10px",
-    },
-    submitButtonHover: {
-        backgroundColor: "#5e92a8",
-    },
     alternativeText: {
         fontSize: "14px",
         color: "#555",
@@ -87,24 +73,6 @@ const styles = {
         fontSize: '14px',
         color: '#555',
     },
-    link: {
-        textDecoration: "none",
-        color: "#008cba",
-        fontWeight: "bold",
-    },
-    socialButton: {
-        marginTop: '20px',
-        backgroundColor: "#fff",
-        color: "#5f6368",
-        border: "1px solid #dadce0",
-        borderRadius: "4px",
-        fontSize: "14px",
-        fontWeight: "500",
-        padding: "10px 24px",
-        cursor: "pointer",
-        fontFamily: "'Roboto', sans-serif",
-        boxShadow: "0px 1px 2px rgba(0,0,0,0.1)",
-    }
 };
 
 const RegisterPage = () => {
@@ -229,7 +197,9 @@ const RegisterPage = () => {
         <div style={styles.container}>
             <div style={styles.box}>
                 <div>
-                    <img src={logo} alt="logo" style={styles.logo}/>
+                    <Link to={"/"}>
+                        <img src={logo} alt="logo" style={styles.logo}/>
+                    </Link>
                 </div>
                 <h2 style={styles.heading}>GET STARTED</h2>
                 {error && <ErrorBanner message={error} onClose={() => setError(null)}/>}
@@ -297,7 +267,8 @@ const RegisterPage = () => {
                             </button>
                         </div>
                     </div>
-                    <button type="submit" style={styles.submitButton}>
+                    <button type="submit"
+                            className="w-full py-2 px-4 bg-[#005b7c] text-white rounded-md text-base font-medium hover:bg-[#007a9e] transition">
                         Sign Up
                     </button>
                 </form>
@@ -322,7 +293,7 @@ const RegisterPage = () => {
 
                 <p style={styles.signinText}>
                     Already have an account?{' '}
-                    <Link to="/login" style={styles.link}>
+                    <Link to="/login" className="text-[#008cba] font-bold hover:text-[#0073a6] transition">
                         Sign In
                     </Link>
                 </p>

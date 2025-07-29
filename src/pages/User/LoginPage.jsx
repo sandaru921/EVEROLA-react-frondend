@@ -70,22 +70,6 @@ const styles = {
         justifyContent: 'center',
         gap: '20px',
     },
-    loginButton: {
-        borderRadius: '10px',
-        padding: '10px 30px',
-        backgroundColor: '#005b7c',
-        color: 'white',
-        border: 'none',
-        cursor: 'pointer',
-    },
-    signupButton: {
-        borderRadius: '10px',
-        padding: '9px 28px',
-        backgroundColor: '#008eab',
-        color: 'white',
-        border: 'none',
-        cursor: 'pointer',
-    },
     alternativeSignin: {
         margin: '20px 0',
         fontSize: '14px',
@@ -109,11 +93,6 @@ const styles = {
         fontSize: '14px',
         color: '#555',
     },
-    signupLink: {
-        color: '#008cba',
-        textDecoration: 'none',
-        fontWeight: "bold"
-    }
 };
 
 const LoginPage = () => {
@@ -190,7 +169,9 @@ const LoginPage = () => {
         <div style={styles.container}>
             <div style={styles.box}>
                 <div>
-                    <img src={logo} alt="logo" style={styles.logo}/>
+                    <Link to={"/"}>
+                        <img src={logo} alt="logo" style={styles.logo}/>
+                    </Link>
                 </div>
                 <h2 style={styles.heading}>
                     Hello, <strong style={styles.strong}>Welcome!</strong>
@@ -234,11 +215,17 @@ const LoginPage = () => {
                             />
                             <label> Remember me</label>
                         </div>
-                        <Link to="/login/forgot-password">Forgot password</Link>
+                        <Link to="/login/forgot-password" className="text-black hover:text-blue-800">
+                            Forgot password</Link>
                     </div>
                     <div style={styles.buttonGroup}>
-                        <button type="submit" style={styles.loginButton}>Login</button>
-                        <button type="button" style={styles.signupButton} onClick={handleSignUp}>Signup</button>
+                        <button type="submit"
+                                className="bg-[#005b7c] hover:bg-[#004661] text-white px-6 py-2 rounded-xl transition-colors duration-300">Login
+                        </button>
+                        <button type="button"
+                                className="bg-[#008eab] hover:bg-[#007990] text-white px-5 py-2 rounded-xl transition-colors duration-300"
+                                onClick={handleSignUp}>Signup
+                        </button>
                     </div>
                 </form>
 
@@ -270,7 +257,9 @@ const LoginPage = () => {
                     />
                 </div>
                 <p style={styles.signupText}>
-                    Don’t have an account? <Link to="/register" style={styles.signupLink}>Sign Up</Link>
+                    Don’t have an account? <Link to="/register"
+                                                 className={"text-[#008cba] font-bold hover:text-[#0073a6] transition"}>
+                    Sign Up</Link>
                 </p>
             </div>
         </div>

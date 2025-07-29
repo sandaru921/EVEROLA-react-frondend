@@ -19,11 +19,6 @@ const styles = {
     logo: {
         width: "50px",
     },
-    hamburger: {
-        fontSize: "24px",
-        cursor: "pointer",
-        display: "none",
-    },
     navLinks: {
         display: "flex",
         gap: "20px",
@@ -43,22 +38,6 @@ const styles = {
     authButtons: {
         display: "flex",
         gap: "10px",
-    },
-    loginButton: {
-        padding: "10px 20px",
-        background: "#005b7c",
-        color: "white",
-        borderRadius: "10px",
-        border: "none",
-        cursor: "pointer",
-    },
-    registerButton: {
-        padding: "9px 18px",
-        background: "#008eab",
-        color: "white",
-        borderRadius: "10px",
-        border: "1px solid #007bff",
-        cursor: "pointer",
     },
     dropdown: {
         position: "relative",
@@ -114,7 +93,9 @@ const Navbar = () => {
     return (
         <nav style={styles.navbar}>
             <div style={styles.logo}>
-                <img src={logo} alt="Logo" style={{width: "100%"}}/>
+                <Link to={"/"}>
+                    <img src={logo} alt="Logo" style={{width: "100%"}}/>
+                </Link>
             </div>
             <ul style={styles.navLinks}>
                 <li><Link to="/about" style={styles.navLink}>About</Link></li>
@@ -131,9 +112,10 @@ const Navbar = () => {
                                 ...(dropdownOpen ? styles.dropdownContentShow : {}),
                             }}
                         >
-                            <Link to="/sample-question-01" style={styles.dropdownItem}>Senior Software Engineer</Link>
-                            <Link to="/sample-question-02" style={styles.dropdownItem}>Intern Software Engineer</Link>
-                            <Link to="/sample-question-03" style={styles.dropdownItem}>Backend Developer</Link>
+                            <Link to="/sample-question-01" style={styles.dropdownItem}>Full Stack Developer</Link>
+                            <Link to="/sample-question-02" style={styles.dropdownItem}>Web developer</Link>
+                            <Link to="/sample-question-03" style={styles.dropdownItem}>Game Developer</Link>
+                            <Link to="/sample-question-03" style={styles.dropdownItem}>DevOps Engineer</Link>
                         </div>
                     </div>
                 </li>
@@ -141,10 +123,15 @@ const Navbar = () => {
             </ul>
             <div style={styles.authButtons}>
                 <Link to="/login">
-                    <button style={styles.loginButton}>Login</button>
+                    <button
+                        className={"px-6 py-2 bg-[#005b7c] text-white rounded-[10px] hover:bg-[#006f8c] transition"}>Login
+                    </button>
                 </Link>
                 <Link to="/register">
-                    <button style={styles.registerButton}>Signup</button>
+                    <button
+                        className={"px-5 py-2 bg-[#008eab] text-white rounded-[10px]  hover:bg-[#00a7c4] transition"}>
+                        Signup
+                    </button>
                 </Link>
             </div>
         </nav>

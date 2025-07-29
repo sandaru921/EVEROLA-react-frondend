@@ -101,7 +101,7 @@ const QuizPage = () => {
         <div style={{backgroundColor: "#9eb4bf", minHeight: "80vh"}}>
             <Navbar/>
             <div className="max-w-3xl mx-auto p-16 bg-blue-50 rounded-lg shadow-md mt-4">
-                <h1 className="text-3xl font-bold mb-6" style={{color: '#005b7c'}}>Intern Software Engineer Quiz</h1>
+                <h1 className="text-3xl font-bold mb-6" style={{color: '#005b7c'}}>Full Stack Developer Quiz</h1>
 
                 {questions.map((q) => {
                     const userResponse = responses[q.id];

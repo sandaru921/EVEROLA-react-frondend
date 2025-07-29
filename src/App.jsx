@@ -9,35 +9,18 @@ import JobLanding from "./pages/JobLanding.jsx";
 import Contact from "./pages/User/Contact";
 import Privacy from "./pages/User/Privacy";
 import UserProfile from "./pages/User/UserProfile";
-
-// Blog-related imports from current
-import Blog from "./pages/User/Blogs";
-import BlogDetail from "./pages/User/BlogDetail";
-
 // Admin-related imports
 import AdminChat from "./pages/Admin/AdminChat"; // From incoming
-import ManageBlogs from "./pages/Admin/ManageBlogs"; // From current
-import EditBlog from "./pages/Admin/EditBlog"; // From current
 import AdminDashboard from "./pages/Admin/AdminDashboard";
-
-
-
-// import Blog from "./pages/User/Blogs.jsx";
-// import BlogDetail from "./pages/User/BlogDetail.jsx";
-// import AdminDashboard from "./pages/Admin/AdminDashboard.jsx";
 import QuizDash from "./pages/Admin/QuizDash.jsx";
 import AddQuiz from "./pages/Admin/NewQuiz.jsx";
 import TryOutQuiz from "./pages/Admin/TryOutQuiz.jsx";
-
-
 import LoginPage from "./pages/User/LoginPage";
 import RegisterPage from "./pages/User/RegisterPage";
 import ForgotPasswordPage from "./pages/User/ForgotPasswordPage";
 import HomePage from "./pages/User/HomePage";
-import SampleQuestions from "./pages/User/SampleQuestion.jsx";
-//import AdminChat from "./pages/Admin/AdminChat";
-//import Blog from "./pages/User/Blogs.jsx";
-//import BlogDetail from "./pages/User/BlogDetail.jsx";
+import SampleQuestions01 from "./pages/User/SampleQuestion01";
+import SampleQuestions02 from "./pages/User/SampleQuestion02";
 import ToastWrapper from "./components/ToastWrapper";
 import AuthInterceptor from "@components/AuthInterceptor.jsx";
 import PermissionManager from "./pages/Admin/PermissionManager.jsx";
@@ -59,23 +42,49 @@ function App() {
                 <Route path="/login" element={<LoginPage/>}/>
                 <Route path="/login/forgot-password" element={<ForgotPasswordPage/>}/>
                 <Route path="/register" element={<RegisterPage/>}/>
-                <Route path="/sample-question-01" element={<SampleQuestions/>}/>
-                <Route path="/userdashboard" element={<UserDashboard/>}/>
-                <Route path="/activities" element={<UserActivities/>}/>
-                <Route path="/support" element={<Support/>}/>
-                <Route path="/invite" element={<Invite/>}/>
-                <Route path="/chat" element={<Chat/>}/>
+                <Route path="/sample-question-01" element={<SampleQuestions01/>}/>
+                <Route path="/sample-question-02" element={<SampleQuestions02/>}/>
+                <Route path="/userdashboard"
+                       element={
+                           <ProtectedRoute>
+                               <UserDashboard/>
+                           </ProtectedRoute>
+                       }/>
+                <Route path="/activities"
+                       element={
+                           <ProtectedRoute>
+                               <UserActivities/>
+                           </ProtectedRoute>
+                       }/>
+                <Route path="/support"
+                       element={
+                           <ProtectedRoute>
+                               <Support/>
+                           </ProtectedRoute>
+                       }/>
+                <Route path="/invite"
+                       element={
+                           <ProtectedRoute>
+                               <Invite/>
+                           </ProtectedRoute>
+                       }/>
+                <Route path="/chat"
+                       element={
+                           <ProtectedRoute>
+                               <Chat/>
+                           </ProtectedRoute>
+                       }/>
                 <Route path="/Joblanding" element={<JobLanding/>}/>
                 <Route path="/contact" element={<Contact/>}/>
                 <Route path="/privacy" element={<Privacy/>}/>
                 <Route path="/profile" element={<UserProfile/>}/>
                 <Route path="/adminchat" element={<AdminChat/>}/>
-                <Route path="/admindashboard" element={<AdminDashboard />} />
-                <Route path="/admin" element={<AdminDashboard />}>
-                    <Route path="/admin/quizzes" element={<QuizDash />} />
-                    <Route path="/admin/addNewQuiz" element={<AddQuiz />} />
-                    <Route path="/admin/tryout/:id" element={<TryOutQuiz />} />
-          {/* Add more nested routes if needed */}
+                <Route path="/admindashboard" element={<AdminDashboard/>}/>
+                <Route path="/admin" element={<AdminDashboard/>}>
+                    <Route path="/admin/quizzes" element={<QuizDash/>}/>
+                    <Route path="/admin/addNewQuiz" element={<AddQuiz/>}/>
+                    <Route path="/admin/tryout/:id" element={<TryOutQuiz/>}/>
+                    {/* Add more nested routes if needed */}
                 </Route>
                 <Route
                     path="/permission-manager"

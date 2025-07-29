@@ -5,7 +5,7 @@ import Navbar from "../../components/Navbar.jsx";
 
 const HomePage = () => {
     return (
-        <div className="homepage" style={{backgroundColor: "#4cbad1", minHeight: "100vh"}}>
+        <div className="homepage" style={{backgroundColor: "#9eb4bf", minHeight: "100vh"}}>
             <Navbar/>
             <div className="flex items-center justify-center px-0 pt-38 pb-12">
                 <div className="flex flex-col md:flex-row items-center justify-center gap-10 max-w-7xl">

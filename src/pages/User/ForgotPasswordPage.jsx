@@ -1,8 +1,7 @@
 import React, {useState} from "react";
-import {Link} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
 import logo from "../../assets/logo.jpg";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import {faFacebookF, faGoogle, faTwitter,} from "@fortawesome/free-brands-svg-icons";
 import axiosInstance from "../../api/axiosInstance.js";
 import {backendBaseURL} from "../../data/environment.js";
 import {toast} from "react-toastify";
@@ -72,20 +71,6 @@ const styles = {
         marginTop: "10px",
         marginBottom: "10px",
     },
-    alternativeText: {
-        fontSize: "14px",
-        color: "#555",
-        marginBottom: "10px",
-    },
-    socialButton: {
-        paddingLeft: "15px",
-        paddingRight: "15px",
-        fontSize: "20px",
-        borderRadius: "10px",
-        border: "none",
-        cursor: "pointer",
-        margin: "0 5px",
-    },
     passwordWrapper: {
         position: "relative",
     },
@@ -107,6 +92,7 @@ const ForgotPasswordPage = () => {
     const [error, setError] = useState(null); // Holds error messages for form validation
     const [otpSent, setOtpSent] = useState(false);
     const [otp, setOtp] = useState("");
+    const navigate = useNavigate();
 
     const [formData, setFormData] = useState({
         email: "",
@@ -146,6 +132,8 @@ const ForgotPasswordPage = () => {
                 newPassword: formData.newPassword
             });
             toast.success("Password updated successfully!");
+            setTimeout(() => navigate("/login"), 1500);
+
         } catch (err) {
             console.error("Password update failed", err);
             toast.error("Failed to update password.");
@@ -166,10 +154,12 @@ const ForgotPasswordPage = () => {
         <div style={styles.container}>
             <div style={styles.box}>
                 <div>
-                    <img src={logo} alt="logo" style={styles.logo}/>
+                    <Link to={"/"}>
+                        <img src={logo} alt="logo" style={styles.logo}/>
+                    </Link>
                 </div>
                 <div style={styles.backToLogin}>
-                    <Link to="/login">
+                    <Link to="/login" className="text-black hover:text-blue-800">
                         &lt; Back to login
                     </Link>
                 </div>
@@ -191,7 +181,9 @@ const ForgotPasswordPage = () => {
                         />
                     </div>
 
-                    <button type="button" style={styles.button} onClick={sendOtp}>
+                    <button type="button"
+                            onClick={sendOtp}
+                            className="w-full px-4 py-2 bg-[#005b7c] text-white rounded-md text-base mt-2 mb-2 hover:bg-[#007ca1] transition-colors duration-300">
                         Send OTP
                     </button>
 
@@ -248,27 +240,12 @@ const ForgotPasswordPage = () => {
                                 </button>
                             </div>
                         </div>
-                        <button type="submit" style={styles.button}>
+                        <button type="submit"
+                                className="w-full px-4 py-2 bg-[#005b7c] text-white rounded-md text-base mt-2 mb-2 hover:bg-[#007ca1] transition-colors duration-300">
                             Update Password
                         </button>
                     </div>
                 </form>
-                <div style={styles.alternativeText}>
-                    ------------ Or login with ------------
-                </div>
-                <div>
-                    <button style={styles.socialButton} onClick={() => window.location.href = 'https://www.google.com'}>
-                        <FontAwesomeIcon icon={faGoogle}/>
-                    </button>
-                    <button style={styles.socialButton}
-                            onClick={() => window.location.href = 'https://www.facebook.com'}>
-                        <FontAwesomeIcon icon={faFacebookF}/>
-                    </button>
-                    <button style={styles.socialButton}
-                            onClick={() => window.location.href = 'https://www.twitter.com'}>
-                        <FontAwesomeIcon icon={faTwitter}/>
-                    </button>
-                </div>
             </div>
         </div>
     );
