@@ -1,1 +1,49 @@
 @import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom base styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom component styles */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Custom utility classes for specific colors */
+.bg-custom-blue { background-color: #4A90E2; }
+.bg-custom-green { background-color: #2ECC71; }
+.bg-custom-light { background-color: #F7F9FC; }
+.bg-custom-teal { background-color: #005B66; }
+.bg-custom-light-teal { background-color: #D3E0E2; }
+.bg-custom-gray { background-color: #A0B3B5; }
+.bg-custom-light-gray { background-color: #bbbbbb; }
+
+.text-custom-dark { color: #333333; }
+.text-custom-gray { color: #666666; }
+.text-custom-teal { color: #005B66; }
+.text-custom-light-teal { color: #D3E0E2; }
+.text-custom-gray-blue { color: #A0B3B5; }
+
+.border-custom-gray { border-color: #A0B3B5; }
+.border-custom-light-teal { border-color: #D3E0E2; }
+
+/* Hover states */
+.hover\:bg-custom-light-teal:hover { background-color: #D3E0E2; }
+.hover\:bg-custom-teal:hover { background-color: #005B66; }

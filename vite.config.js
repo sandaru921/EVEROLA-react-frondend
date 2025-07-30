@@ -12,18 +12,43 @@
 //   },
 // });
 
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import path from 'path'
+// import { defineConfig } from 'vite'
+// import react from '@vitejs/plugin-react'
+// import path from 'path'
+
+// export default defineConfig({
+//   plugins: [react()],
+//   resolve: {
+//     alias: {
+//       '@components': path.resolve(__dirname, 'src/components'),
+//       // add other aliases if you use them, e.g.:
+//       // '@pages': path.resolve(__dirname, 'src/pages'),
+//     },
+//   },
+//   build: {
+//     sourcemap: false,
+//   },
+//   optimizeDeps: {
+//     esbuildOptions: {
+//       sourcemap: false,
+//     },
+//   },
+// })
+
+
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import path from 'path';
 
 export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
       '@components': path.resolve(__dirname, 'src/components'),
-      // add other aliases if you use them, e.g.:
-      // '@pages': path.resolve(__dirname, 'src/pages'),
     },
+  },
+  css: {
+    postcss: './postcss.config.js', // Explicitly configure PostCSS
   },
   build: {
     sourcemap: false,
@@ -33,4 +58,4 @@ export default defineConfig({
       sourcemap: false,
     },
   },
-})
+});
